@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/anime/samehadaku/:match*",
-      "destination": "/api/index"
+      "source": "/otakudesu/:path*",
+      "destination": "/api"
     }
   ]
 }

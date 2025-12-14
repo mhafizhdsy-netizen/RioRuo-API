@@ -1,5 +1,5 @@
 {
-  "name": "Samehadaku API Playground",
-  "description": "A comprehensive RESTful API Playground and Visualizer for the Samehadaku Anime Scraper. Test endpoints, inspect JSON responses, and preview rendered anime data in a modern dark-themed interface.",
+  "name": "Otakudesu API Playground",
+  "description": "A comprehensive RESTful API Playground and Visualizer for the Otakudesu Scraper. Test endpoints, inspect JSON responses, and preview rendered anime data in a modern dark-themed interface.",
   "requestFramePermissions": []
 }

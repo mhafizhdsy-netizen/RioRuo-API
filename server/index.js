@@ -1,6 +1,6 @@
 import express from 'express';
 import cors from 'cors';
-import router from './routes.js';
+import router from './routes/routes.js'; // Assuming routes.js is now in server/routes/
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -14,12 +14,12 @@ app.use(express.urlencoded({ extended: true }));
 app.get('/', (req, res) => {
   res.json({
     status: 'success',
-    message: 'Samehadaku API Scraper is running!',
-    endpoints: '/anime/samehadaku/*'
+    message: 'Otakudesu API is running!',
+    endpoints: '/otakudesu/v1/*' // Updated endpoint path
   });
 });
 
-app.use('/anime/samehadaku', router);
+app.use('/otakudesu', router); // Mount the main router under /otakudesu
 
 // 404 Handler
 app.use((req, res) => {

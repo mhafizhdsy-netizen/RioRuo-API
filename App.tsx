@@ -1,24 +1,24 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ApiEndpoint } from './types';
-import { apiService, BASE_URL } from './services/api';
+import { ApiEndpoint } from './src/types/types.js'; // Correct relative path from App.tsx (at root) to src/types/types.ts
+import { apiService, BASE_URL } from './frontend-api/api';
 import { ConsoleOutput } from './components/ConsoleOutput';
 import { 
   Terminal, Search, Zap, 
   Settings, Command, Layout, 
-  List, Grid, Film, ChevronDown, Check,
-  Server
+  List, Grid, Film, ChevronDown, Check
 } from 'lucide-react';
 
 export function App() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<string>(ApiEndpoint.HOME);
   
   // Request Params
-  const [query, setQuery] = useState('one piece');
-  const [animeId, setAnimeId] = useState('one-piece');
-  const [episodeId, setEpisodeId] = useState('one-piece-episode-1141');
-  const [batchId, setBatchId] = useState('mushoku-no-eiyuu');
-  const [genreId, setGenreId] = useState('action');
-  const [serverId, setServerId] = useState('9AAB5-6-xhmyrq');
+  const [keyword, setKeyword] = useState('jujutsu kaisen'); // Changed from query to keyword
+  const [animeSlug, setAnimeSlug] = useState('jujutsu-kaisen-s2'); // Changed from animeId to animeSlug
+  const [episodeSlug, setEpisodeSlug] = useState('jujutsu-kaisen-s2-episode-23'); // Changed from episodeId to episodeSlug
+  const [batchSlug, setBatchSlug] = useState('jujutsu-kaisen-s2-batch'); // Changed from batchId to batchSlug
+  const [genreSlug, setGenreSlug] = useState('action'); // Changed from genreId to genreSlug
+  const [episodeNumber, setEpisodeNumber] = useState('1'); // New state for episode number
+  // Removed serverId as the endpoint is no longer supported
   const [page, setPage] = useState('1');
   
   // Response State
@@ -56,20 +56,17 @@ export function App() {
       let res;
       // Simple router logic based on the selected endpoint string
       if (selectedEndpoint === ApiEndpoint.HOME) res = await apiService.getHome();
-      else if (selectedEndpoint === ApiEndpoint.RECENT) res = await apiService.getRecent(parseInt(page));
-      else if (selectedEndpoint === ApiEndpoint.SEARCH) res = await apiService.getSearch(query, parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.SEARCH) res = await apiService.getSearch(keyword);
       else if (selectedEndpoint === ApiEndpoint.ONGOING) res = await apiService.getOngoing(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.COMPLETED) res = await apiService.getCompleted(parseInt(page));
-      else if (selectedEndpoint === ApiEndpoint.POPULAR) res = await apiService.getPopular(parseInt(page));
-      else if (selectedEndpoint === ApiEndpoint.MOVIES) res = await apiService.getMovies(parseInt(page));
-      else if (selectedEndpoint === ApiEndpoint.SCHEDULE) res = await apiService.getSchedule();
-      else if (selectedEndpoint.includes('/anime/')) res = await apiService.getAnimeDetail(animeId);
-      else if (selectedEndpoint.includes('/episode/')) res = await apiService.getEpisodeDetail(episodeId);
+      else if (selectedEndpoint === ApiEndpoint.ANIME_DETAIL) res = await apiService.getAnimeDetail(animeSlug);
+      else if (selectedEndpoint === ApiEndpoint.ANIME_EPISODES) res = await apiService.getAnimeEpisodes(animeSlug); // New endpoint handler
+      else if (selectedEndpoint === ApiEndpoint.EPISODE_BY_NUMBER) res = await apiService.getEpisodeByNumber(animeSlug, parseInt(episodeNumber)); // New endpoint handler
+      else if (selectedEndpoint === ApiEndpoint.EPISODE_DETAIL) res = await apiService.getEpisodeDetail(episodeSlug);
       else if (selectedEndpoint === ApiEndpoint.GENRES) res = await apiService.getGenres();
-      else if (selectedEndpoint.includes('/genres/')) res = await apiService.getGenreDetail(genreId, parseInt(page));
-      else if (selectedEndpoint === ApiEndpoint.BATCH_LIST) res = await apiService.getBatchList(parseInt(page));
-      else if (selectedEndpoint.includes('/batch/')) res = await apiService.getBatchDetail(batchId);
-      else if (selectedEndpoint.includes('/server/')) res = await apiService.getServer(serverId);
+      else if (selectedEndpoint === ApiEndpoint.GENRE_DETAIL) res = await apiService.getGenreDetail(genreSlug, parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.BATCH_DETAIL) res = await apiService.getBatchDetail(batchSlug);
+      else if (selectedEndpoint === ApiEndpoint.BATCH_BY_ANIME_SLUG) res = await apiService.getBatchByAnimeSlug(animeSlug); // New endpoint handler
       else res = await apiService.getHome(); // Fallback
 
       const endTime = performance.now();
@@ -104,13 +101,13 @@ export function App() {
     
     if (selectedEndpoint === ApiEndpoint.SEARCH) {
       inputs.push(
-        <div key="q" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Search Query</label>
+        <div key="keyword" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Search Keyword</label>
           <div className="relative">
             <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
             <input 
               type="text" 
-              value={query} onChange={(e) => setQuery(e.target.value)}
+              value={keyword} onChange={(e) => setKeyword(e.target.value)}
               className="w-full bg-surface border border-border rounded-lg py-2.5 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all text-white"
               placeholder="e.g. Naruto"
             />
@@ -119,13 +116,19 @@ export function App() {
       );
     }
     
-    if (selectedEndpoint.includes(':animeId')) {
+    // Anime Slug for ANIME_DETAIL, ANIME_EPISODES, BATCH_BY_ANIME_SLUG, EPISODE_BY_NUMBER
+    if ([
+      ApiEndpoint.ANIME_DETAIL, 
+      ApiEndpoint.ANIME_EPISODES, 
+      ApiEndpoint.BATCH_BY_ANIME_SLUG,
+      ApiEndpoint.EPISODE_BY_NUMBER
+    ].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
-        <div key="aid" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Anime Slug ID</label>
+        <div key="animeSlug" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Anime Slug</label>
           <input 
             type="text" 
-            value={animeId} onChange={(e) => setAnimeId(e.target.value)}
+            value={animeSlug} onChange={(e) => setAnimeSlug(e.target.value)}
             className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
             placeholder="e.g. one-piece"
           />
@@ -133,13 +136,29 @@ export function App() {
       );
     }
 
-    if (selectedEndpoint.includes(':episodeId')) {
+    // Episode Number for EPISODE_BY_NUMBER
+    if (selectedEndpoint === ApiEndpoint.EPISODE_BY_NUMBER) {
       inputs.push(
-        <div key="eid" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Episode Slug ID</label>
+        <div key="episodeNumber" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Episode Number</label>
+          <input 
+            type="number" 
+            value={episodeNumber} onChange={(e) => setEpisodeNumber(e.target.value)}
+            className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
+            placeholder="e.g. 1"
+          />
+        </div>
+      );
+    }
+
+    // Episode Slug for EPISODE_DETAIL
+    if (selectedEndpoint === ApiEndpoint.EPISODE_DETAIL) {
+      inputs.push(
+        <div key="episodeSlug" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Episode Slug</label>
           <input 
             type="text" 
-            value={episodeId} onChange={(e) => setEpisodeId(e.target.value)}
+            value={episodeSlug} onChange={(e) => setEpisodeSlug(e.target.value)}
             className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
             placeholder="e.g. one-piece-episode-1"
           />
@@ -147,27 +166,29 @@ export function App() {
       );
     }
 
-    if (selectedEndpoint.includes(':batchId')) {
+    // Batch Slug for BATCH_DETAIL
+    if (selectedEndpoint === ApiEndpoint.BATCH_DETAIL) {
       inputs.push(
-        <div key="bid" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Batch Slug ID</label>
+        <div key="batchSlug" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Batch Slug</label>
           <input 
             type="text" 
-            value={batchId} onChange={(e) => setBatchId(e.target.value)}
+            value={batchSlug} onChange={(e) => setBatchSlug(e.target.value)}
             className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
-            placeholder="e.g. mushoku-no-eiyuu"
+            placeholder="e.g. jujutsu-kaisen-s2-batch"
           />
         </div>
       );
     }
 
-    if (selectedEndpoint.includes(':genreId')) {
+    // Genre Slug for GENRE_DETAIL
+    if (selectedEndpoint === ApiEndpoint.GENRE_DETAIL) {
       inputs.push(
-        <div key="gid" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Genre ID</label>
+        <div key="genreSlug" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Genre Slug</label>
           <input 
             type="text" 
-            value={genreId} onChange={(e) => setGenreId(e.target.value)}
+            value={genreSlug} onChange={(e) => setGenreSlug(e.target.value)}
             className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
             placeholder="e.g. action"
           />
@@ -175,25 +196,10 @@ export function App() {
       );
     }
 
-    if (selectedEndpoint.includes(':serverId')) {
-      inputs.push(
-        <div key="sid" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Server ID</label>
-          <input 
-            type="text" 
-            value={serverId} onChange={(e) => setServerId(e.target.value)}
-            className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
-            placeholder="e.g. 9AAB5-6-xhmyrq"
-          />
-        </div>
-      );
-    }
-
-    // Generic Page Input for lists
+    // Generic Page Input for lists - only for ongoing, completed, genre detail
     if ([
-      ApiEndpoint.SEARCH, ApiEndpoint.RECENT, ApiEndpoint.ONGOING, 
-      ApiEndpoint.COMPLETED, ApiEndpoint.POPULAR, ApiEndpoint.MOVIES, 
-      ApiEndpoint.GENRE_DETAIL, ApiEndpoint.BATCH_LIST
+      ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, 
+      ApiEndpoint.GENRE_DETAIL
     ].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="pg" className="flex flex-col gap-2">
@@ -216,16 +222,22 @@ export function App() {
   };
 
   const categories = [
-    { name: "Discovery", icon: <Layout size={16} />, items: [ApiEndpoint.HOME, ApiEndpoint.RECENT, ApiEndpoint.POPULAR] },
-    { name: "Lists", icon: <List size={16} />, items: [ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.MOVIES, ApiEndpoint.BATCH_LIST] },
-    { name: "Search & Schedule", icon: <Search size={16} />, items: [ApiEndpoint.SEARCH, ApiEndpoint.SCHEDULE] },
-    { name: "Details", icon: <Film size={16} />, items: [ApiEndpoint.ANIME_DETAIL, ApiEndpoint.EPISODE_DETAIL, ApiEndpoint.BATCH_DETAIL] },
+    { name: "Discovery", icon: <Layout size={16} />, items: [ApiEndpoint.HOME] },
+    { name: "Lists", icon: <List size={16} />, items: [ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED] },
+    { name: "Search", icon: <Search size={16} />, items: [ApiEndpoint.SEARCH] },
+    { name: "Details", icon: <Film size={16} />, items: [
+      ApiEndpoint.ANIME_DETAIL, 
+      ApiEndpoint.ANIME_EPISODES, // New Endpoint
+      ApiEndpoint.EPISODE_BY_NUMBER, // New Endpoint
+      ApiEndpoint.EPISODE_DETAIL, 
+      ApiEndpoint.BATCH_DETAIL,
+      ApiEndpoint.BATCH_BY_ANIME_SLUG // New Endpoint
+    ]},
     { name: "Metadata", icon: <Grid size={16} />, items: [ApiEndpoint.GENRES, ApiEndpoint.GENRE_DETAIL] },
-    { name: "System", icon: <Server size={16} />, items: [ApiEndpoint.SERVER] },
   ];
 
   // Logic to display meaningful base url
-  const displayBaseUrl = BASE_URL;
+  const displayBaseUrl = `${BASE_URL}/otakudesu/v1`;
 
   return (
     <div className="min-h-screen bg-background text-zinc-300 font-sans selection:bg-primary/20 selection:text-primary flex flex-col h-screen">
@@ -236,7 +248,7 @@ export function App() {
           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]">
             <Terminal size={18} strokeWidth={3} />
           </div>
-          <h1 className="font-bold text-white tracking-tight text-lg">Samehadaku API Console</h1>
+          <h1 className="font-bold text-white tracking-tight text-lg">Otakudesu API Console</h1>
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full">

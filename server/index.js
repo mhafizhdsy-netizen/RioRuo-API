@@ -10,6 +10,13 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+// DIAGNOSTIC LOGGING: Temporarily log incoming request URLs to Vercel logs
+// Remove this middleware once routing issues are resolved.
+app.use((req, res, next) => {
+  console.log(`[Diagnostic Log] Incoming request URL received by Express: ${req.url}`);
+  next();
+});
+
 // Routes
 // This root endpoint will only be hit if someone directly accesses https://rioruo.vercel.app/api
 // The frontend will use the /otakudesu/v1/... path, which Vercel rewrites to /api/v1/...
@@ -24,11 +31,12 @@ app.get('/', (req, res) => {
 // Mount the main router directly as Vercel rewrites will strip the /otakudesu prefix
 app.use(router); 
 
-// 404 Handler
+// 404 Handler for anything not caught by the main router
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
-    message: `Endpoint not found: ${req.method} ${req.originalUrl}`
+    message: `Endpoint not found: ${req.method} ${req.originalUrl}. Check your route definitions.`,
+    hint: 'This means the request reached the Express app, but no handler matched the specific URL.'
   });
 });
 

@@ -11,7 +11,7 @@ const mapGenres = (html) => {
 
     result.push({
       name: $('a').text(),
-      slug: $('a').attr('href')?.replace(/^https:\/\/otakudesu\.is\/genres\//, ''), // Updated regex for otakudesu.is
+      slug: $('a').attr('href')?.replace(/^https:\/\/otakudesu\.best\/genres\//, ''), // Updated regex for otakudesu.best
       otakudesu_url: $('a').attr('href')
     });
   });

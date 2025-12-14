@@ -2,7 +2,7 @@ import axios from 'axios';
 import getBatch from '../lib/getBatch.js';
 import scrapeBatch from '../lib/scrapeBatch.js';
 
-const BASEURL = 'https://otakudesu.is'; // Hardcoded BASEURL for scraping
+const BASEURL = 'https://otakudesu.best'; // Hardcoded BASEURL for scraping
 const batch = async ({ batchSlug, animeSlug }) => {
   let batch = batchSlug;
 

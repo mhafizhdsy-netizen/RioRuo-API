@@ -61,7 +61,7 @@ const getRecomendations = (html) => {
     const title = $('.judul-anime').text();
     const poster = $('.isi-anime img').attr('src');
     const otakudesu_url = $('.isi-anime a').attr('href');
-    const slug = otakudesu_url?.replace(/^https:\/\/otakudesu\.is\/anime\//, ''); // Updated regex for otakudesu.is
+    const slug = otakudesu_url?.replace(/^https:\/\/otakudesu\.best\/anime\//, ''); // Updated regex for otakudesu.best
     result.push({
       title,
       slug,

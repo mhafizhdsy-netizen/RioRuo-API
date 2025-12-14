@@ -6,7 +6,7 @@ const getBatch = (html) => {
   const uploaded_at = $('.venser #serieslist ~ .episodelist ul li:first-child span.zeebr:first').text();
 
   return batch?.match('episode') ? null : {
-    slug: batch?.replace(/^https:\/\/otakudesu\.is\/batch\//, ''), // Updated regex for otakudesu.is
+    slug: batch?.replace(/^https:\/\/otakudesu\.best\/batch\//, ''), // Updated regex for otakudesu.best
     otakudesu_url: batch,
     uploaded_at
   };

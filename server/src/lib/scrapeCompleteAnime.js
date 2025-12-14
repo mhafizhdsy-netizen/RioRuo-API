@@ -11,7 +11,7 @@ const scrapeCompleteAnime = (html) => {
 
     result.push({
       title: $('.detpost .thumb .thumbz .jdlflm').text(),
-      slug: $('.detpost .thumb a').attr('href')?.replace(/^https:\/\/otakudesu\.is\/anime\//, ''), // Updated regex for otakudesu.is
+      slug: $('.detpost .thumb a').attr('href')?.replace(/^https:\/\/otakudesu\.best\/anime\//, ''), // Updated regex for otakudesu.best
       poster: $('.detpost .thumb .thumbz img').attr('src'),
       episode_count: $('.detpost .epz').text().trim().replace(' Episode', ''),
       rating: $('.detpost .epztipe').text().trim(),

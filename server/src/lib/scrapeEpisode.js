@@ -1,6 +1,6 @@
 import { load } from 'cheerio';
 
-const BASEURL = 'https://otakudesu.is'; // Hardcoded BASEURL for scraping
+const BASEURL = 'https://otakudesu.best'; // Hardcoded BASEURL for scraping
 const scrapeEpisode = (html) => {
   const $ = load(html);
   const episode = getEpisodeTitle($);
@@ -111,7 +111,7 @@ const getPrevEpisode = ($) => {
   if (!$('.flir a:first').attr('href')?.startsWith(`${BASEURL}/episode/`)) return null;
 
   return {
-    slug: $('.flir a:first').attr('href')?.replace(`${BASEURL}/episode/`, ''), // Updated regex for otakudesu.is
+    slug: $('.flir a:first').attr('href')?.replace(`${BASEURL}/episode/`, ''), // Updated regex for otakudesu.best
     otakudesu_url: $('.flir a:first').attr('href'),
   };
 };
@@ -120,7 +120,7 @@ const getNextEpisode = ($) => {
   if (!$('.flir a:last').attr('href')?.startsWith(`${BASEURL}/episode/`)) return null;
 
   return {
-    slug: $('.flir a:last').attr('href')?.replace(`${BASEURL}/episode/`, ''), // Updated regex for otakudesu.is
+    slug: $('.flir a:last').attr('href')?.replace(`${BASEURL}/episode/`, ''), // Updated regex for otakudesu.best
     otakudesu_url: $('.flir a:last').attr('href'),
   };
 };
@@ -144,7 +144,7 @@ const getAnimeData = ($) => {
   }
 
   return {
-    slug: animeUrl?.replace(`${BASEURL}/anime/`, ''), // Updated regex for otakudesu.is
+    slug: animeUrl?.replace(`${BASEURL}/anime/`, ''), // Updated regex for otakudesu.best
     otakudesu_url: animeUrl,
   };
 };

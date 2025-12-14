@@ -12,7 +12,7 @@ const scrapeAnimeEpisodes = (html) => {
     const $ = load(episode);
     result.unshift({
       episode: $('li span:first a')?.text(),
-      slug: $('li span:first a')?.attr('href')?.replace(/^https:\/\/otakudesu\.is\/episode\//, ''), // Updated regex for otakudesu.is
+      slug: $('li span:first a')?.attr('href')?.replace(/^https:\/\/otakudesu\.best\/episode\//, ''), // Updated regex for otakudesu.best
       otakudesu_url: $('li span:first a')?.attr('href')
     });
   }

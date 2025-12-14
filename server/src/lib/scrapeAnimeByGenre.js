@@ -18,7 +18,7 @@ const scrapeAnimeByGenre = (html) => {
 
     result.push({
       title: $('.col-anime .col-anime-title a').text(),
-      slug: $('.col-anime .col-anime-trailer a').attr('href')?.replace(/^https:\/\/otakudesu\.is\/anime\//, ''), // Updated regex for otakudesu.is
+      slug: $('.col-anime .col-anime-trailer a').attr('href')?.replace(/^https:\/\/otakudesu\.best\/anime\//, ''), // Updated regex for otakudesu.best
       poster: $('.col-anime .col-anime-cover img').attr('src'),
       rating: $('.col-anime .col-anime-rating').text() ?? null,
       episode_count: episodeCount === '' ? null : episodeCount,

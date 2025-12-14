@@ -3,7 +3,7 @@ import { load } from 'cheerio';
 import scrapeOngoingAnime from '../lib/scrapeOngoingAnime.js';
 import scrapeCompleteAnime from '../lib/scrapeCompleteAnime.js';
 
-const BASEURL = 'https://otakudesu.is'; // Hardcoded BASEURL for scraping
+const BASEURL = 'https://otakudesu.best'; // Hardcoded BASEURL for scraping
 const home = async () => {
   const { data } = await axios.get(BASEURL);
   const $ = load(data);

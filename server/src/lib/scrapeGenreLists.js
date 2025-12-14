@@ -1,6 +1,6 @@
 import { load } from 'cheerio';
 
-const BASEURL = 'https://otakudesu.is'; // Hardcoded BASEURL for scraping
+const BASEURL = 'https://otakudesu.best'; // Hardcoded BASEURL for scraping
 const scrapeGenreLists = (html) => {
   const $ = load(html);
   const result = [];

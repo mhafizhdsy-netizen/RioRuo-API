@@ -16,7 +16,7 @@ const scrapeSearchResult = (html) => {
 
     searchResult.push({
       title: $('h2 a').text(),
-      slug: $('h2 a').attr('href')?.replace(/^https:\/\/otakudesu\.is\/anime\//, ''), // Updated regex for otakudesu.is
+      slug: $('h2 a').attr('href')?.replace(/^https:\/\/otakudesu\.best\/anime\//, ''), // Updated regex for otakudesu.best
       poster: $('img').attr('src'),
       genres,
       status: $('.set:nth-child(4)').text()?.replace('Status : ', ''),

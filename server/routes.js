@@ -15,52 +15,31 @@ const tryHandler = (fn) => async (req, res) => {
       pagination: data.pagination || null
     });
   } catch (error) {
-    // Check if it's an Axios network/response error (unlikely with Selenium, but kept for safety)
-    const isAxiosError = !!error.isAxiosError;
-    const isSeleniumError = error.name === 'WebDriverError' || error.name === 'SessionNotCreatedError';
-    
     // Extract detailed error info
-    const upstreamUrl = error.config?.url || 'Unknown Target URL';
-    const method = error.config?.method?.toUpperCase() || 'GET';
-    const statusCode = error.response?.status || 500;
     const errorCode = error.code || error.name || 'UNKNOWN_ERROR';
 
     // Enhanced Server Logging
     console.error(`\n[Scraper Error] Request: ${req.method} ${req.originalUrl}`);
-    
-    if (isAxiosError) {
-      console.error(`  ↳ Upstream Attempt: ${method} ${upstreamUrl}`);
-      console.error(`  ↳ Failure: ${statusCode} ${error.response?.statusText} [${errorCode}]`);
-    } else if (isSeleniumError) {
-       console.error(`  ↳ Selenium Error: ${error.message.split('\n')[0]}`);
-    } else {
-      console.error(`  ↳ Internal/Parse Error: ${error.message}`);
-    }
+    console.error(`  ↳ Message: ${error.message}`);
     
     // Construct descriptive user-facing message
     let clientMessage = error.message;
     let hint = "Check server logs for full stack trace.";
 
-    if (isAxiosError) {
-      if (statusCode === 404) {
-        clientMessage = `Resource not found on upstream server (404).`;
-      } else if (statusCode === 403) {
-        clientMessage = `Access Forbidden (403). Blocked by Cloudflare?`;
-      }
-    } else if (isSeleniumError) {
-       clientMessage = "Browser Automation Failed.";
-       hint = "The server might lack Chrome binaries or memory. Ensure chromedriver is installed.";
-       if(error.message.includes('element located')) {
-           clientMessage = "Timeout waiting for page content.";
-           hint = "The website is loading too slowly or structure changed.";
+    if (error.response) {
+       // Handle HTTP errors from ScraperJS/Request
+       if (error.response.statusCode === 404) {
+           clientMessage = `Resource not found on upstream server (404).`;
+       } else if (error.response.statusCode === 403) {
+           clientMessage = `Access Forbidden (403). Blocked by Cloudflare?`;
        }
     }
 
     // JSON Response
-    res.status(statusCode === 200 ? 500 : statusCode).json({
+    res.status(500).json({
       status: "error",
       message: clientMessage,
-      code: statusCode,
+      code: 500,
       errorType: errorCode,
       endpoint: req.originalUrl,
       timestamp: new Date().toISOString(),

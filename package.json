@@ -16,8 +16,7 @@
     "axios": "^1.6.7",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
-    "selenium-webdriver": "^4.18.1",
-    "chromedriver": "^122.0.0"
+    "scraperjs": "^1.2.0"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",

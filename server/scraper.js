@@ -1,9 +1,7 @@
-import * as cheerio from 'cheerio';
 import { createRequire } from 'module';
 
 const require = createRequire(import.meta.url);
-const { Builder, By, until } = require('selenium-webdriver');
-const { Options } = require('selenium-webdriver/chrome');
+const scraperjs = require('scraperjs');
 
 const BASE_URL = 'https://samehadaku.how';
 
@@ -16,51 +14,24 @@ const fetchHTML = async (endpoint, params = {}) => {
   });
   
   const targetUrl = urlObj.toString();
-  console.log(`[Scraper] Fetching via Selenium: ${targetUrl}`);
+  console.log(`[Scraper] Fetching via ScraperJS: ${targetUrl}`);
 
-  let driver;
-  try {
-    const options = new Options();
-    options.addArguments('--headless=new'); // Modern headless mode
-    options.addArguments('--no-sandbox');
-    options.addArguments('--disable-dev-shm-usage');
-    options.addArguments('--disable-gpu');
-    options.addArguments('--window-size=1920,1080');
-    options.addArguments('--disable-blink-features=AutomationControlled');
-    options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
-    options.addArguments('--ignore-certificate-errors');
-
-    driver = await new Builder()
-      .forBrowser('chrome')
-      .setChromeOptions(options)
-      .build();
-
-    await driver.get(targetUrl);
-
-    // Wait for the body to be present
-    await driver.wait(until.elementLocated(By.css('body')), 15000);
-    
-    // Explicit wait for Cloudflare challenge or dynamic content
-    // We wait for a common element in Samehadaku's theme to ensure we passed the "Just a moment" screen
-    try {
-        // Try waiting for the footer or main content
-        await driver.wait(until.elementLocated(By.css('.site-content, .hfeed, footer')), 5000);
-    } catch (e) {
-        // Fallback: just wait a bit if specific element not found (maybe different page structure)
-        await new Promise(resolve => setTimeout(resolve, 3000));
-    }
-
-    const html = await driver.getPageSource();
-    return cheerio.load(html);
-
-  } catch (error) {
-    console.error(`[Scraper Error] Failed to fetch ${targetUrl}:`, error.message);
-    throw error;
-  } finally {
-    if (driver) {
-      await driver.quit();
-    }
-  }
+  return new Promise((resolve, reject) => {
+    // Use StaticScraper to fetch content without a browser
+    // This resolves the "Read-only file system" error on Vercel
+    scraperjs.StaticScraper.create(targetUrl)
+        .scrape(($) => {
+            // Simply return the Cheerio object to be used by the calling function
+            return $;
+        })
+        .then(($) => {
+            resolve($);
+        })
+        .catch((err) => {
+            console.error(`[Scraper Error] Failed to fetch ${targetUrl}:`, err.message);
+            reject(err);
+        });
+  });
 };
 
 const extractId = (url) => {

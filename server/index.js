@@ -10,25 +10,27 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// DIAGNOSTIC LOGGING: Temporarily log incoming request URLs to Vercel logs
-// Remove this middleware once routing issues are resolved.
+// DIAGNOSTIC LOGGING
 app.use((req, res, next) => {
-  console.log(`[Diagnostic Log] Incoming request URL received by Express: ${req.url}`);
+  console.log(`[Diagnostic Log] Incoming request URL: ${req.url}`);
   next();
 });
 
-// Mount the main router directly.
-// Vercel's rewrite rules handle the '/api' prefix, so this Express app
-// receives paths *after* the '/api' prefix has been conceptually handled.
-// For example, /otakudesu/v1/home -> /api/v1/home (by vercel.json) -> this app receives /v1/home
-app.use(router); 
+// IMPORTANT: Mount the router to handle multiple potential prefixes.
+// When Vercel rewrites /otakudesu/v1/home -> /api/index.js, the req.url seen by Express
+// might still contain the full path depending on the execution context.
+// By mounting on multiple paths, we ensure the internal router (which expects /v1) gets hit.
 
-// 404 Handler for anything not caught by the main router
+app.use('/otakudesu', router); // Handles: /otakudesu/v1/home
+app.use('/api', router);       // Handles: /api/v1/home (if accessed directly)
+app.use('/', router);          // Handles: /v1/home (Local development)
+
+// 404 Handler for anything not caught by the router
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
-    message: `Endpoint not found within the Otakudesu API: ${req.method} ${req.originalUrl}. Check your route definitions.`,
-    hint: 'This means the request reached the Express app, but no handler matched the specific URL after /v1.'
+    message: `Endpoint not found within the Otakudesu API: ${req.method} ${req.originalUrl}.`,
+    hint: 'This means the request reached Express, but the router paths (mounted at /otakudesu, /api, or /) did not match the remaining URL.'
   });
 });
 

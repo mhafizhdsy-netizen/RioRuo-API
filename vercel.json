@@ -1,8 +1,8 @@
 {
   "rewrites": [
     {
-      "source": "/otakudesu/:path*",
-      "destination": "/api/:path*"
+      "source": "/otakudesu/(.*)",
+      "destination": "/api/index.js"
     }
   ]
 }

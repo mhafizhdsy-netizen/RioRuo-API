@@ -1,5 +1,15 @@
 import otakudesu from '../src/otakudesu.js';
 
+const handleError = (res, e) => {
+  console.log(e);
+  const status = e.response?.status || 500;
+  const message = e.message || 'Internal server error';
+  // If it's a 403, it's likely Cloudflare blocking
+  const hint = status === 403 ? 'The origin server blocked the request (Cloudflare). Try again later or update headers.' : undefined;
+  
+  return res.status(status).json({ status: 'Error', message, hint });
+};
+
 const searchAnimeHandler = async (req, res) => {
   const { keyword } = req.params;
 
@@ -7,8 +17,7 @@ const searchAnimeHandler = async (req, res) => {
   try{
     data = await otakudesu.search(keyword);
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   return res.status(200).json({ status: 'Ok', data });
@@ -19,8 +28,7 @@ const homeHandler = async (_, res)  => {
   try {
     data = await otakudesu.home();
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   return res.status(200).json({ status: 'Ok', data });
@@ -37,8 +45,7 @@ const ongoingAnimeHandler = async (req, res) => {
   try {
     result = page ? await otakudesu.ongoingAnime(parseInt(page)) : await otakudesu.ongoingAnime();
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
   const { paginationData, ongoingAnimeData } = result;
 
@@ -57,8 +64,7 @@ const completeAnimeHandler = async (req, res) => {
   try {
     result = page ? await otakudesu.completeAnime(parseInt(page)) : await otakudesu.completeAnime();
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
   const { paginationData, completeAnimeData } = result;
 
@@ -73,8 +79,7 @@ const singleAnimeHandler = async (req, res) => {
   try {
     data = await otakudesu.anime(slug);
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
@@ -88,8 +93,7 @@ const episodesHandler = async (req, res) => {
   try {
     data = await otakudesu.episodes(slug);
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
@@ -103,8 +107,7 @@ const episodeByEpisodeSlugHandler = async (req, res) => {
   try {
     data = await otakudesu.episode({ episodeSlug:  slug });
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Ok', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
@@ -120,8 +123,7 @@ const episodeByEpisodeNumberHandler = async (req, res) => {
   try {
     data = await otakudesu.episode({ animeSlug, episodeNumber: parseInt(episode) });
   } catch (e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
@@ -135,8 +137,7 @@ const batchByBatchSlugHandler = async (req, res) => {
   try {
     data = await otakudesu.batch({ batchSlug: slug });
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   return res.status(200).json({ status: 'Ok', data });
@@ -149,8 +150,7 @@ const batchHandler = async (req, res) => {
   try {
     data = await otakudesu.batch({ animeSlug: slug });
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   return data ? res.status(200).json({ status: 'Ok', data }) : res.status(404).json({
@@ -165,8 +165,7 @@ const genreListsHandler = async (_, res) => {
   try {
     data = await otakudesu.genreLists();
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   return res.status(200).json({ status: 'Ok', data });
@@ -184,8 +183,7 @@ const animeByGenreHandler = async (req, res) => {
   try {
     data = await otakudesu.animeByGenre(slug, page);
   } catch(e) {
-    console.log(e);
-    return res.status(500).json({ status: 'Error', message: 'Internal server error' });
+    return handleError(res, e);
   }
 
   return res.status(200).json({ status: 'Ok', data });

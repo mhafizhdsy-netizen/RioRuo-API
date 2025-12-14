@@ -2,86 +2,125 @@ import axios from 'axios';
 import * as cheerio from 'cheerio';
 import https from 'https';
 
-// Base URL configuration
-const BASE_URL = 'https://samehadaku.how';
+// --- Configuration ---
 
-// Configure HTTPS Agent to ignore SSL errors
+// List of potential domains to try (Priority Order)
+// .li is currently active
+// v1.samehadaku.how is the current mirror for .how
+const DOMAINS = [
+  'https://samehadaku.li',
+  'https://v1.samehadaku.how',
+  'https://samehadaku.care'
+];
+
+let currentBaseUrl = DOMAINS[0];
+
+// Configure HTTPS Agent
 const httpsAgent = new https.Agent({  
-  rejectUnauthorized: false
+  rejectUnauthorized: false,
+  keepAlive: true
 });
 
-// Standard Windows Chrome User Agent
-const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36';
+// User Agents Strategy
+const UA_DESKTOP = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/115.0'; // Firefox is less suspicious from Node
+const UA_SOCIAL = 'facebookexternalhit/1.1 (+http://www.facebook.com/externalhit_uatext.php)'; // Fallback: Pretend to be Facebook crawler
 
-// --- Helper Functions ---
+// --- Network Layer ---
+
+const getHeaders = (isSocial = false) => {
+  if (isSocial) {
+    return {
+      'User-Agent': UA_SOCIAL,
+      'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8',
+      'Accept-Language': 'en-US,en;q=0.5',
+      'Connection': 'keep-alive'
+    };
+  }
+
+  return {
+    'User-Agent': UA_DESKTOP,
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
+    'Accept-Language': 'en-US,en;q=0.5',
+    'Accept-Encoding': 'gzip, deflate', // Avoid br (Brotli) issues in simple axios setup
+    'DNT': '1',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'none',
+    'Sec-Fetch-User': '?1',
+    'Pragma': 'no-cache',
+    'Cache-Control': 'no-cache'
+  };
+};
 
 const fetchHTML = async (endpoint, params = {}) => {
-  const urlObj = new URL(endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`);
+  // Construct Query String
+  const queryParams = new URLSearchParams();
   Object.keys(params).forEach(key => {
-    if (params[key]) urlObj.searchParams.append(key, params[key]);
+    if (params[key]) queryParams.append(key, params[key]);
   });
-  
-  const targetUrl = urlObj.toString();
-  console.log(`[Scraper] Fetching: ${targetUrl}`);
+  const queryString = queryParams.toString() ? `?${queryParams.toString()}` : '';
 
-  try {
-    const response = await axios.get(targetUrl, {
-      headers: {
-        'User-Agent': USER_AGENT,
-        // Mimic real browser Accept headers
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
-        'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
-        'Accept-Encoding': 'gzip, deflate, br', // Explicitly ask for compression
-        'Referer': 'https://www.google.com/', 
-        // Critical Sec- headers for modern Cloudflare bypass
-        'Sec-Ch-Ua': '"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"',
-        'Sec-Ch-Ua-Mobile': '?0',
-        'Sec-Ch-Ua-Platform': '"Windows"',
-        'Sec-Fetch-Dest': 'document',
-        'Sec-Fetch-Mode': 'navigate',
-        'Sec-Fetch-Site': 'cross-site', // 'none' for direct, 'cross-site' if coming from google
-        'Sec-Fetch-User': '?1',
-        'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'max-age=0',
-        'Connection': 'keep-alive'
-      },
-      httpsAgent: httpsAgent,
-      timeout: 15000,
-      maxRedirects: 5,
-      // Attempt to parse even if we get a 403, as some sites serve content with bad codes to bots
-      validateStatus: (status) => status < 500
-    });
+  // Try Loop: Domains -> User Agents
+  let lastError = null;
 
-    // Check if we got redirected to a challenge page
-    const html = response.data;
-    const $ = cheerio.load(html);
-
-    const title = $('title').text().toLowerCase();
+  for (const domain of DOMAINS) {
+    const targetUrl = `${domain}${endpoint.startsWith('/') ? endpoint : '/' + endpoint}${queryString}`;
     
-    // Check for Cloudflare Challenge Text
-    if (title.includes('just a moment') || title.includes('attention required') || title.includes('security check')) {
-         console.warn(`[Scraper Warning] Cloudflare Challenge Detected on ${targetUrl}`);
-         throw new Error(`BLOCKED: Cloudflare security challenge triggered.`);
-    }
+    // Try Standard Desktop UA first, then Social UA
+    const strategies = [false, true]; 
 
-    if (response.status === 403 || response.status === 503) {
-         console.warn(`[Scraper Warning] Received HTTP ${response.status} but attempting to parse content...`);
-    }
+    for (const useSocialBot of strategies) {
+      try {
+        console.log(`[Scraper] Attempting: ${targetUrl} [SocialBot: ${useSocialBot}]`);
 
-    return $;
-  } catch (error) {
-    if (error.response) {
-      console.error(`[Scraper Error] HTTP ${error.response.status} for ${targetUrl}`);
-      // Throw specific error for blocked requests to be handled by route
-      if (error.message.includes('BLOCKED') || [403, 503].includes(error.response.status)) {
-         throw new Error(`Access Denied (HTTP ${error.response.status}). The site is blocking automated requests from this server IP.`);
+        const response = await axios.get(targetUrl, {
+          headers: getHeaders(useSocialBot),
+          httpsAgent: httpsAgent,
+          timeout: 10000,
+          maxRedirects: 3,
+          validateStatus: (status) => status < 500 // Accept 403/404 to parse custom error pages if needed
+        });
+
+        // Basic Cloudflare Check
+        const html = response.data;
+        if (typeof html === 'string') {
+          const lowerHtml = html.toLowerCase();
+          const lowerTitle = html.match(/<title>(.*?)<\/title>/i)?.[1]?.toLowerCase() || '';
+
+          if (
+            lowerTitle.includes('just a moment') || 
+            lowerTitle.includes('attention required') || 
+            lowerTitle.includes('security check') ||
+            lowerHtml.includes('cloudflare')
+          ) {
+             throw new Error('CLOUDFLARE_BLOCK');
+          }
+        }
+
+        // If we reach here, we likely have valid content
+        currentBaseUrl = domain; // Remember working domain
+        return cheerio.load(html);
+
+      } catch (error) {
+        lastError = error;
+        const status = error.response ? error.response.status : 'N/A';
+        const msg = error.message;
+        
+        // If 404, it might just be the page doesn't exist, no need to rotate domain
+        if (status === 404) throw error;
+
+        console.warn(`[Scraper] Failed ${targetUrl} (${msg}). trying next strategy...`);
       }
-    } else {
-      console.error(`[Scraper Error] ${error.message}`);
     }
-    throw error;
   }
+
+  console.error('[Scraper] All strategies failed.');
+  throw new Error(`Failed to fetch data after trying multiple domains and strategies. Last error: ${lastError?.message}`);
 };
+
+// --- Parsers ---
 
 const extractId = (url) => {
   if (!url) return '';
@@ -105,7 +144,7 @@ const extractPagination = ($) => {
   };
 
   try {
-      const paginationElem = $('.pagination, .hpage, .navigation');
+      const paginationElem = $('.pagination, .hpage, .navigation, .nav-links');
       if (paginationElem.length) {
         const current = paginationElem.find('.current, .page-numbers.current').text();
         pagination.currentPage = parseInt(current) || 1;
@@ -118,6 +157,7 @@ const extractPagination = ($) => {
         pagination.hasPrevPage = prev.length > 0;
         if (pagination.hasPrevPage) pagination.prevPage = pagination.currentPage - 1;
 
+        // Try to find max page
         const lastPageText = paginationElem.find('.page-numbers:not(.next):not(.prev)').last().text();
         pagination.totalPages = parseInt(lastPageText) || pagination.currentPage;
       }
@@ -133,17 +173,16 @@ export const getHome = async () => {
   const $ = await fetchHTML('/');
   
   const result = {
-    recent: { href: "/samehadaku/recent", samehadakuUrl: `${BASE_URL}/anime-terbaru/`, animeList: [] },
-    batch: { href: "/samehadaku/batch", samehadakuUrl: `${BASE_URL}/daftar-batch/`, batchList: [] },
-    movie: { href: "/samehadaku/movies", samehadakuUrl: `${BASE_URL}/anime-movie/`, animeList: [] },
-    top10: { href: "/samehadaku/popular", samehadakuUrl: BASE_URL, animeList: [] }
+    recent: { href: "/samehadaku/recent", samehadakuUrl: `${currentBaseUrl}/anime-terbaru/`, animeList: [] },
+    batch: { href: "/samehadaku/batch", samehadakuUrl: `${currentBaseUrl}/daftar-batch/`, batchList: [] },
+    movie: { href: "/samehadaku/movies", samehadakuUrl: `${currentBaseUrl}/anime-movie/`, animeList: [] },
+    top10: { href: "/samehadaku/popular", samehadakuUrl: currentBaseUrl, animeList: [] }
   };
 
   // 1. Recent Updates
-  // Trying broad selectors for maximum compatibility
   let recentItems = $('.post-show ul li, .widget_recent_entries ul li, .latest-updates ul li, .animepost');
   
-  recentItems.slice(0, 10).each((i, el) => {
+  recentItems.slice(0, 12).each((i, el) => {
     const title = $(el).find('.entry-title a, .animetitles, a.tip').first().text().trim();
     const url = $(el).find('a').attr('href');
     const animeId = extractId(url);
@@ -164,7 +203,6 @@ export const getHome = async () => {
   });
 
   // 3. Top 10 / Popular
-  // Fallback to whatever list is available if topten specific class is missing
   let topItems = $('.topten-animesu ul li, .widget_top_anime ul li');
   topItems.each((i, el) => {
     const title = $(el).find('.judul, h4, a').first().text().trim();
@@ -238,7 +276,6 @@ export const getSearch = async (req) => {
 
 export const getOngoing = async (req) => {
   const { page = 1 } = req.query; 
-  // Note: order param sometimes causes issues on some WP themes, removed for stability
   const $ = await fetchHTML(`/daftar-anime-2/page/${page}/`, { status: 'Ongoing' }); 
   
   const animeList = [];
@@ -551,7 +588,7 @@ export const getAnimeDetail = async (req) => {
         data: { 
             title, poster, score, japanese, synonyms, english, status, type, 
             source, duration, season, studios, producers, aired, trailer: '',
-            animeId, href: `/anime/samehadaku/anime/${animeId}`, samehadakuUrl: `${BASE_URL}/anime/${animeId}/`,
+            animeId, href: `/anime/samehadaku/anime/${animeId}`, samehadakuUrl: `${currentBaseUrl}/anime/${animeId}/`,
             synopsis, genreList, batchList, episodeList 
         } 
     };

@@ -1,4 +1,4 @@
-import { ApiEndpoint } from '../src/types/types.js'; // Correct relative path from frontend-api/ to src/types/types.ts
+import { ApiEndpoint } from '../src/types/types.ts'; // Updated path to src/types/types.ts
 
 // Determine Base URL based on environment
 // Updated: Hardcoded to the live Vercel deployment as requested

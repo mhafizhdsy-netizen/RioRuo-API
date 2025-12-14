@@ -1,5 +1,5 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ApiEndpoint } from './src/types/types.js'; // Correct relative path from App.tsx (at root) to src/types/types.ts
+import { ApiEndpoint } from './src/types/types.ts'; // Updated path to src/types/types.ts
 import { apiService, BASE_URL } from './frontend-api/api';
 import { ConsoleOutput } from './components/ConsoleOutput';
 import { 
@@ -80,13 +80,14 @@ export function App() {
 
     } catch (err: any) {
       const endTime = performance.now();
+      const errorStatus = err.message.includes('404') ? 404 : 503; // Attempt to infer status from message
       setResponseData({ 
         status: "error", 
-        message: err.message || "Network Failed",
-        hint: "Make sure the backend server is running and accessible." 
+        message: err.message || "Network Failed or Backend Unreachable",
+        hint: "Make sure the backend server is running and accessible, and the endpoint path is correct." 
       });
       setRequestMeta({ 
-        status: 503, // Service Unavailable
+        status: errorStatus, 
         latency: Math.round(endTime - startTime), 
         timestamp 
       });
@@ -240,7 +241,7 @@ export function App() {
   const displayBaseUrl = `${BASE_URL}/otakudesu/v1`;
 
   return (
-    <div className="min-h-screen bg-background text-zinc-300 font-sans selection:bg-primary/20 selection:text-primary flex flex-col h-screen">
+    <div className="min-h-screen bg-background text-zinc-300 font-sans selection:bg-primary/20 selection:text-primary flex flex-col min-h-screen">
       
       {/* Top Bar / Header */}
       <header className="h-14 border-b border-border bg-surface/50 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 sticky top-0 z-50 shrink-0">

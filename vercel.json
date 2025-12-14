@@ -1,0 +1,8 @@
+{
+  "rewrites": [
+    {
+      "source": "/anime/samehadaku/:match*",
+      "destination": "/server/index.js"
+    }
+  ]
+}

@@ -1,69 +1,33 @@
-import { Builder, By, until } from 'selenium-webdriver';
-import chrome from 'selenium-webdriver/chrome.js';
+import axios from 'axios';
 import * as cheerio from 'cheerio';
 
 const BASE_URL = 'https://v1.samehadaku.how';
 
-// --- Selenium Helper Functions ---
-
-const getDriver = async () => {
-  const options = new chrome.Options();
-  // Headless mode to run without UI
-  options.addArguments('--headless'); 
-  options.addArguments('--disable-gpu');
-  options.addArguments('--no-sandbox');
-  options.addArguments('--disable-dev-shm-usage');
-  // Spoof User-Agent to look like a real user
-  options.addArguments('user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36');
-  // Ignore SSL errors
-  options.addArguments('--ignore-certificate-errors'); 
-
-  const driver = await new Builder()
-    .forBrowser('chrome')
-    .setChromeOptions(options)
-    .build();
-    
-  return driver;
-};
+// --- Helper Functions ---
 
 const fetchHTML = async (endpoint, params = {}) => {
-  let driver;
   try {
-    driver = await getDriver();
+    const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
+    console.log(`[Scraper] Fetching: ${url}`);
     
-    // Construct URL with Query Params manually
-    const urlObj = new URL(endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`);
-    Object.keys(params).forEach(key => {
-        if (params[key]) urlObj.searchParams.append(key, params[key]);
+    const response = await axios.get(url, {
+      params,
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Referer': BASE_URL,
+        // Optional: Add cookie support if needed in future
+      },
+      timeout: 15000 // 15s timeout
     });
-    
-    const fullUrl = urlObj.toString();
-    console.log(`[Selenium] Navigating to: ${fullUrl}`);
 
-    // Set a timeout for page load
-    await driver.manage().setTimeouts({ pageLoad: 30000 });
-    await driver.get(fullUrl);
-
-    // Wait explicitly for the body to ensure content is rendered
-    // This helps bypass simple Cloudflare checks that require JS execution
-    await driver.wait(until.elementLocated(By.css('body')), 15000);
-    
-    // Optional: Add specific waits if Samehadaku uses lazy loading heavily
-    // await driver.wait(until.elementLocated(By.css('.animepost')), 5000).catch(() => null);
-
-    // Get the rendered HTML source
-    const pageSource = await driver.getPageSource();
-    
-    // Load into Cheerio for easy parsing (Hybrid approach)
-    return cheerio.load(pageSource);
+    return cheerio.load(response.data);
 
   } catch (error) {
-    console.error(`[Selenium Error] Failed to fetch ${endpoint}:`, error.message);
+    console.error(`[Scraper Error] Failed to fetch ${endpoint}:`, error.message);
+    // Propagate error to be handled by the route wrapper
     throw error;
-  } finally {
-    if (driver) {
-      await driver.quit(); // Always close the browser
-    }
   }
 };
 

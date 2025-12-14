@@ -17,11 +17,32 @@ const fetchHTML = async (endpoint, params = {}) => {
   console.log(`[Scraper] Fetching via ScraperJS: ${targetUrl}`);
 
   return new Promise((resolve, reject) => {
-    // Use StaticScraper to fetch content without a browser
-    // This resolves the "Read-only file system" error on Vercel
-    scraperjs.StaticScraper.create(targetUrl)
+    // Configuration for ScraperJS (uses 'request' internally)
+    // We must mimic a real browser to get the correct HTML content
+    const options = {
+        url: targetUrl,
+        headers: {
+            'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/124.0.0.0 Safari/537.36',
+            'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+            'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
+            'Accept-Encoding': 'gzip, deflate, br', // Ensure we handle compression
+            'Referer': BASE_URL,
+            'Connection': 'keep-alive',
+            'Upgrade-Insecure-Requests': '1',
+            'Cache-Control': 'max-age=0'
+        },
+        jar: true, // Enable cookies
+        followAllRedirects: true,
+        gzip: true
+    };
+
+    scraperjs.StaticScraper.create(options)
         .scrape(($) => {
-            // Simply return the Cheerio object to be used by the calling function
+            // Debug: Check if we are hitting Cloudflare or an error page
+            const title = $('title').text();
+            if (title.includes('Just a moment') || title.includes('Attention Required')) {
+                console.warn('[Scraper Warning] Cloudflare challenge detected on:', targetUrl);
+            }
             return $;
         })
         .then(($) => {
@@ -36,7 +57,14 @@ const fetchHTML = async (endpoint, params = {}) => {
 
 const extractId = (url) => {
   if (!url) return '';
-  return url.split('/').filter(part => part && part !== 'https:' && part !== 'http:' && part !== 'samehadaku.how' && part !== 'v1.samehadaku.how').pop();
+  try {
+      const urlObj = new URL(url);
+      const parts = urlObj.pathname.split('/').filter(p => p);
+      return parts.pop() || '';
+  } catch (e) {
+      // Fallback if url is relative or malformed
+      return url.split('/').filter(part => part && part !== 'https:' && part !== 'http:' && part !== 'samehadaku.how' && part !== 'v1.samehadaku.how').pop();
+  }
 };
 
 const extractPagination = ($) => {
@@ -98,11 +126,17 @@ export const getHome = async () => {
   };
 
   // 1. Recent Updates (Anime Terbaru)
-  $('.post-show ul li').each((i, el) => {
+  // Try primary selector, fall back to widget selector
+  let recentItems = $('.post-show ul li');
+  if (recentItems.length === 0) {
+     recentItems = $('.widget_recent_entries ul li');
+  }
+
+  recentItems.each((i, el) => {
     const title = $(el).find('.entry-title a').text().trim();
     const samehadakuUrl = $(el).find('.entry-title a').attr('href');
     const animeId = extractId(samehadakuUrl);
-    const poster = $(el).find('.thumb img').attr('src');
+    const poster = $(el).find('.thumb img').attr('src') || $(el).find('img').attr('src');
     
     let episodes = $(el).find('.dtla span:first-of-type author').text().trim();
     if (!episodes) {
@@ -169,10 +203,16 @@ export const getRecent = async (req) => {
   const $ = await fetchHTML(`/anime-terbaru/page/${page}/`); 
   
   const animeList = [];
-  $('.post-show ul li').each((i, el) => {
-    const title = $(el).find('.entry-title a').text().trim();
-    const poster = $(el).find('.thumb img').attr('src');
-    const samehadakuUrl = $(el).find('.entry-title a').attr('href');
+  // Try primary selector first
+  let items = $('.post-show ul li');
+  if (items.length === 0) {
+      items = $('.animepost'); // Alternative view
+  }
+
+  items.each((i, el) => {
+    const title = $(el).find('.entry-title a').text().trim() || $(el).find('.animetitles').text().trim();
+    const poster = $(el).find('.thumb img').attr('src') || $(el).find('img').attr('src');
+    const samehadakuUrl = $(el).find('.entry-title a').attr('href') || $(el).find('a').attr('href');
     const animeId = extractId(samehadakuUrl);
 
     let episodes = $(el).find('.dtla span:first-of-type author').text().trim();
@@ -182,11 +222,13 @@ export const getRecent = async (req) => {
 
     let releasedOn = $(el).find('.dtla span:last-of-type').text().replace(/Released on:?/i, '').trim();
 
-    animeList.push({
-      title, poster, episodes, releasedOn, animeId,
-      href: `/anime/samehadaku/anime/${animeId}`,
-      samehadakuUrl
-    });
+    if (title) {
+      animeList.push({
+        title, poster, episodes, releasedOn, animeId,
+        href: `/anime/samehadaku/anime/${animeId}`,
+        samehadakuUrl
+      });
+    }
   });
 
   return { data: { animeList }, pagination: extractPagination($) };
@@ -344,7 +386,7 @@ export const getGenres = async () => {
     $('.genre > li > a').each((i, el) => {
         const title = $(el).text().trim();
         const samehadakuUrl = $(el).attr('href');
-        const genreId = samehadakuUrl ? samehadakuUrl.split('/genre/')[1].replace('/', '') : '';
+        const genreId = extractId(samehadakuUrl);
         if(title) genreList.push({ title, genreId, href: `/anime/samehadaku/genres/${genreId}`, samehadakuUrl });
     });
     return { data: { genreList } };

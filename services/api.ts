@@ -1,12 +1,12 @@
 import { ApiEndpoint } from '../types';
 
 // Determine Base URL based on environment
-// In development, we target the local Express server on port 5000
-// In production, we assume the API is served from the same origin (relative path)
-export const BASE_URL = (import.meta as any).env?.DEV ? 'http://localhost:5000' : '';
+// Updated: Hardcoded to the live Vercel deployment as requested
+export const BASE_URL = 'https://rioruo.vercel.app';
 
 async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
   // Construct the full URL
+  // If BASE_URL is absolute (e.g. https://rioruo.vercel.app), the second argument is ignored
   const url = new URL(`${BASE_URL}${endpoint}`, window.location.origin);
   
   if (params) {

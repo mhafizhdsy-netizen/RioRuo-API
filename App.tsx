@@ -9,7 +9,7 @@ import {
   Server
 } from 'lucide-react';
 
-function App() {
+export function App() {
   const [selectedEndpoint, setSelectedEndpoint] = useState<string>(ApiEndpoint.HOME);
   
   // Request Params
@@ -86,7 +86,7 @@ function App() {
       setResponseData({ 
         status: "error", 
         message: err.message || "Network Failed",
-        hint: "Make sure the backend server is running (npm run start:server) and accessible." 
+        hint: "Make sure the backend server is running and accessible." 
       });
       setRequestMeta({ 
         status: 503, // Service Unavailable
@@ -225,7 +225,7 @@ function App() {
   ];
 
   // Logic to display meaningful base url
-  const displayBaseUrl = BASE_URL || typeof window !== 'undefined' ? window.location.origin : 'Relative';
+  const displayBaseUrl = BASE_URL;
 
   return (
     <div className="min-h-screen bg-background text-zinc-300 font-sans selection:bg-primary/20 selection:text-primary flex flex-col h-screen">
@@ -355,5 +355,3 @@ function App() {
     </div>
   );
 }
-
-export default App;

@@ -2,7 +2,7 @@
   "rewrites": [
     {
       "source": "/otakudesu/:path*",
-      "destination": "/api"
+      "destination": "/api/:path*"
     }
   ]
 }

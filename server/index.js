@@ -11,21 +11,24 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // Routes
+// This root endpoint will only be hit if someone directly accesses https://rioruo.vercel.app/api
+// The frontend will use the /otakudesu/v1/... path, which Vercel rewrites to /api/v1/...
 app.get('/', (req, res) => {
   res.json({
     status: 'success',
-    message: 'Otakudesu API is running!',
-    endpoints: '/otakudesu/v1/*' // Updated endpoint path
+    message: 'Otakudesu API root for serverless function. Use /v1/* endpoints.',
+    endpoints: '/v1/*' 
   });
 });
 
-app.use('/otakudesu', router); // Mount the main router under /otakudesu
+// Mount the main router directly as Vercel rewrites will strip the /otakudesu prefix
+app.use(router); 
 
 // 404 Handler
 app.use((req, res) => {
   res.status(404).json({
     status: 'error',
-    message: 'Endpoint not found'
+    message: `Endpoint not found: ${req.method} ${req.originalUrl}`
   });
 });
 

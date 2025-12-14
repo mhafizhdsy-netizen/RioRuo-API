@@ -1,39 +1,71 @@
-import axios from 'axios';
 import * as cheerio from 'cheerio';
+import { createRequire } from 'module';
 
-const BASE_URL = 'https://v1.samehadaku.how';
+const require = createRequire(import.meta.url);
+const { Builder, By, until } = require('selenium-webdriver');
+const { Options } = require('selenium-webdriver/chrome');
+
+const BASE_URL = 'https://samehadaku.how';
 
 // --- Helper Functions ---
 
 const fetchHTML = async (endpoint, params = {}) => {
-  try {
-    const url = endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`;
-    console.log(`[Scraper] Fetching: ${url}`);
-    
-    const response = await axios.get(url, {
-      params,
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
-        'Accept-Language': 'en-US,en;q=0.9',
-        'Referer': BASE_URL,
-        // Optional: Add cookie support if needed in future
-      },
-      timeout: 15000 // 15s timeout
-    });
+  const urlObj = new URL(endpoint.startsWith('http') ? endpoint : `${BASE_URL}${endpoint}`);
+  Object.keys(params).forEach(key => {
+    if (params[key]) urlObj.searchParams.append(key, params[key]);
+  });
+  
+  const targetUrl = urlObj.toString();
+  console.log(`[Scraper] Fetching via Selenium: ${targetUrl}`);
 
-    return cheerio.load(response.data);
+  let driver;
+  try {
+    const options = new Options();
+    options.addArguments('--headless=new'); // Modern headless mode
+    options.addArguments('--no-sandbox');
+    options.addArguments('--disable-dev-shm-usage');
+    options.addArguments('--disable-gpu');
+    options.addArguments('--window-size=1920,1080');
+    options.addArguments('--disable-blink-features=AutomationControlled');
+    options.addArguments('--user-agent=Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36');
+    options.addArguments('--ignore-certificate-errors');
+
+    driver = await new Builder()
+      .forBrowser('chrome')
+      .setChromeOptions(options)
+      .build();
+
+    await driver.get(targetUrl);
+
+    // Wait for the body to be present
+    await driver.wait(until.elementLocated(By.css('body')), 15000);
+    
+    // Explicit wait for Cloudflare challenge or dynamic content
+    // We wait for a common element in Samehadaku's theme to ensure we passed the "Just a moment" screen
+    try {
+        // Try waiting for the footer or main content
+        await driver.wait(until.elementLocated(By.css('.site-content, .hfeed, footer')), 5000);
+    } catch (e) {
+        // Fallback: just wait a bit if specific element not found (maybe different page structure)
+        await new Promise(resolve => setTimeout(resolve, 3000));
+    }
+
+    const html = await driver.getPageSource();
+    return cheerio.load(html);
 
   } catch (error) {
-    console.error(`[Scraper Error] Failed to fetch ${endpoint}:`, error.message);
-    // Propagate error to be handled by the route wrapper
+    console.error(`[Scraper Error] Failed to fetch ${targetUrl}:`, error.message);
     throw error;
+  } finally {
+    if (driver) {
+      await driver.quit();
+    }
   }
 };
 
 const extractId = (url) => {
   if (!url) return '';
-  return url.split('/').filter(part => part && part !== 'https:' && part !== 'http:' && part !== 'v1.samehadaku.how').pop();
+  return url.split('/').filter(part => part && part !== 'https:' && part !== 'http:' && part !== 'samehadaku.how' && part !== 'v1.samehadaku.how').pop();
 };
 
 const extractPagination = ($) => {
@@ -101,14 +133,11 @@ export const getHome = async () => {
     const animeId = extractId(samehadakuUrl);
     const poster = $(el).find('.thumb img').attr('src');
     
-    // Attempt to parse episode from <author> tag (e.g. <span>...<b>Episode</b> <author>15</author></span>)
     let episodes = $(el).find('.dtla span:first-of-type author').text().trim();
     if (!episodes) {
-        // Fallback if structure differs
         episodes = $(el).find('.dtla span:first-of-type').text().replace(/Episode/i, '').trim();
     }
 
-    // Cleanup released info (e.g. "Released on: 51 minutes ago")
     let releasedOn = $(el).find('.dtla span:last-of-type').text().replace(/Released on:?/i, '').trim();
 
     if (title) {
@@ -120,8 +149,7 @@ export const getHome = async () => {
     }
   });
 
-  // 2. Movies (Project Movie Samehadaku)
-  // Look for the generic widget that contains "Movie" in the header
+  // 2. Movies
   $('.widgets').each((i, widget) => {
      const headerText = $(widget).find('h3').text();
      if (headerText.toLowerCase().includes('movie')) {
@@ -130,8 +158,6 @@ export const getHome = async () => {
              const samehadakuUrl = $(item).find('.lftinfo h2 a').attr('href');
              const animeId = extractId(samehadakuUrl);
              const poster = $(item).find('.imgseries img').attr('src');
-             
-             // Date is usually the last span in .lftinfo
              const releasedOn = $(item).find('.lftinfo span:last-child').text().trim();
              
              if (title) {
@@ -152,8 +178,6 @@ export const getHome = async () => {
     const animeId = extractId(samehadakuUrl);
     const poster = $(el).find('img').attr('src');
     const score = $(el).find('.rating').text().trim();
-    
-    // Rank is typically in <b class="is-topten"><b>TOP</b><b>1</b></b> (The last <b> is the number)
     const rankText = $(el).find('.is-topten b').last().text().trim();
     const rank = parseInt(rankText) || i + 1;
 
@@ -180,7 +204,6 @@ export const getRecent = async (req) => {
     const samehadakuUrl = $(el).find('.entry-title a').attr('href');
     const animeId = extractId(samehadakuUrl);
 
-    // Updated parsing to match getHome logic
     let episodes = $(el).find('.dtla span:first-of-type author').text().trim();
     if (!episodes) {
         episodes = $(el).find('.dtla span:first-of-type').text().replace(/Episode/i, '').trim();

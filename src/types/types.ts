@@ -116,7 +116,7 @@ type batch = {
 }
 
 export enum ApiEndpoint {
-  HOME = '/',
+  HOME = '/home',
   SEARCH = '/search/:keyword',
   ONGOING = '/ongoing-anime/:page?',
   COMPLETED = '/complete-anime/:page?',

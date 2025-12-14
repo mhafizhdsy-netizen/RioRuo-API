@@ -17,6 +17,7 @@ const tryHandler = (fn) => async (req, res) => {
   } catch (error) {
     // Extract detailed error info
     const errorCode = error.code || error.name || 'UNKNOWN_ERROR';
+    const isNetworkError = errorCode === 'ECONNRESET' || errorCode === 'ETIMEDOUT';
 
     // Enhanced Server Logging
     console.error(`\n[Scraper Error] Request: ${req.method} ${req.originalUrl}`);
@@ -24,26 +25,29 @@ const tryHandler = (fn) => async (req, res) => {
     
     // Construct descriptive user-facing message
     let clientMessage = error.message;
-    let hint = "Check server logs for full stack trace.";
+    let statusCode = 500;
 
     if (error.response) {
-       // Handle HTTP errors from ScraperJS/Request
-       if (error.response.statusCode === 404) {
-           clientMessage = `Resource not found on upstream server (404).`;
-       } else if (error.response.statusCode === 403) {
-           clientMessage = `Access Forbidden (403). Blocked by Cloudflare?`;
+       // Handle HTTP errors from Axios
+       if (error.response.status === 404) {
+           clientMessage = `Resource not found on samehadaku (404).`;
+           statusCode = 404;
+       } else if ([403, 503].includes(error.response.status)) {
+           clientMessage = `Target site blocked the request (HTTP ${error.response.status}). The site might be under maintenance or protected by Cloudflare.`;
        }
+    } else if (isNetworkError) {
+        clientMessage = "Connection timed out connecting to Samehadaku.";
+        statusCode = 504;
     }
 
     // JSON Response
-    res.status(500).json({
+    res.status(statusCode).json({
       status: "error",
       message: clientMessage,
-      code: 500,
+      code: statusCode,
       errorType: errorCode,
       endpoint: req.originalUrl,
-      timestamp: new Date().toISOString(),
-      hint: hint
+      timestamp: new Date().toISOString()
     });
   }
 };

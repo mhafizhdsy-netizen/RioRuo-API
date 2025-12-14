@@ -3,13 +3,15 @@ import * as cheerio from 'cheerio';
 import https from 'https';
 
 // Base URL configuration
-// Note: samehadaku often changes domains. .email or .care might be current if .how redirects.
 const BASE_URL = 'https://samehadaku.how';
 
-// Configure HTTPS Agent to ignore SSL errors (common in scraping)
+// Configure HTTPS Agent to ignore SSL errors
 const httpsAgent = new https.Agent({  
   rejectUnauthorized: false
 });
+
+// Standard Windows Chrome User Agent
+const USER_AGENT = 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36';
 
 // --- Helper Functions ---
 
@@ -25,36 +27,57 @@ const fetchHTML = async (endpoint, params = {}) => {
   try {
     const response = await axios.get(targetUrl, {
       headers: {
-        // Spoof Googlebot to bypass Cloudflare "Just a moment..." checks
-        'User-Agent': 'Mozilla/5.0 (Linux; Android 6.0.1; Nexus 5X Build/MMB29P) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/121.0.6167.85 Mobile Safari/537.36 (compatible; Googlebot/2.1; +http://www.google.com/bot.html)',
-        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,*/*;q=0.8',
-        'Referer': 'https://www.google.com/',
-        'Accept-Language': 'en-US,en;q=0.9',
+        'User-Agent': USER_AGENT,
+        // Mimic real browser Accept headers
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+        'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
+        'Accept-Encoding': 'gzip, deflate, br', // Explicitly ask for compression
+        'Referer': 'https://www.google.com/', 
+        // Critical Sec- headers for modern Cloudflare bypass
+        'Sec-Ch-Ua': '"Google Chrome";v="123", "Not:A-Brand";v="8", "Chromium";v="123"',
+        'Sec-Ch-Ua-Mobile': '?0',
+        'Sec-Ch-Ua-Platform': '"Windows"',
+        'Sec-Fetch-Dest': 'document',
+        'Sec-Fetch-Mode': 'navigate',
+        'Sec-Fetch-Site': 'cross-site', // 'none' for direct, 'cross-site' if coming from google
+        'Sec-Fetch-User': '?1',
+        'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'max-age=0',
+        'Connection': 'keep-alive'
       },
       httpsAgent: httpsAgent,
-      timeout: 15000, // Increased timeout for Vercel
-      maxRedirects: 5
+      timeout: 15000,
+      maxRedirects: 5,
+      // Attempt to parse even if we get a 403, as some sites serve content with bad codes to bots
+      validateStatus: (status) => status < 500
     });
 
+    // Check if we got redirected to a challenge page
     const html = response.data;
     const $ = cheerio.load(html);
 
-    // Logging only - do not throw here to allow partial parsing if possible
     const title = $('title').text().toLowerCase();
-    if (title.includes('just a moment') || title.includes('attention required')) {
-        console.warn(`[Scraper Warning] Possible Cloudflare challenge detected on ${targetUrl}`);
+    
+    // Check for Cloudflare Challenge Text
+    if (title.includes('just a moment') || title.includes('attention required') || title.includes('security check')) {
+         console.warn(`[Scraper Warning] Cloudflare Challenge Detected on ${targetUrl}`);
+         throw new Error(`BLOCKED: Cloudflare security challenge triggered.`);
+    }
+
+    if (response.status === 403 || response.status === 503) {
+         console.warn(`[Scraper Warning] Received HTTP ${response.status} but attempting to parse content...`);
     }
 
     return $;
   } catch (error) {
     if (error.response) {
-      console.error(`[Scraper Error] HTTP ${error.response.status} ${error.response.statusText} for ${targetUrl}`);
-      // If 403/503, it's likely Cloudflare blocking
-      if ([403, 503].includes(error.response.status)) {
-         throw new Error(`Target site blocked the request (HTTP ${error.response.status}). Cloudflare protection is active.`);
+      console.error(`[Scraper Error] HTTP ${error.response.status} for ${targetUrl}`);
+      // Throw specific error for blocked requests to be handled by route
+      if (error.message.includes('BLOCKED') || [403, 503].includes(error.response.status)) {
+         throw new Error(`Access Denied (HTTP ${error.response.status}). The site is blocking automated requests from this server IP.`);
       }
     } else {
-      console.error(`[Scraper Error] Network/System Error: ${error.message}`);
+      console.error(`[Scraper Error] ${error.message}`);
     }
     throw error;
   }
@@ -63,7 +86,6 @@ const fetchHTML = async (endpoint, params = {}) => {
 const extractId = (url) => {
   if (!url) return '';
   try {
-      // Clean up the URL first
       const cleanUrl = url.split('?')[0].replace(/\/$/, '');
       const parts = cleanUrl.split('/');
       return parts[parts.length - 1] || '';
@@ -96,7 +118,6 @@ const extractPagination = ($) => {
         pagination.hasPrevPage = prev.length > 0;
         if (pagination.hasPrevPage) pagination.prevPage = pagination.currentPage - 1;
 
-        // Try to find max page
         const lastPageText = paginationElem.find('.page-numbers:not(.next):not(.prev)').last().text();
         pagination.totalPages = parseInt(lastPageText) || pagination.currentPage;
       }

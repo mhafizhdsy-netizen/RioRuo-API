@@ -6,12 +6,12 @@ import { ApiEndpoint } from '../src/types/types.ts';
 export const BASE_URL = 
   (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.MODE === 'development') 
   ? 'http://localhost:3000' 
-  : 'https://rioruo.vercel.app';
+  : ''; // Use relative path in production (same domain)
 
 async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-  // Construct the full path. Removed '/otakudesu' prefix as requested.
+  // Construct the full path.
   const fullApiPath = `/v1${endpoint}`;
-  // If BASE_URL is absolute (e.g. https://rioruo.vercel.app), the second argument is ignored
+  // If BASE_URL is empty (production), it uses window.location.origin automatically via the URL constructor
   const url = new URL(`${BASE_URL}${fullApiPath}`, window.location.origin);
   
   if (params) {

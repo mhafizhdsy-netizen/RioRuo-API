@@ -39,14 +39,10 @@ const SyntaxHighlight = ({ json }: { json: any }) => {
 const LoadingState = () => {
   const [loadingMessage, setLoadingMessage] = useState('Initializing Request...');
   const messages = [
-    'Launching secure browser...',
-    'Navigating to target page...',
-    'Analyzing security challenges...',
-    'Bypassing Cloudflare checks...',
-    'Requesting content from origin...',
-    'Parsing HTML structure...',
-    'Extracting target data...',
-    'Finalizing JSON response...'
+    'Sending request...',
+    'Awaiting response...',
+    'Processing data...',
+    'Preparing JSON output...'
   ];
 
   useEffect(() => {
@@ -67,7 +63,7 @@ const LoadingState = () => {
           <div className="absolute top-0 left-0 w-full h-full border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
         </div>
         <div className="flex flex-col items-center text-center">
-          <p className="text-primary font-mono text-sm font-bold tracking-widest animate-pulse">EXECUTING SCRAPE</p>
+          <p className="text-primary font-mono text-sm font-bold tracking-widest animate-pulse">FETCHING DATA</p>
           <p className="text-zinc-500 text-xs font-mono mt-2 transition-opacity duration-500" key={loadingMessage}>
             {loadingMessage}
           </p>
@@ -93,7 +89,7 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
           <div className="w-16 h-16 bg-surfaceLight rounded-full flex items-center justify-center mb-4">
             <Terminal size={32} className="text-zinc-600" />
           </div>
-          <h3 className="text-zinc-300 font-bold mb-2">Ready to Scrape</h3>
+          <h3 className="text-zinc-300 font-bold mb-2">Ready to Fetch</h3>
           <p className="text-zinc-500 text-sm max-w-xs">Select an endpoint and fire a request to see the raw JSON response.</p>
         </div>
       </div>

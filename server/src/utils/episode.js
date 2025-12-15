@@ -1,29 +1,36 @@
-import apiClient from '../lib/apiClient.js';
+import axios from 'axios';
 import episodes from './episodes.js';
 import scrapeEpisode from '../lib/scrapeEpisode.js';
-
-const BASEURL = 'https://otakudesu.best';
-
+const BASEURL = process.env.BASEURL   || 'https://otakudesu.best';
 const episode = async ({ episodeSlug, animeSlug, episodeNumber }) => {
-  console.log('[Handler] Using Puppeteer client for episode endpoints');
-  let slug = '';
+    let slug = '';
+    console.log(episodeSlug, animeSlug, episodeNumber);
+    if (episodeSlug)
+        slug = episodeSlug;
+    if (animeSlug) {
+        const episodeLists = await episodes(animeSlug);
+        if (!episodeLists)
+            return undefined;
+        const clean = episodeLists.map(ep => {
+            const match = ep.episode.match(/Episode\s+(\d+)/i);
+            const num = match ? match[1] : null;
 
-  if (episodeSlug) slug = episodeSlug;
-  if (animeSlug && episodeNumber) {
-    const episodeLists = await episodes(animeSlug);
-    if (!episodeLists) return undefined;
-
-    const splittedEpisodeSlug = episodeLists[0].slug?.split('-episode-') ;
-    const prefixEpisodeSlug = splittedEpisodeSlug[0];
-    const firstEpisodeNumber = splittedEpisodeSlug[1].replace('-sub-indo', '');
-
-    slug = `${prefixEpisodeSlug}-episode-${episodeNumber - (parseInt(firstEpisodeNumber) == 0 ? 1 : 0)}-sub-indo`;
-  }
-
-  const { data } = await apiClient.get(`${BASEURL}/episode/${slug}`);
-  const result = scrapeEpisode(data);
-
-  return result;
+            return {
+              ...ep,
+              episode: num
+            };
+        });
+        const firstEps = parseInt(clean[0].episode);
+        episodeLists.forEach((ep, index) => {
+            if (ep.episode.includes(`Episode ${episodeNumber}`)) {
+                slug = ep.slug;
+            }
+        });
+        slug = firstEps == 0 ? episodeLists[episodeNumber].slug : slug;
+        console.log(slug);
+    }
+    const { data } = await axios.get(`${BASEURL}/episode/${slug}`);
+    const result = await scrapeEpisode(data);
+    return result;
 };
-
 export default episode;

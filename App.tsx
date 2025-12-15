@@ -1,27 +1,33 @@
 import React, { useState, useRef, useEffect } from 'react';
-import { ApiEndpoint } from './src/types/types.ts'; // Updated path to src/types/types.ts
+import { ApiEndpoint } from './src/types/types.ts';
 import { apiService, BASE_URL } from './frontend-api/api';
 import { ConsoleOutput } from './components/ConsoleOutput';
+import { Documentation } from './components/Documentation';
 import { 
   Terminal, Search, Zap, 
   Settings, Command, Layout, 
   List, Grid, Film, ChevronDown, Check,
-  Github, Heart, Code, Globe
+  Github, Heart, Code, Globe, CalendarDays,
+  BookOpen, SlidersHorizontal
 } from 'lucide-react';
 
 export function App() {
+  const [view, setView] = useState<'playground' | 'docs'>('playground');
   const [selectedEndpoint, setSelectedEndpoint] = useState<string>(ApiEndpoint.HOME);
   
   // Request Params
-  const [keyword, setKeyword] = useState('jujutsu kaisen'); // Changed from query to keyword
-  const [animeSlug, setAnimeSlug] = useState('jujutsu-kaisen-s2'); // Changed from animeId to animeSlug
-  const [episodeSlug, setEpisodeSlug] = useState('jujutsu-kaisen-s2-episode-23'); // Changed from episodeId to episodeSlug
-  const [batchSlug, setBatchSlug] = useState('jujutsu-kaisen-s2-batch'); // Changed from batchId to batchSlug
-  const [genreSlug, setGenreSlug] = useState('action'); // Changed from genreId to genreSlug
-  const [episodeNumber, setEpisodeNumber] = useState('1'); // New state for episode number
-  // Removed serverId as the endpoint is no longer supported
+  const [keyword, setKeyword] = useState('jujutsu kaisen');
+  const [animeSlug, setAnimeSlug] = useState('jujutsu-kaisen-s2');
+  const [episodeSlug, setEpisodeSlug] = useState('jujutsu-kaisen-s2-episode-23');
+  const [batchSlug, setBatchSlug] = useState('jujutsu-kaisen-s2-batch');
+  const [genreSlug, setGenreSlug] = useState('action');
+  const [episodeNumber, setEpisodeNumber] = useState('1');
   const [page, setPage] = useState('1');
-  
+  // New states for movie endpoint
+  const [movieYear, setMovieYear] = useState('2024');
+  const [movieMonth, setMovieMonth] = useState('01'); // Actual month for the movie path segment
+  const [movieTitleSlug, setMovieTitleSlug] = useState('dandadan'); // Movie title slug part
+
   // Response State
   const [loading, setLoading] = useState(false);
   const [responseData, setResponseData] = useState<any>(null);
@@ -31,10 +37,14 @@ export function App() {
     timestamp: '-'
   });
 
+  // Real-time API Status State
+  const [apiStatus, setApiStatus] = useState<'online' | 'offline' | 'checking'>('checking');
+
   // Dropdown State
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
+  // Effect for handling clicks outside the dropdown
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
@@ -43,6 +53,29 @@ export function App() {
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  // Function to check API status
+  const checkApiStatus = async () => {
+    try {
+      setApiStatus('checking');
+      const response = await fetch(`${BASE_URL}/otakudesu/v1`); // Call the backend's root API endpoint
+      if (response.ok) {
+        setApiStatus('online');
+      } else {
+        setApiStatus('offline');
+      }
+    } catch (error) {
+      console.error("Failed to fetch API status:", error);
+      setApiStatus('offline');
+    }
+  };
+
+  // Effect for periodic API status check
+  useEffect(() => {
+    checkApiStatus(); // Initial check
+    const interval = setInterval(checkApiStatus, 30000); // Check every 30 seconds
+    return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
   const handleFetch = async () => {
@@ -61,13 +94,16 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.ONGOING) res = await apiService.getOngoing(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.COMPLETED) res = await apiService.getCompleted(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.ANIME_DETAIL) res = await apiService.getAnimeDetail(animeSlug);
-      else if (selectedEndpoint === ApiEndpoint.ANIME_EPISODES) res = await apiService.getAnimeEpisodes(animeSlug); // New endpoint handler
-      else if (selectedEndpoint === ApiEndpoint.EPISODE_BY_NUMBER) res = await apiService.getEpisodeByNumber(animeSlug, parseInt(episodeNumber)); // New endpoint handler
+      else if (selectedEndpoint === ApiEndpoint.ANIME_EPISODES) res = await apiService.getAnimeEpisodes(animeSlug);
+      else if (selectedEndpoint === ApiEndpoint.EPISODE_BY_NUMBER) res = await apiService.getEpisodeByNumber(animeSlug, parseInt(episodeNumber));
       else if (selectedEndpoint === ApiEndpoint.EPISODE_DETAIL) res = await apiService.getEpisodeDetail(episodeSlug);
       else if (selectedEndpoint === ApiEndpoint.GENRES) res = await apiService.getGenres();
       else if (selectedEndpoint === ApiEndpoint.GENRE_DETAIL) res = await apiService.getGenreDetail(genreSlug, parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.BATCH_DETAIL) res = await apiService.getBatchDetail(batchSlug);
-      else if (selectedEndpoint === ApiEndpoint.BATCH_BY_ANIME_SLUG) res = await apiService.getBatchByAnimeSlug(animeSlug); // New endpoint handler
+      else if (selectedEndpoint === ApiEndpoint.BATCH_BY_ANIME_SLUG) res = await apiService.getBatchByAnimeSlug(animeSlug);
+      else if (selectedEndpoint === ApiEndpoint.MOVIES) res = await apiService.getMovies(parseInt(page)); // New API call
+      else if (selectedEndpoint === ApiEndpoint.SINGLE_MOVIE) res = await apiService.getSingleMovie(movieYear, movieMonth, movieTitleSlug); // Updated API call
+      else if (selectedEndpoint === ApiEndpoint.JADWAL_RILIS) res = await apiService.getJadwalRilis(); // New API call
       else res = await apiService.getHome(); // Fallback
 
       const endTime = performance.now();
@@ -198,10 +234,48 @@ export function App() {
       );
     }
 
-    // Generic Page Input for lists - only for ongoing, completed, genre detail
+    // Movie Year, Month, and Slug for SINGLE_MOVIE (no longer in categories, but logic remains)
+    if (selectedEndpoint === ApiEndpoint.SINGLE_MOVIE) {
+      inputs.push(
+        <div key="movieYear" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Movie Year</label>
+          <input 
+            type="text" 
+            value={movieYear} onChange={(e) => setMovieYear(e.target.value)}
+            className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
+            placeholder="e.g. 2024"
+          />
+        </div>
+      );
+      inputs.push(
+        <div key="movieMonth" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Movie Month (Path Segment)</label>
+          <input 
+            type="text" 
+            value={movieMonth} onChange={(e) => setMovieMonth(e.target.value)}
+            className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
+            placeholder="e.g. 01"
+          />
+        </div>
+      );
+      inputs.push(
+        <div key="movieTitleSlug" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Movie Title Slug</label>
+          <input 
+            type="text" 
+            value={movieTitleSlug} onChange={(e) => setMovieTitleSlug(e.target.value)}
+            className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono"
+            placeholder="e.g. dandadan"
+          />
+        </div>
+      );
+    }
+
+
+    // Generic Page Input for lists - only for ongoing, completed, genre detail, and movies
     if ([
       ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, 
-      ApiEndpoint.GENRE_DETAIL
+      ApiEndpoint.GENRE_DETAIL, ApiEndpoint.MOVIES
     ].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="pg" className="flex flex-col gap-2">
@@ -229,22 +303,110 @@ export function App() {
     { name: "Search", icon: <Search size={16} />, items: [ApiEndpoint.SEARCH] },
     { name: "Details", icon: <Film size={16} />, items: [
       ApiEndpoint.ANIME_DETAIL, 
-      ApiEndpoint.ANIME_EPISODES, // New Endpoint
-      ApiEndpoint.EPISODE_BY_NUMBER, // New Endpoint
+      ApiEndpoint.ANIME_EPISODES,
+      ApiEndpoint.EPISODE_BY_NUMBER,
       ApiEndpoint.EPISODE_DETAIL, 
       ApiEndpoint.BATCH_DETAIL,
-      ApiEndpoint.BATCH_BY_ANIME_SLUG // New Endpoint
+      ApiEndpoint.BATCH_BY_ANIME_SLUG
     ]},
     { name: "Metadata", icon: <Grid size={16} />, items: [ApiEndpoint.GENRES, ApiEndpoint.GENRE_DETAIL] },
+    // Removed "Movies" category as requested
+    { name: "Schedule", icon: <CalendarDays size={16} />, items: [ApiEndpoint.JADWAL_RILIS]}, // New Category
   ];
 
   // Logic to display meaningful base url
   const displayBaseUrl = `${BASE_URL}/otakudesu/v1`;
+  
+  const Playground = () => (
+    <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 flex-1">
+      {/* Request Controller */}
+      <div className="bg-surface border border-border rounded-xl p-5 shadow-lg relative z-20">
+        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+          <div className="flex items-center gap-2">
+            <Command size={20} className="text-primary" />
+            <h2 className="text-xl font-bold text-white">Request Controller</h2>
+          </div>
+          <a
+            href="https://rioruo.vercel.app/otakudesu/v1"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full hover:border-zinc-600 transition-colors"
+          >
+            <div className={`w-2 h-2 rounded-full 
+              ${apiStatus === 'online' ? 'bg-primary' : apiStatus === 'offline' ? 'bg-error' : 'bg-warning'} 
+              ${(apiStatus === 'checking' || apiStatus === 'offline') ? 'animate-pulse' : ''}`
+            }></div>
+            <span className="text-zinc-400">
+              {apiStatus === 'online' ? 'API Status' : apiStatus === 'offline' ? 'API Offline' : 'Checking API...'}
+            </span>
+          </a>
+        </div>
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
+          <div className="md:col-span-4 flex flex-col gap-2">
+            <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Base URL</label>
+            <div className="bg-surfaceLight border border-border rounded-lg py-3 px-4 text-sm font-mono text-zinc-400 select-all truncate flex items-center h-[46px]">
+              {displayBaseUrl}
+            </div>
+          </div>
+          <div className="md:col-span-8 flex flex-col gap-2 relative">
+            <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Target Endpoint</label>
+            <div ref={dropdownRef} className="relative">
+              <button
+                onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+                className="w-full bg-surfaceLight border border-border rounded-lg py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-left flex items-center justify-between h-[46px] group hover:border-zinc-600"
+              >
+                <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
+                  <span className="font-bold text-primary text-xs">GET</span>
+                </div>
+                <span className="font-mono truncate">{selectedEndpoint}</span>
+                <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
+              </button>
+              {isDropdownOpen && (
+                <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100 max-h-[400px] overflow-y-auto custom-scrollbar ring-1 ring-black/5">
+                  {categories.map((cat, idx) => (
+                    <div key={idx} className="border-b border-white/5 last:border-0 pb-1">
+                      <div className="flex items-center gap-2 px-4 py-2 bg-black/20 text-[10px] font-bold text-zinc-500 uppercase tracking-wider sticky top-0 backdrop-blur-sm z-10">
+                        {cat.icon} {cat.name}
+                      </div>
+                      <div className="p-1">
+                        {cat.items.map((endpoint) => (
+                          <button
+                            key={endpoint}
+                            onClick={() => { setSelectedEndpoint(endpoint); setIsDropdownOpen(false); }}
+                            className={`w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all flex items-center justify-between group ${selectedEndpoint === endpoint ? 'bg-primary/10 text-primary border border-primary/20' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}
+                          >
+                            <span className="truncate">{endpoint}</span>
+                            {selectedEndpoint === endpoint && <Check size={14} className="text-primary" />}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          </div>
+        </div>
+        {renderInputs()}
+        <div className="flex justify-end pt-4 border-t border-white/5">
+          <button
+            onClick={handleFetch}
+            disabled={loading}
+            className="bg-primary hover:bg-emerald-400 text-black font-bold py-2.5 px-8 rounded-lg flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center"
+          >
+            {loading ? <Settings className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
+            <span>SEND REQUEST</span>
+          </button>
+        </div>
+      </div>
+      <div className="flex-1 min-h-[500px]">
+        <ConsoleOutput data={responseData} loading={loading} meta={requestMeta} />
+      </div>
+    </div>
+  );
 
   return (
     <div className="min-h-screen bg-background text-zinc-300 font-sans selection:bg-primary/20 selection:text-primary flex flex-col min-h-screen">
-      
-      {/* Top Bar / Header */}
       <header className="h-14 border-b border-border bg-surface/50 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 sticky top-0 z-50 shrink-0">
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]">
@@ -253,124 +415,20 @@ export function App() {
           <h1 className="font-bold text-white tracking-tight text-lg">RioRuo API</h1>
         </div>
         <div className="flex items-center gap-4">
-          <div className="hidden md:flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full">
-            <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-            <span className="text-zinc-400">System Operational</span>
-          </div>
+           <button 
+             onClick={() => setView(view === 'playground' ? 'docs' : 'playground')}
+             className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors bg-surfaceLight border border-border px-3 py-1.5 rounded-full"
+           >
+             {view === 'playground' ? <><BookOpen size={14} /> Docs</> : <><SlidersHorizontal size={14}/> Playground</>}
+           </button>
         </div>
       </header>
 
-      {/* Main Content */}
       <main className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
-        <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 flex-1">
-          
-          {/* Request Controller */}
-          <div className="bg-surface border border-border rounded-xl p-5 shadow-lg relative z-20">
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-              <div className="flex items-center gap-2">
-                <Command size={20} className="text-primary" />
-                <h2 className="text-xl font-bold text-white">Request Controller</h2>
-              </div>
-              <span className="bg-surfaceLight border border-border px-3 py-1 rounded text-xs font-mono text-zinc-400 whitespace-nowrap hidden md:block">
-                JSON Response Only
-              </span>
-            </div>
-
-            {/* Split Base URL and Custom Dropdown Selector */}
-            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
-              
-              {/* Base URL Field */}
-              <div className="md:col-span-4 flex flex-col gap-2">
-                 <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Base URL</label>
-                 <div className="bg-surfaceLight border border-border rounded-lg py-3 px-4 text-sm font-mono text-zinc-400 select-all truncate flex items-center h-[46px]">
-                   {displayBaseUrl}
-                 </div>
-              </div>
-
-              {/* Endpoint Selector - Custom Dropdown */}
-              <div className="md:col-span-8 flex flex-col gap-2 relative">
-                 <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Target Endpoint</label>
-                 
-                 <div ref={dropdownRef} className="relative">
-                   <button 
-                     onClick={() => setIsDropdownOpen(!isDropdownOpen)}
-                     className="w-full bg-surfaceLight border border-border rounded-lg py-3 pl-12 pr-4 text-sm text-white focus:outline-none focus:border-primary focus:ring-1 focus:ring-primary transition-all text-left flex items-center justify-between h-[46px] group hover:border-zinc-600"
-                   >
-                     <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                       <span className="font-bold text-primary text-xs">GET</span>
-                     </div>
-                     <span className="font-mono truncate">{selectedEndpoint}</span>
-                     <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
-                   </button>
-
-                   {/* Dropdown Menu */}
-                   {isDropdownOpen && (
-                     <div className="absolute top-full left-0 right-0 mt-2 bg-surface border border-border rounded-xl shadow-2xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-100 max-h-[400px] overflow-y-auto custom-scrollbar ring-1 ring-black/5">
-                        {categories.map((cat, idx) => (
-                          <div key={idx} className="border-b border-white/5 last:border-0 pb-1">
-                            <div className="flex items-center gap-2 px-4 py-2 bg-black/20 text-[10px] font-bold text-zinc-500 uppercase tracking-wider sticky top-0 backdrop-blur-sm z-10">
-                              {cat.icon} {cat.name}
-                            </div>
-                            <div className="p-1">
-                              {cat.items.map((endpoint) => (
-                                <button
-                                  key={endpoint}
-                                  onClick={() => {
-                                    setSelectedEndpoint(endpoint);
-                                    setIsDropdownOpen(false);
-                                  }}
-                                  className={`w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all flex items-center justify-between group ${
-                                    selectedEndpoint === endpoint 
-                                      ? 'bg-primary/10 text-primary border border-primary/20' 
-                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                                  }`}
-                                >
-                                  <span className="truncate">{endpoint}</span>
-                                  {selectedEndpoint === endpoint && <Check size={14} className="text-primary" />}
-                                </button>
-                              ))}
-                            </div>
-                          </div>
-                        ))}
-                     </div>
-                   )}
-                 </div>
-              </div>
-            </div>
-
-            {/* Dynamic Inputs */}
-            {renderInputs()}
-
-            {/* Action Bar */}
-            <div className="flex justify-end pt-4 border-t border-white/5">
-              <button 
-                onClick={handleFetch}
-                disabled={loading}
-                className="
-                  bg-primary hover:bg-emerald-400 text-black font-bold py-2.5 px-8 rounded-lg 
-                  flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] 
-                  hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed
-                  w-full md:w-auto justify-center
-                "
-              >
-                {loading ? <Settings className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
-                <span>SEND REQUEST</span>
-              </button>
-            </div>
-          </div>
-
-          {/* Output Console */}
-          <div className="flex-1 min-h-[500px]">
-            <ConsoleOutput data={responseData} loading={loading} meta={requestMeta} />
-          </div>
-
-        </div>
-
-        {/* Footer */}
+        {view === 'playground' ? <Playground /> : <Documentation />}
+        
         <footer className="w-full max-w-6xl mx-auto mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6">
-            
-            {/* Left: Brand & Copyright */}
             <div className="flex flex-col items-center md:items-start gap-2">
               <div className="flex items-center gap-2 text-zinc-300">
                 <Terminal size={16} className="text-primary" />
@@ -380,25 +438,22 @@ export function App() {
                 &copy; {new Date().getFullYear()} Developed with <Heart size={10} className="text-error fill-error animate-pulse" /> by <span className="text-primary font-bold">Rio</span>
               </p>
             </div>
-
-            {/* Right: Navigation */}
             <nav className="flex items-center gap-6">
-              <a href="#" className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
+              <a href="https://github.com/rioxr" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
                 <Github size={14} className="group-hover:text-white" />
                 <span>GitHub</span>
               </a>
-              <a href="#" className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
+              <button onClick={() => setView('docs')} className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
                 <Code size={14} className="group-hover:text-primary" />
                 <span>Documentation</span>
-              </a>
-               <a href="#" className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
+              </button>
+              <a href="https://status.rioruo.com" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
                 <Globe size={14} className="group-hover:text-info" />
                 <span>Status</span>
               </a>
             </nav>
           </div>
         </footer>
-
       </main>
     </div>
   );

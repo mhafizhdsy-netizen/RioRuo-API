@@ -12,11 +12,11 @@ const scrapeSearchResult = (html) => {
   animes.forEach(anime => {
     const $ = load(anime);
     const genres = mapGenres($('.set:nth-child(3)')?.html()?.toString()
-      .replace('<b>Genres</b> : ', '') );
+      .replace('<b>Genres</b> : ', ''));
 
     searchResult.push({
       title: $('h2 a').text(),
-      slug: $('h2 a').attr('href')?.replace(/^https:\/\/otakudesu\.best\/anime\//, ''), // Updated regex for otakudesu.best
+      slug: $('h2 a').attr('href')?.replace(/^https:\/\/otakudesu\.[a-zA-Z0-9-]+\/anime\//, '').replace('/', ''),
       poster: $('img').attr('src'),
       genres,
       status: $('.set:nth-child(4)').text()?.replace('Status : ', ''),

@@ -1,8 +1,12 @@
-import { ApiEndpoint } from '../src/types/types.ts'; // Updated path to src/types/types.ts
+import { ApiEndpoint } from '../src/types/types.ts';
 
 // Determine Base URL based on environment
-// Updated: Hardcoded to the live Vercel deployment as requested
-export const BASE_URL = 'https://rioruo.vercel.app';
+// Updated to dynamically switch between local and deployed API
+// FIX: Add type assertion to `import.meta` to bypass TypeScript's lack of knowledge about `import.meta.env`
+export const BASE_URL = 
+  (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.MODE === 'development') 
+  ? 'http://localhost:3000' 
+  : 'https://rioruo.vercel.app';
 
 async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
   // Construct the full path including the backend's base API route prefix
@@ -48,4 +52,8 @@ export const apiService = {
     fetchFromApi(ApiEndpoint.EPISODE_BY_NUMBER.replace(':slug', animeSlug).replace(':episode', episodeNumber.toString())),
   getEpisodeDetail: (slug: string) => fetchFromApi(ApiEndpoint.EPISODE_DETAIL.replace(':slug', slug)),
   getBatchByAnimeSlug: (slug: string) => fetchFromApi(ApiEndpoint.BATCH_BY_ANIME_SLUG.replace(':slug', slug)),
+  getMovies: (page = 1) => fetchFromApi(ApiEndpoint.MOVIES.replace(':page?', page.toString())), // New Service
+  getSingleMovie: (year: string, month: string, movieSlug: string) => 
+    fetchFromApi(ApiEndpoint.SINGLE_MOVIE.replace(':year', year).replace(':month', month).replace(':slug', movieSlug)), // Updated Service
+  getJadwalRilis: () => fetchFromApi(ApiEndpoint.JADWAL_RILIS), // New Service
 };

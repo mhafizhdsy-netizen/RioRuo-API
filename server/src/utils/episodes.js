@@ -1,14 +1,9 @@
-import apiClient from '../lib/apiClient.js';
+import axios from 'axios';
 import scrapeAnimeEpisodes from '../lib/scrapeAnimeEpisodes.js';
-
-const BASEURL = 'https://otakudesu.best';
-
+const BASEURL = process.env.BASEURL   || 'https://otakudesu.best';
 const episodes = async (slug) => {
-  console.log('[Handler] Using Puppeteer client for /anime/:slug/episodes');
-  const { data } = await apiClient.get(`${BASEURL}/anime/${slug}`);
-  const result = scrapeAnimeEpisodes(data);
-
-  return result;
+    const { data } = await axios.get(`${BASEURL}/anime/${slug}`);
+    const result = scrapeAnimeEpisodes(data);
+    return result;
 };
-
 export default episodes;

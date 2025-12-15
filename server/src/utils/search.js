@@ -1,14 +1,18 @@
-import axiosClient from '../lib/axiosClient.js';
+import axios from 'axios';
 import scrapesearchresult from '../lib/scrapeSearchResult.js';
-
-const BASEURL = 'https://otakudesu.best';
-
+const BASEURL = process.env.BASEURL   || 'https://otakudesu.best';
 const search = async (keyword) => {
-  console.log('[Handler] Using Axios client for /search');
-  const response = await axiosClient.get(`${BASEURL}/?s=${keyword}&post_type=anime`);
-  const html = response.data;
-  const searchResult = scrapesearchresult(html);
-  return searchResult;
+    const response = await axios.post(`${BASEURL}/`,`s=${keyword}&post_type=anime`,{
+        headers: {
+          "Accept": "*/*",
+          "Accept-Encoding": "deflate, gzip",
+          "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/140.0.0.0 Safari/537.36",
+          "Content-Type": "application/x-www-form-urlencoded",
+          "Host": "otakudesu.best"
+        }
+    });
+    const html = response.data;
+    const searchResult = scrapesearchresult(html);
+    return searchResult;
 };
-
 export default search;

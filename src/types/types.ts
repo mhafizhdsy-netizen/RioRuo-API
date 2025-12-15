@@ -74,33 +74,23 @@ type episode = {
     slug: string | undefined;
     otakudesu_url: string | undefined;
   };
-  has_next_episode: boolean;
-  next_episode: {
-    slug: string | undefined;
-    otakudesu_url: string | undefined;
-  } | null;
   has_previous_episode: boolean;
-  previous_episode: {
-    slug: string | undefined;
-    otakudesu_url: string | undefined;
-  } | null;
+  previous_episode_slug: string | null;
+  next_episode_slug: string | null;
+  has_next_episode: boolean;
   stream_url: string | undefined;
+  streamList: {quality: string, provider: string, url: string | null}[];
   download_urls: {
-    mp4: {
-      resolution: string | undefined;
-      urls: {
-        provider: string | undefined;
-        url: string | undefined;
-      }[];
-    }[];
-    mkv: {
-      resolution: string | undefined;
-      urls: {
-        provider: string | undefined;
-        url: string | undefined;
-      }[];
-    }[];
-  };
+    format_title: string,
+    formats: {
+      resolution: string,
+      size: string,
+      links: {
+        provider: string,
+        url: string | undefined
+      }[]
+    }[]
+  }[];
 };
 
 type batch = {
@@ -115,6 +105,44 @@ type batch = {
   }[];
 }
 
+type movie = {
+  title: string | undefined;
+  poster: string | undefined;
+  sinopsi: string | undefined;
+  download_urls: any; 
+  stream_url: any; 
+};
+
+type movies = {
+  movies: {
+    title: string | undefined;
+    code: string | undefined;
+    slug: string | undefined;
+    poster: string | undefined;
+    otakudesu_url: string | undefined;
+  }[];
+  pagination: {
+    current_page: number;
+    last_visible_page: number;
+    has_next_page: boolean;
+    next_page: number | null;
+    has_previous_page: boolean;
+    previous_page: number | null;
+  };
+};
+
+type jadwalRilisItem = {
+    title: string;
+    slug: string;
+    otakudesu_url: string;
+};
+
+type jadwalRilisDay = {
+    day: string;
+    animeList: jadwalRilisItem[];
+};
+
+
 export enum ApiEndpoint {
   HOME = '/home',
   SEARCH = '/search/:keyword',
@@ -128,6 +156,9 @@ export enum ApiEndpoint {
   GENRE_DETAIL = '/genres/:slug/:page?',
   BATCH_DETAIL = '/batch/:slug',
   BATCH_BY_ANIME_SLUG = '/anime/:slug/batch',
+  MOVIES = '/movies/:page?', // New Endpoint
+  SINGLE_MOVIE = '/movies/:year/:month/:slug', // Updated Endpoint
+  JADWAL_RILIS = '/jadwal-rilis', // New Endpoint
 }
 
 export {
@@ -138,5 +169,9 @@ export {
   genre,
   episode_list,
   episode,
-  batch
+  batch,
+  movie, // Export new type
+  movies, // Export new type
+  jadwalRilisDay, // Export new type
+  jadwalRilisItem // Export new type
 };

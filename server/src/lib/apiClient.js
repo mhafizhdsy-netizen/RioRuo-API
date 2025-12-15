@@ -11,100 +11,79 @@ const apiClient = {
       browser = await getBrowser();
       page = await browser.newPage();
 
-      // STEALTH: Masking as a real user via strict header and property injection
-      
-      // 1. Override navigator.webdriver and mock plugins/chrome
-      await page.evaluateOnNewDocument(() => {
-        // Pass the Webdriver Test.
-        Object.defineProperty(navigator, 'webdriver', {
-          get: () => false,
-        });
-        
-        // Mock window.chrome
-        window.chrome = {
-          runtime: {},
-          loadTimes: function() {},
-          csi: function() {},
-          app: {}
-        };
-        
-        // Mock plugins to not look empty
-        Object.defineProperty(navigator, 'plugins', {
-          get: () => [1, 2, 3, 4, 5],
-        });
-        
-        // Mock languages
-        Object.defineProperty(navigator, 'languages', {
-          get: () => ['en-US', 'en'],
-        });
-      });
+      // NOTE: Manual stealth injections (navigator.webdriver, etc.) have been removed.
+      // puppeteer-extra-plugin-stealth handles this automatically now.
 
-      // 2. Set modern User Agent
+      // Set a realistic User-Agent (optional, as Stealth often sets a good one, but explicit is safe)
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
       
-      // 3. Set standard headers to mimic a real browser request
+      // Standard headers
       await page.setExtraHTTPHeaders({
         'Accept-Language': 'en-US,en;q=0.9',
         'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
         'Upgrade-Insecure-Requests': '1',
-        'Cache-Control': 'max-age=0'
-      });
-
-      // Optimization: Block heavy media
-      await page.setRequestInterception(true);
-      page.on('request', (req) => {
-        const resourceType = req.resourceType();
-        // Block images, media, fonts. Allow scripts/stylesheets as they might drive Cloudflare challenges.
-        if (['image', 'media', 'font'].includes(resourceType)) {
-          req.abort();
-        } else {
-          req.continue();
-        }
+        'Cache-Control': 'no-cache',
       });
 
       // Navigate to URL
-      // Use domcontentloaded for speed, but wait long enough for scripts
-      const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
+      // 'networkidle2' allows Cloudflare scripts to finish loading
+      const response = await page.goto(url, { waitUntil: 'networkidle2', timeout: 60000 });
       
-      // Cloudflare Check
+      // HUMANIZATION: Minimal mouse movement to satisfy "human" checks
+      try {
+        await page.mouse.move(100, 100);
+        await page.mouse.move(200, 200, { steps: 10 });
+      } catch (e) { /* ignore */ }
+
+      // Cloudflare Check Logic
+      // Even with Stealth, CF might briefly show the "Just a moment" page before redirecting.
       const title = await page.title();
-      if (title.includes('Just a moment') || title.includes('Attention Required') || title.includes('Cloudflare')) {
-          console.log('[Puppeteer] Cloudflare challenge detected. Waiting for resolution...');
-          // Wait longer for redirection
-          await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => {
-             console.log('[Puppeteer] Navigation timeout or no navigation occurred during wait.');
-          });
+      const content = await page.content();
+      
+      const isCloudflare = title.includes('Just a moment') || 
+                           title.includes('Attention Required') || 
+                           title.includes('Cloudflare') ||
+                           content.includes('challenge-platform');
+
+      if (isCloudflare) {
+          console.log('[Puppeteer] Cloudflare challenge detected (Post-Stealth). Waiting for bypass...');
+          
+          // Wait for the main content selector of Otakudesu
+          try {
+            await page.waitForSelector('.venutama', { timeout: 30000 });
+            console.log('[Puppeteer] Challenge passed, content loaded.');
+          } catch (e) {
+            console.log('[Puppeteer] Failed to bypass challenge or timeout waiting for content.');
+          }
       }
 
-      // Get the full HTML content
-      const content = await page.content();
-      const status = response ? response.status() : 200;
+      // Final Content Retrieval
+      const finalContent = await page.content();
+      
+      // Validation: Check if we actually have anime content
+      if (!finalContent.includes('venutama') && !finalContent.includes('post-body')) {
+         const status = response ? response.status() : 0;
+         // Only throw if it looks like a hard block (403/503) AND we didn't get content
+         if (status >= 400 && status !== 404) {
+            throw new Error(`Puppeteer blocked with status ${status}. Stealth failed.`);
+         }
+      }
 
-      // Close the page immediately to free resources
+      const finalStatus = response ? response.status() : 200;
+
+      // Close the page immediately
       await page.close();
       page = null; 
 
-      // If status is 403, it means we were blocked.
-      // Note: Sometimes Cloudflare returns 403 on the "challenge" page, but if we passed it, 
-      // the content should be the actual site. However, scrape scripts usually fail if the initial response was 403.
-      // But scraping the *content* might work if the challenge completed inside the browser but the initial status code remains (unlikely).
-      // We'll throw if it's 403 to trigger a retry or error message.
-      if (status >= 400 && status !== 404) {
-        throw new Error(`Puppeteer request failed with status ${status}`);
-      }
-
       return {
-        data: content,
-        status: status,
+        data: finalContent,
+        status: finalStatus,
         headers: response ? response.headers() : {}
       };
 
     } catch (error) {
       console.error(`[ApiClient] Error fetching ${url}:`, error.message);
-      
-      // Attempt cleanup if error occurred
       if (page) await page.close().catch(() => {});
-      
       throw error;
     }
   }

@@ -1,6 +1,10 @@
-import puppeteer from 'puppeteer-core';
+import puppeteer from 'puppeteer-extra';
+import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import chromium from '@sparticuz/chromium';
 import fs from 'fs';
+
+// Register the stealth plugin
+puppeteer.use(StealthPlugin());
 
 // Helper to find local Chrome path for development
 const getLocalChromePath = () => {
@@ -43,20 +47,16 @@ export const getBrowser = async () => {
     console.log('[Browser] Environment: Railway/Docker');
     executablePath = '/usr/bin/google-chrome';
     
-    // Args for Docker environment (Standard Puppeteer args + Stealth)
+    // Args for Docker environment
+    // Stealth plugin handles most args, but we need these for Docker stability
     args = [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage', // Important for Docker memory limits
+      '--disable-dev-shm-usage',
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
       '--disable-gpu',
-      // Anti-detection / Stealth args
-      '--disable-blink-features=AutomationControlled',
-      '--hide-scrollbars',
-      '--mute-audio',
-      '--disable-extensions',
       '--window-size=1920,1080'
     ];
 
@@ -65,12 +65,8 @@ export const getBrowser = async () => {
     // Use sparticuz compressed binary
     console.log('[Browser] Environment: Vercel (Serverless)');
     executablePath = await chromium.executablePath();
-    // chromium.args are already optimized for Lambda, adding stealth
-    const extraArgs = [
-       '--disable-blink-features=AutomationControlled',
-       '--disable-extensions'
-    ];
-    args = [...chromium.args, ...extraArgs];
+    // chromium.args are already optimized for Lambda
+    args = [...chromium.args];
     
   } else {
     // LOCAL DEVELOPMENT
@@ -87,8 +83,7 @@ export const getBrowser = async () => {
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-accelerated-2d-canvas',
-      '--disable-gpu',
-      '--disable-blink-features=AutomationControlled'
+      '--disable-gpu'
     ];
   }
 
@@ -98,7 +93,7 @@ export const getBrowser = async () => {
     args: args,
     defaultViewport: chromium.defaultViewport,
     executablePath: executablePath,
-    // Force headless 'new' in production, railway, vercel.
+    // Force headless 'new' in production/railway/vercel.
     headless: (isVercel || isRailway || isProduction) ? 'new' : false,
     ignoreHTTPSErrors: true,
   });

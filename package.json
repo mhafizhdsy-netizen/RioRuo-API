@@ -1,5 +1,5 @@
 {
-  "name": "samehadaku-api-scraper",
+  "name": "rioruo-api-scraper",
   "version": "1.0.0",
   "type": "module",
   "scripts": {
@@ -16,7 +16,8 @@
     "axios": "^1.6.7",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
-    "scraperjs": "^1.2.0"
+    "puppeteer-core": "^24.0.0",
+    "@sparticuz/chromium": "^131.0.1"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",

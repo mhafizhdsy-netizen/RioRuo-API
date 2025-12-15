@@ -11,7 +11,11 @@ app.use((req, res, next) => {
 
     next();
 });
-app.use(routes);
+
+// FIX: Mount the main routes under the /otakudesu path to match Vercel's rewrite rule.
+// This ensures that Express correctly handles paths like /otakudesu/v1/home.
+app.use('/otakudesu', routes);
+
 app.listen(port, () => {
     console.log(`App is listening on port ${port}, http://localhost:${port}`);
 });

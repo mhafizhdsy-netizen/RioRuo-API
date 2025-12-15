@@ -5,9 +5,9 @@ import { execSync } from 'child_process';
 import handler from '../src/handler/handler.js'; // Corrected path to handler
 
 const api = Router();
-api.get('/', (_, res) => {
-    console.log('test');
 
+// Robust Health Check Endpoint
+api.get('/health', (_, res) => {
     const totalMem = os.totalmem() / (1024 * 1024 * 1024);
     const freeMem = os.freemem() / (1024 * 1024 * 1024);
 
@@ -17,6 +17,7 @@ api.get('/', (_, res) => {
 
     let diskInfo = {};
     try {
+      // Attempt to get disk usage, fail gracefully if command missing (e.g. non-linux)
       const df = execSync('df -h /').toString();
       const lines = df.trim().split('\n');
       const parts = lines[1].split(/\s+/);
@@ -28,13 +29,13 @@ api.get('/', (_, res) => {
         mount: parts[5],
       };
     } catch {
-      diskInfo = { error: 'df command failed or not available' };
+      diskInfo = { error: 'Disk info unavailable (df command failed)' };
     }
 
     res.status(200).json({
       status: 'OK',
-      Creator: 'RioRuo',
-      Message: "Don't spam the request motherfucker!",
+      uptime: process.uptime(),
+      timestamp: new Date().toISOString(),
       system: {
         ram: {
           totalGB: totalMem.toFixed(2),
@@ -49,6 +50,16 @@ api.get('/', (_, res) => {
       },
     });
 });
+
+// Lightweight Root Endpoint
+api.get('/', (_, res) => {
+    res.status(200).json({
+      status: 'OK',
+      Creator: 'RioRuo',
+      Message: "Welcome to RioRuo API. Use /health for system status.",
+    });
+});
+
 api.get('/home', handler.homeHandler);
 api.get('/search/:keyword', handler.searchAnimeHandler);
 api.get('/ongoing-anime/:page?', handler.ongoingAnimeHandler);

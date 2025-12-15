@@ -157,9 +157,14 @@ export enum ApiEndpoint {
   GENRE_DETAIL = '/v1/genres/:slug/:page?',
   BATCH_DETAIL = '/v1/batch/:slug',
   BATCH_BY_ANIME_SLUG = '/v1/anime/:slug/batch',
-  MOVIES = '/v1/movies/:page?', // New Endpoint
-  SINGLE_MOVIE = '/v1/movies/:year/:month/:slug', // Updated Endpoint
-  JADWAL_RILIS = '/v1/jadwal-rilis', // New Endpoint
+  MOVIES = '/v1/movies/:page?',
+  SINGLE_MOVIE = '/v1/movies/:year/:month/:slug',
+  JADWAL_RILIS = '/v1/jadwal-rilis',
+  // Weather Endpoints
+  WEATHER = '/v1/weather/:location',
+  WEATHER_ASCII = '/v1/weather/ascii/:location',
+  WEATHER_QUICK = '/v1/weather/quick/:location',
+  WEATHER_PNG = '/v1/weather/png/:location',
 }
 
 export {
@@ -171,8 +176,8 @@ export {
   episode_list,
   episode,
   batch,
-  movie, // Export new type
-  movies, // Export new type
-  jadwalRilisDay, // Export new type
-  jadwalRilisItem // Export new type
+  movie,
+  movies,
+  jadwalRilisDay,
+  jadwalRilisItem
 };

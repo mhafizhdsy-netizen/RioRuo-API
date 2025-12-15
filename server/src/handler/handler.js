@@ -235,6 +235,62 @@ const singleMovieHandler = async (req, res) => {
     return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
+// --- Weather Handlers ---
+
+const weatherHandler = async (req, res) => {
+    try {
+        const { location } = req.params;
+        const lang = req.query.lang || 'en';
+        const data = await otakudesu.weather.getWeather(location, lang);
+        return res.status(200).json(data);
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const weatherAsciiHandler = async (req, res) => {
+    try {
+        const { location } = req.params;
+        const lang = req.query.lang || 'en';
+        const format = req.query.format; // 'json' or undefined
+        
+        const data = await otakudesu.weather.getWeatherAscii(location, lang, format);
+        
+        if (format === 'json') {
+            return res.status(200).json(data);
+        } else {
+            return res.type('text/plain').send(data);
+        }
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const weatherQuickHandler = async (req, res) => {
+    try {
+        const { location } = req.params;
+        const lang = req.query.lang || 'en';
+        const format = req.query.format;
+        
+        const data = await otakudesu.weather.getWeatherQuick(location, lang, format);
+        return res.status(200).json(data);
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const weatherPngHandler = async (req, res) => {
+    try {
+        const { location } = req.params;
+        const data = await otakudesu.weather.getWeatherPng(location);
+        
+        // Return as image
+        return res.type('image/png').send(data);
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 export default {
   searchAnimeHandler,
   homeHandler,
@@ -250,5 +306,10 @@ export default {
   animeByGenreHandler,
   jadwalRilisHandler,
   moviesHandler,
-  singleMovieHandler
+  singleMovieHandler,
+  // Weather
+  weatherHandler,
+  weatherAsciiHandler,
+  weatherQuickHandler,
+  weatherPngHandler
 };

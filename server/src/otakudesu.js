@@ -1,3 +1,4 @@
+
 import 'dotenv/config';
 import home from './utils/home.js';
 import anime from './utils/anime.js';
@@ -11,7 +12,8 @@ import genreLists from './utils/genreLists.js';
 import animeByGenre from './utils/animeByGenre.js';
 import movie from './utils/movie.js';
 import movies from './utils/movies.js';
-import jadwalRilis from './utils/jadwalRilis.js'; // New import
+import jadwalRilis from './utils/jadwalRilis.js';
+import weather from './utils/weather.js'; // New import
 
 export default {
   home,
@@ -26,5 +28,6 @@ export default {
   animeByGenre,
   movie,
   movies,
-  jadwalRilis
+  jadwalRilis,
+  weather // Export new utility
 };

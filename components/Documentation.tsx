@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
-  Layout, List, Search, Film, Grid, CalendarDays, ArrowLeft
+  Layout, List, Search, Film, Grid, CalendarDays, Cloud, ArrowLeft, ChevronDown
 } from 'lucide-react';
 
 const documentationData = [
@@ -173,6 +173,53 @@ const documentationData = [
             response: 'Objek JSON dengan array `data`, di mana setiap elemen mewakili satu hari dan berisi daftar anime yang rilis pada hari tersebut.'
         }
     ]
+  },
+  {
+    id: 'weather',
+    name: 'Weather',
+    icon: <Cloud size={16} />,
+    endpoints: [
+        {
+            path: '/v1/weather/:location',
+            method: 'GET',
+            description: 'Mengambil data cuaca lengkap dalam format JSON dari wttr.in.',
+            parameters: [
+                { name: ':location', type: 'string', required: true, description: 'Nama lokasi (kota) yang ingin dicek cuacanya.' }
+            ],
+            example: '/weather/Jakarta',
+            response: 'Objek JSON berisi data cuaca lengkap.'
+        },
+        {
+            path: '/v1/weather/ascii/:location',
+            method: 'GET',
+            description: 'Mengambil tampilan cuaca dalam format ASCII art.',
+            parameters: [
+                { name: ':location', type: 'string', required: true, description: 'Nama lokasi.' }
+            ],
+            example: '/weather/ascii/Bandung',
+            response: 'String text (ASCII Art) atau JSON jika parameter format=json digunakan.'
+        },
+        {
+            path: '/v1/weather/quick/:location',
+            method: 'GET',
+            description: 'Info cuaca singkat satu baris.',
+            parameters: [
+                { name: ':location', type: 'string', required: true, description: 'Nama lokasi.' }
+            ],
+            example: '/weather/quick/Surabaya',
+            response: 'Objek JSON berisi string cuaca singkat.'
+        },
+        {
+            path: '/v1/weather/png/:location',
+            method: 'GET',
+            description: 'Mengambil gambar PNG cuaca.',
+            parameters: [
+                { name: ':location', type: 'string', required: true, description: 'Nama lokasi.' }
+            ],
+            example: '/weather/png/Bali',
+            response: 'Binary image file (PNG).'
+        }
+    ]
   }
 ];
 
@@ -230,7 +277,12 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
 
 export function Documentation() {
   const [activeSection, setActiveSection] = useState(documentationData[0].id);
+  const [isOtakudesuExpanded, setOtakudesuExpanded] = useState(true);
+  const [isWeatherExpanded, setWeatherExpanded] = useState(true);
   const mainContentRef = useRef<HTMLDivElement>(null);
+
+  const otakudesuDocs = documentationData.filter(sect => sect.id !== 'weather');
+  const weatherDocs = documentationData.filter(sect => sect.id === 'weather');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -272,20 +324,93 @@ export function Documentation() {
          <div className="p-1 bg-surface border border-border rounded-xl">
            <h3 className="flex items-center gap-2 text-sm font-bold text-white p-3"><BookOpen size={16} className="text-primary"/> API Endpoints</h3>
            <nav className="flex flex-col gap-1 p-2">
-            {documentationData.map(section => (
-              <button
-                key={section.id}
-                onClick={() => scrollToSection(section.id)}
-                className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
-                  activeSection === section.id
-                    ? 'bg-primary/10 text-primary font-semibold'
-                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
-                }`}
-              >
-                {section.icon}
-                <span>{section.name}</span>
-              </button>
-            ))}
+            
+            {/* Otakudesu Group Wrapper */}
+            <div className="space-y-1 mb-4">
+                <button 
+                  onClick={() => setOtakudesuExpanded(!isOtakudesuExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isOtakudesuExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Visual indicator bar for active state */}
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isOtakudesuExpanded ? 'bg-primary' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Otakudesu</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isOtakudesuExpanded ? 'rotate-180 text-primary' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isOtakudesuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
+                    {otakudesuDocs.map(section => (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
+                          activeSection === section.id
+                            ? 'bg-primary/10 text-primary border border-primary/20'
+                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                        }`}
+                      >
+                        <div className={`transition-colors ${activeSection === section.id ? 'text-primary' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                           {section.icon}
+                        </div>
+                        <span>{section.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+            </div>
+
+            {/* Weather Group Wrapper - Separated */}
+            <div className="space-y-1">
+                <button 
+                  onClick={() => setWeatherExpanded(!isWeatherExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isWeatherExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    {/* Visual indicator bar for active state */}
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isWeatherExpanded ? 'bg-info' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Weather</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isWeatherExpanded ? 'rotate-180 text-info' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isWeatherExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
+                    {weatherDocs.map(section => (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
+                          activeSection === section.id
+                            ? 'bg-info/10 text-info border border-info/20'
+                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                        }`}
+                      >
+                        <div className={`transition-colors ${activeSection === section.id ? 'text-info' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                           {section.icon}
+                        </div>
+                        <span>{section.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+            </div>
+
            </nav>
          </div>
       </aside>

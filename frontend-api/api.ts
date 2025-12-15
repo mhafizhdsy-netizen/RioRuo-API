@@ -2,19 +2,17 @@
 import { ApiEndpoint } from '../src/types/types.ts';
 
 // Determine Base URL based on environment
-// Updated to dynamically switch between local and deployed API
-// FIX: Add type assertion to `import.meta` to bypass TypeScript's lack of knowledge about `import.meta.env`
 export const BASE_URL = 
   (typeof import.meta !== 'undefined' && (import.meta as any).env && (import.meta as any).env.MODE === 'development') 
   ? 'http://localhost:3000' 
   : ''; // Use relative path in production (same domain)
 
-async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-  // Construct the full path.
-  // Prefix /v1 is now included in the endpoint string from types.ts
+async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>, extraQueryParams?: Record<string, string>): Promise<T> {
   const fullApiPath = endpoint;
-  // If BASE_URL is empty (production), it uses window.location.origin automatically via the URL constructor
   const url = new URL(`${BASE_URL}${fullApiPath}`, window.location.origin);
+  
+  // URL path params (e.g., :location) should be handled by caller before string replacement if using this func generic,
+  // but here we primarily use params for search params or rely on replacement before calling.
   
   if (params) {
     Object.keys(params).forEach(key => {
@@ -22,22 +20,44 @@ async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>
     });
   }
 
+  if (extraQueryParams) {
+      Object.keys(extraQueryParams).forEach(key => {
+          if (extraQueryParams[key]) url.searchParams.append(key, extraQueryParams[key]);
+      });
+  }
+
   const res = await fetch(url.toString());
   
   if (!res.ok) {
-      // Try to parse error message from JSON response
       let errorMessage = `HTTP Error: ${res.status} ${res.statusText}`;
       try {
         const errorData = await res.json();
         if (errorData.message) errorMessage = errorData.message;
       } catch (e) { 
-        // ignore json parse error, stick to status text 
+        // ignore json parse error
       }
-      
       throw new Error(errorMessage);
   }
   
-  return await res.json();
+  // Handle Content-Types
+  const contentType = res.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+      return await res.json();
+  } else if (contentType && contentType.includes("image")) {
+      // For images, we can't display blob in JSON console properly, so we return a descriptive object
+      return { 
+          status: 'OK', 
+          message: 'Binary Image Data Returned', 
+          type: contentType,
+          url: url.toString(),
+          hint: 'This endpoint returns a binary image file. In a real app, use <img src="..." />.'
+      } as any;
+  } else {
+      // Assume text (like for ASCII)
+      const text = await res.text();
+      // Wrap text in JSON so ConsoleOutput can display it nicely
+      return { data: text } as any;
+  }
 }
 
 export const apiService = {
@@ -54,8 +74,13 @@ export const apiService = {
     fetchFromApi(ApiEndpoint.EPISODE_BY_NUMBER.replace(':slug', animeSlug).replace(':episode', episodeNumber.toString())),
   getEpisodeDetail: (slug: string) => fetchFromApi(ApiEndpoint.EPISODE_DETAIL.replace(':slug', slug)),
   getBatchByAnimeSlug: (slug: string) => fetchFromApi(ApiEndpoint.BATCH_BY_ANIME_SLUG.replace(':slug', slug)),
-  getMovies: (page = 1) => fetchFromApi(ApiEndpoint.MOVIES.replace(':page?', page.toString())), // New Service
+  getMovies: (page = 1) => fetchFromApi(ApiEndpoint.MOVIES.replace(':page?', page.toString())),
   getSingleMovie: (year: string, month: string, movieSlug: string) => 
-    fetchFromApi(ApiEndpoint.SINGLE_MOVIE.replace(':year', year).replace(':month', month).replace(':slug', movieSlug)), // Updated Service
-  getJadwalRilis: () => fetchFromApi(ApiEndpoint.JADWAL_RILIS), // New Service
+    fetchFromApi(ApiEndpoint.SINGLE_MOVIE.replace(':year', year).replace(':month', month).replace(':slug', movieSlug)),
+  getJadwalRilis: () => fetchFromApi(ApiEndpoint.JADWAL_RILIS),
+  // Weather Services
+  getWeather: (location: string) => fetchFromApi(ApiEndpoint.WEATHER.replace(':location', location)),
+  getWeatherAscii: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_ASCII.replace(':location', location)), // Returns text wrapped in JSON by fetchFromApi
+  getWeatherQuick: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_QUICK.replace(':location', location)),
+  getWeatherPng: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_PNG.replace(':location', location)), // Returns binary info
 };

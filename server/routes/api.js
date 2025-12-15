@@ -2,11 +2,18 @@
 import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
+import apicache from 'apicache';
 import handler from '../src/handler/handler.js'; // Corrected path to handler
 
 const api = Router();
+const cache = apicache.middleware;
 
-// Robust Health Check Endpoint
+// Helper for consistency cache duration
+const CACHE_SHORT = '5 minutes';   // For search, ongoing (frequently updated)
+const CACHE_MEDIUM = '30 minutes'; // For home, genre lists
+const CACHE_LONG = '1 hour';       // For completed anime details, episodes (static content)
+
+// Robust Health Check Endpoint (DO NOT CACHE THIS)
 api.get('/health', (_, res) => {
     const totalMem = os.totalmem() / (1024 * 1024 * 1024);
     const freeMem = os.freemem() / (1024 * 1024 * 1024);
@@ -60,21 +67,28 @@ api.get('/', (_, res) => {
     });
 });
 
-api.get('/home', handler.homeHandler);
-api.get('/search/:keyword', handler.searchAnimeHandler);
-api.get('/ongoing-anime/:page?', handler.ongoingAnimeHandler);
-api.get('/complete-anime/:page?', handler.completeAnimeHandler);
-api.get('/anime/:slug', handler.singleAnimeHandler);
-api.get('/anime/:slug/episodes', handler.episodesHandler);
-api.get('/anime/:slug/episodes/:episode', handler.episodeByEpisodeNumberHandler);
-api.get('/episode/:slug', handler.episodeByEpisodeSlugHandler);
-api.get('/batch/:slug', handler.batchByBatchSlugHandler);
-api.get('/anime/:slug/batch', handler.batchHandler);
-api.get('/genres', handler.genreListsHandler);
-api.get('/genres/:slug/:page?', handler.animeByGenreHandler);
-api.get('/movies/:page?', handler.moviesHandler);
-api.get('/movies/:year/:month/:slug', handler.singleMovieHandler);
-api.get('/jadwalRilis', handler.jadwalRilisHandler);
-api.get('/jadwal-rilis', handler.jadwalRilisHandler);
+// Apply caching strategies
+api.get('/home', cache(CACHE_MEDIUM), handler.homeHandler);
+api.get('/search/:keyword', cache(CACHE_SHORT), handler.searchAnimeHandler);
+api.get('/ongoing-anime/:page?', cache(CACHE_SHORT), handler.ongoingAnimeHandler);
+api.get('/complete-anime/:page?', cache(CACHE_LONG), handler.completeAnimeHandler);
+api.get('/anime/:slug', cache(CACHE_LONG), handler.singleAnimeHandler);
+api.get('/anime/:slug/episodes', cache(CACHE_LONG), handler.episodesHandler);
+api.get('/anime/:slug/episodes/:episode', cache(CACHE_LONG), handler.episodeByEpisodeNumberHandler);
+api.get('/episode/:slug', cache(CACHE_LONG), handler.episodeByEpisodeSlugHandler);
+api.get('/batch/:slug', cache(CACHE_LONG), handler.batchByBatchSlugHandler);
+api.get('/anime/:slug/batch', cache(CACHE_LONG), handler.batchHandler);
+api.get('/genres', cache(CACHE_LONG), handler.genreListsHandler);
+api.get('/genres/:slug/:page?', cache(CACHE_MEDIUM), handler.animeByGenreHandler);
+api.get('/movies/:page?', cache(CACHE_MEDIUM), handler.moviesHandler);
+api.get('/movies/:year/:month/:slug', cache(CACHE_LONG), handler.singleMovieHandler);
+api.get('/jadwalRilis', cache(CACHE_MEDIUM), handler.jadwalRilisHandler);
+api.get('/jadwal-rilis', cache(CACHE_MEDIUM), handler.jadwalRilisHandler);
+
+// Weather Routes (Short Cache)
+api.get('/weather/:location', cache(CACHE_SHORT), handler.weatherHandler);
+api.get('/weather/ascii/:location', cache(CACHE_SHORT), handler.weatherAsciiHandler);
+api.get('/weather/quick/:location', cache(CACHE_SHORT), handler.weatherQuickHandler);
+api.get('/weather/png/:location', cache(CACHE_SHORT), handler.weatherPngHandler);
 
 export default api;

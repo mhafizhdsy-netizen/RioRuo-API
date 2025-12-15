@@ -1,14 +1,40 @@
+
 import express from 'express';
 import cors from 'cors';
+import helmet from 'helmet';
+import { rateLimit } from 'express-rate-limit';
 import routes from './routes/routes.js';
 import 'dotenv/config';
+
 const app = express();
 const port = process.env.PORT ?? 3000;
+
+// 1. Security Headers
+app.use(helmet());
+
+// 2. CORS Configuration
 app.use(cors());
+
+// 3. Rate Limiter Configuration
+// Limits each IP to 100 requests per 15 minutes.
+// Standard headers are included so clients know their limits.
+const limiter = rateLimit({
+	windowMs: 15 * 60 * 1000, // 15 minutes
+	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
+	standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
+	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+    message: {
+        status: 'Error',
+        message: 'Too many requests from this IP, please try again after 15 minutes',
+        hint: 'We implement rate limiting to protect our upstream providers.'
+    }
+});
+
+// Apply the rate limiting middleware to all requests.
+app.use(limiter);
 
 app.use((req, res, next) => {
     console.log(`[${new Date().toISOString()}] ${req.ip} ${req.method} ${req.originalUrl}`);
-
     next();
 });
 

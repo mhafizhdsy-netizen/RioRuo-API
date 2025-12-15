@@ -17,10 +17,9 @@
     "axios": "^1.6.7",
     "cheerio": "^1.0.0-rc.12",
     "cors": "^2.8.5",
-    "puppeteer-core": "^24.0.0",
+    "rebrowser-puppeteer": "^22.11.0",
     "puppeteer-extra": "^3.3.6",
-    "puppeteer-extra-plugin-stealth": "^2.11.2",
-    "@sparticuz/chromium": "^131.0.1"
+    "puppeteer-extra-plugin-stealth": "^2.11.2"
   },
   "devDependencies": {
     "@types/react": "^18.2.56",

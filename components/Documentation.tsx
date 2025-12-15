@@ -176,53 +176,51 @@ const documentationData = [
   }
 ];
 
-// FIX: Define prop types for EndpointCard to resolve type error when passing `key` prop.
 type Endpoint = typeof documentationData[number]['endpoints'][number];
 
 interface EndpointCardProps {
   endpoint: Endpoint;
 }
 
-// FIX: Changed the component to be of type React.FC. This correctly handles React's special `key` prop, which is required when rendering lists of components, and resolves the TypeScript error.
 const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
-  <div className="bg-surface border border-border rounded-xl mb-8 overflow-hidden">
+  <div className="bg-surface border border-border rounded-xl mb-8 overflow-hidden transition-all duration-300 hover:border-zinc-600 hover:shadow-lg animate-in fade-in slide-in-from-bottom-4">
     <div className="px-5 py-4 bg-surfaceLight border-b border-border">
       <div className="flex items-center gap-3">
-        <span className="text-xs font-bold bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded">{endpoint.method}</span>
+        <span className="text-xs font-bold bg-primary/20 text-primary border border-primary/30 px-2 py-0.5 rounded shadow-[0_0_10px_rgba(16,185,129,0.1)]">{endpoint.method}</span>
         <code className="text-sm font-semibold text-white tracking-wide">{endpoint.path}</code>
       </div>
-      <p className="text-zinc-400 text-sm mt-2">{endpoint.description}</p>
+      <p className="text-zinc-400 text-sm mt-2 leading-relaxed">{endpoint.description}</p>
     </div>
     
     <div className="p-5">
       {endpoint.parameters.length > 0 && (
         <>
-          <h4 className="text-sm font-bold text-zinc-300 mb-3 flex items-center gap-2"><Key size={14}/> Parameters</h4>
-          <div className="space-y-3">
+          <h4 className="text-sm font-bold text-zinc-300 mb-3 flex items-center gap-2"><Key size={14} className="text-primary"/> Parameters</h4>
+          <div className="space-y-3 mb-5">
             {endpoint.parameters.map(param => (
-              <div key={param.name} className="grid grid-cols-1 md:grid-cols-12 gap-2 text-sm">
+              <div key={param.name} className="grid grid-cols-1 md:grid-cols-12 gap-2 text-sm p-2 rounded hover:bg-white/5 transition-colors">
                 <div className="md:col-span-3 flex items-center gap-2">
-                  <code className="font-mono text-primary">{param.name}</code>
-                  {param.required ? <Asterisk size={12} className="text-error"/> : <CheckSquare size={12} className="text-zinc-500"/>}
+                  <code className="font-mono text-primary bg-primary/5 px-1.5 py-0.5 rounded">{param.name}</code>
+                  {param.required ? <Asterisk size={10} className="text-error"/> : <span className="text-[10px] text-zinc-600 border border-zinc-700 px-1 rounded">OPT</span>}
                 </div>
-                <div className="md:col-span-2 text-zinc-400 font-mono flex items-center gap-2"><Type size={14}/> {param.type}</div>
+                <div className="md:col-span-2 text-zinc-400 font-mono flex items-center gap-2 text-xs"><Type size={12}/> {param.type}</div>
                 <div className="md:col-span-7 text-zinc-500">{param.description}</div>
               </div>
             ))}
           </div>
-          <div className="border-b border-border my-5"></div>
+          <div className="border-b border-border mb-5"></div>
         </>
       )}
 
-      <div>
-        <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><Code size={14}/> Example Request</h4>
-        <code className="w-full block bg-surfaceLight border border-border rounded-lg p-3 text-sm text-emerald-300 font-mono break-all">
+      <div className="group">
+        <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><Code size={14} className="text-primary"/> Example Request</h4>
+        <code className="w-full block bg-surfaceLight border border-border rounded-lg p-3 text-sm text-emerald-300 font-mono break-all group-hover:border-zinc-600 transition-colors">
           /v1{endpoint.example}
         </code>
       </div>
-       <div className="mt-4">
-        <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><Terminal size={14}/> Expected Response</h4>
-        <p className="text-sm text-zinc-400">{endpoint.response}</p>
+       <div className="mt-5">
+        <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><Terminal size={14} className="text-primary"/> Expected Response</h4>
+        <p className="text-sm text-zinc-400 bg-black/20 p-3 rounded border border-border/50">{endpoint.response}</p>
       </div>
     </div>
   </div>
@@ -242,7 +240,6 @@ export function Documentation() {
         const element = document.getElementById(section.id);
         if (element) {
           const rect = element.getBoundingClientRect();
-          // Check if section is in the top part of the viewport
           if (rect.top >= 0 && rect.top < 150) {
             currentSectionId = section.id;
             break;
@@ -266,23 +263,24 @@ export function Documentation() {
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full flex flex-col md:flex-row gap-8 animate-in fade-in duration-300">
+    <div className="max-w-6xl mx-auto w-full flex flex-col md:flex-row gap-8 animate-in fade-in duration-500">
       {/* Sidebar */}
-      <aside className="md:w-1/4 md:sticky md:top-20 self-start">
-         <div className="p-1 bg-surface border border-border rounded-xl">
-           <h3 className="flex items-center gap-2 text-sm font-bold text-white p-3"><BookOpen size={16} className="text-primary"/> API Endpoints</h3>
+      <aside className="md:w-1/4 md:sticky md:top-6 self-start animate-in slide-in-from-left-4 duration-500 delay-100">
+         <div className="p-1 bg-surface border border-border rounded-xl shadow-lg">
+           <h3 className="flex items-center gap-2 text-sm font-bold text-white p-3 border-b border-white/5 mb-1"><BookOpen size={16} className="text-primary"/> API Endpoints</h3>
            <nav className="flex flex-col gap-1 p-2">
-            {documentationData.map(section => (
+            {documentationData.map((section, idx) => (
               <button
                 key={section.id}
                 onClick={() => scrollToSection(section.id)}
-                className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-sm transition-colors ${
+                className={`flex items-center gap-3 w-full text-left px-3 py-2.5 rounded-lg text-sm transition-all duration-200 ${
                   activeSection === section.id
-                    ? 'bg-primary/10 text-primary font-semibold'
-                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                    ? 'bg-primary/10 text-primary font-semibold shadow-[0_0_10px_rgba(16,185,129,0.05)] translate-x-1'
+                    : 'text-zinc-400 hover:bg-white/5 hover:text-white hover:translate-x-1'
                 }`}
+                style={{ animationDelay: `${idx * 50}ms` }}
               >
-                {section.icon}
+                <span className={activeSection === section.id ? "text-primary" : "text-zinc-500 group-hover:text-zinc-300"}>{section.icon}</span>
                 <span>{section.name}</span>
               </button>
             ))}
@@ -291,20 +289,22 @@ export function Documentation() {
       </aside>
 
       {/* Main Content */}
-      <main ref={mainContentRef} className="md:w-3/4 md:max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar pr-2">
-        <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">API Documentation</h1>
-            <p className="text-zinc-400 mt-2">Panduan lengkap untuk menggunakan RioRuo API. Semua endpoint mengembalikan respons dalam format JSON.</p>
+      <main ref={mainContentRef} className="md:w-3/4 md:max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar pr-2 scroll-smooth">
+        <div className="mb-10 animate-in fade-in slide-in-from-bottom-2 duration-500">
+            <h1 className="text-3xl font-bold text-white tracking-tight">API Documentation</h1>
+            <p className="text-zinc-400 mt-3 text-lg leading-relaxed">Panduan lengkap untuk menggunakan RioRuo API. Semua endpoint mengembalikan respons dalam format JSON standar.</p>
         </div>
         
-        {documentationData.map(section => (
-          <section key={section.id} id={section.id} className="pt-4 mb-8">
-            <h2 className="text-xl font-bold text-white mb-4 pb-2 border-b-2 border-primary/20 flex items-center gap-3">
-                {section.icon} {section.name}
+        {documentationData.map((section, idx) => (
+          <section key={section.id} id={section.id} className="pt-4 mb-12 scroll-mt-24">
+            <h2 className="text-xl font-bold text-white mb-6 pb-2 border-b-2 border-primary/20 flex items-center gap-3">
+                <span className="p-1.5 bg-primary/10 rounded-md text-primary">{section.icon}</span> {section.name}
             </h2>
-            {section.endpoints.map(endpoint => (
-              <EndpointCard key={endpoint.path} endpoint={endpoint} />
-            ))}
+            <div className="space-y-6">
+              {section.endpoints.map(endpoint => (
+                <EndpointCard key={endpoint.path} endpoint={endpoint} />
+              ))}
+            </div>
           </section>
         ))}
       </main>

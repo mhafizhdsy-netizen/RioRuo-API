@@ -7,9 +7,9 @@ import { Documentation } from './components/Documentation';
 import { 
   Terminal, Search, Zap, 
   Settings, Command, Layout, 
-  List, Grid, Film, ChevronDown, ChevronRight, Check,
-  Github, Heart, Code, Globe, CalendarDays, Cloud,
-  BookOpen, SlidersHorizontal, Menu, X, Copy, Link as LinkIcon
+  List, Grid, Film, ChevronDown, Check,
+  Heart, Globe, CalendarDays, Cloud,
+  BookOpen, SlidersHorizontal, Menu, X, Copy
 } from 'lucide-react';
 
 // Toast component
@@ -279,88 +279,6 @@ export function App() {
 
   const displayBaseUrl = 'https://rioruo.vercel.app';
   
-  const Playground = useCallback(() => (
-    <div className="flex-1 max-w-7xl mx-auto w-full flex flex-col gap-6">
-      <div className="flex-1 flex flex-col gap-6 min-w-0">
-        {/* Request Controller */}
-        <div className="bg-surface border border-border rounded-xl p-5 shadow-lg relative z-20">
-          <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
-            <div className="flex items-center gap-2">
-              <Command size={20} className="text-primary" />
-              <h2 className="text-xl font-bold text-white">Request Controller</h2>
-            </div>
-            <a href="https://rioruo.vercel.app/v1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full hover:border-zinc-600 transition-colors">
-              <div className={`w-2 h-2 rounded-full ${apiStatus === 'online' ? 'bg-primary' : apiStatus === 'offline' ? 'bg-error' : 'bg-warning'} ${(apiStatus === 'checking' || apiStatus === 'offline') ? 'animate-pulse' : ''}`}></div>
-              <span className="text-zinc-400">{apiStatus === 'online' ? 'API Status' : apiStatus === 'offline' ? 'API Offline' : 'Checking API...'}</span>
-            </a>
-          </div>
-          
-          <div className="mb-8">
-            <div className="flex flex-col gap-2">
-               <div className="flex items-center justify-between">
-                  <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Request Configuration</label>
-               </div>
-               
-               <div className="grid grid-cols-1 md:grid-cols-12 gap-3 h-auto md:h-[60px]">
-                  {/* Method */}
-                  <div className="md:col-span-2 h-full bg-surfaceLight/30 border border-white/5 rounded-xl flex items-center justify-center relative overflow-hidden group">
-                     <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                     <span className="relative font-mono font-black text-primary tracking-widest text-lg">GET</span>
-                  </div>
-
-                  {/* Base URL */}
-                  <div className="md:col-span-4 h-full bg-[#09090b] border border-border rounded-xl flex flex-col justify-center px-4 py-2 relative group hover:border-zinc-700 transition-all">
-                     <span className="text-[9px] uppercase font-bold text-zinc-600 tracking-widest mb-0.5 flex items-center gap-1.5">
-                       <Globe size={10} /> Base URL
-                     </span>
-                     <div className="font-mono text-xs md:text-sm text-zinc-400 truncate select-all">{displayBaseUrl}</div>
-                  </div>
-
-                  {/* Endpoint */}
-                  <div className="md:col-span-6 h-full bg-[#09090b] border border-border rounded-xl flex items-center relative group hover:border-primary/30 transition-all overflow-hidden">
-                     <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/50"></div>
-                     
-                     <div className="flex-1 flex flex-col justify-center px-4 py-2 min-w-0">
-                        <span className="text-[9px] uppercase font-bold text-primary tracking-widest mb-0.5 flex items-center gap-1.5">
-                           <Terminal size={10} /> Endpoint
-                        </span>
-                        <div className="font-mono text-xs md:text-sm text-white truncate">{selectedEndpoint}</div>
-                     </div>
-
-                     <div className="pr-2 pl-2 border-l border-white/5 h-1/2 flex items-center">
-                        <button 
-                          onClick={() => {
-                            navigator.clipboard.writeText(`${displayBaseUrl}${selectedEndpoint}`);
-                            addToast('URL copied to clipboard');
-                          }}
-                          className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                          title="Copy Full URL"
-                        >
-                          <Copy size={16} />
-                        </button>
-                     </div>
-                  </div>
-               </div>
-            </div>
-          </div>
-          
-          {renderInputs()}
-          
-          <div className="flex justify-end pt-4 border-t border-white/5">
-            <button onClick={handleFetch} disabled={loading} className="bg-primary hover:bg-emerald-400 text-black font-bold py-2.5 px-8 rounded-lg flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center">
-              {loading ? <Settings className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
-              <span>SEND REQUEST</span>
-            </button>
-          </div>
-        </div>
-        
-        <div className="flex-1 min-h-[500px]">
-          <ConsoleOutput data={responseData} loading={loading} meta={requestMeta} onCopySuccess={addToast} />
-        </div>
-      </div>
-    </div>
-  ), [apiStatus, displayBaseUrl, selectedEndpoint, otakudesuCategories, weatherCategories, renderInputs, handleFetch, loading, responseData, requestMeta, addToast]);
-
   return (
     <div className="min-h-screen bg-background text-zinc-300 font-sans selection:bg-primary/20 selection:text-primary flex flex-col min-h-screen relative">
       
@@ -576,7 +494,89 @@ export function App() {
       </header>
 
       <main className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto w-full">
-        {view === 'playground' ? <Playground /> : <Documentation />}
+        {view === 'playground' ? (
+          <div className="flex-1 max-w-7xl mx-auto w-full flex flex-col gap-6">
+            <div className="flex-1 flex flex-col gap-6 min-w-0">
+              {/* Request Controller */}
+              <div className="bg-surface border border-border rounded-xl p-5 shadow-lg relative z-20">
+                <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
+                  <div className="flex items-center gap-2">
+                    <Command size={20} className="text-primary" />
+                    <h2 className="text-xl font-bold text-white">Request Controller</h2>
+                  </div>
+                  <a href="https://rioruo.vercel.app/v1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full hover:border-zinc-600 transition-colors">
+                    <div className={`w-2 h-2 rounded-full ${apiStatus === 'online' ? 'bg-primary' : apiStatus === 'offline' ? 'bg-error' : 'bg-warning'} ${(apiStatus === 'checking' || apiStatus === 'offline') ? 'animate-pulse' : ''}`}></div>
+                    <span className="text-zinc-400">{apiStatus === 'online' ? 'API Status' : apiStatus === 'offline' ? 'API Offline' : 'Checking API...'}</span>
+                  </a>
+                </div>
+                
+                <div className="mb-8">
+                  <div className="flex flex-col gap-2">
+                     <div className="flex items-center justify-between">
+                        <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Request Configuration</label>
+                     </div>
+                     
+                     <div className="grid grid-cols-1 md:grid-cols-12 gap-3 h-auto md:h-[60px]">
+                        {/* Method */}
+                        <div className="md:col-span-2 h-full bg-surfaceLight/30 border border-white/5 rounded-xl flex items-center justify-center relative overflow-hidden group">
+                           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
+                           <span className="relative font-mono font-black text-primary tracking-widest text-lg">GET</span>
+                        </div>
+
+                        {/* Base URL */}
+                        <div className="md:col-span-4 h-full bg-[#09090b] border border-border rounded-xl flex flex-col justify-center px-4 py-2 relative group hover:border-zinc-700 transition-all">
+                           <span className="text-[9px] uppercase font-bold text-zinc-600 tracking-widest mb-0.5 flex items-center gap-1.5">
+                             <Globe size={10} /> Base URL
+                           </span>
+                           <div className="font-mono text-xs md:text-sm text-zinc-400 truncate select-all">{displayBaseUrl}</div>
+                        </div>
+
+                        {/* Endpoint */}
+                        <div className="md:col-span-6 h-full bg-[#09090b] border border-border rounded-xl flex items-center relative group hover:border-primary/30 transition-all overflow-hidden">
+                           <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/50"></div>
+                           
+                           <div className="flex-1 flex flex-col justify-center px-4 py-2 min-w-0">
+                              <span className="text-[9px] uppercase font-bold text-primary tracking-widest mb-0.5 flex items-center gap-1.5">
+                                 <Terminal size={10} /> Endpoint
+                              </span>
+                              <div className="font-mono text-xs md:text-sm text-white truncate">{selectedEndpoint}</div>
+                           </div>
+
+                           <div className="pr-2 pl-2 border-l border-white/5 h-1/2 flex items-center">
+                              <button 
+                                onClick={() => {
+                                  navigator.clipboard.writeText(`${displayBaseUrl}${selectedEndpoint}`);
+                                  addToast('URL copied to clipboard');
+                                }}
+                                className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
+                                title="Copy Full URL"
+                              >
+                                <Copy size={16} />
+                              </button>
+                           </div>
+                        </div>
+                     </div>
+                  </div>
+                </div>
+                
+                {renderInputs()}
+                
+                <div className="flex justify-end pt-4 border-t border-white/5">
+                  <button onClick={handleFetch} disabled={loading} className="bg-primary hover:bg-emerald-400 text-black font-bold py-2.5 px-8 rounded-lg flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center">
+                    {loading ? <Settings className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
+                    <span>SEND REQUEST</span>
+                  </button>
+                </div>
+              </div>
+              
+              <div className="flex-1 min-h-[500px]">
+                <ConsoleOutput data={responseData} loading={loading} meta={requestMeta} onCopySuccess={addToast} />
+              </div>
+            </div>
+          </div>
+        ) : (
+          <Documentation />
+        )}
         
         <footer className="w-full max-w-7xl mx-auto mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6">

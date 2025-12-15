@@ -1,11 +1,8 @@
 {
-  "version": 2,
-  "regions": ["sin1"],
   "rewrites": [
     {
       "source": "/otakudesu/(.*)",
-      "destination": "/api/index.js",
-      "use": "@vercel/node"
+      "destination": "/api/index.js"
     }
   ]
 }

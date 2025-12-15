@@ -1,4 +1,4 @@
-import otakudesu from '../src/otakudesu.js';
+import otakudesu from '../server/src/otakudesu.js';
 const searchAnimeHandler = async (req, res) => {
     const { keyword } = req.params;
     let data;
@@ -251,6 +251,7 @@ export default {
     batchByBatchSlugHandler,
     batchHandler,
     genreListsHandler,
+
     animeByGenreHandler,
     jadwalRilisHandler
 };

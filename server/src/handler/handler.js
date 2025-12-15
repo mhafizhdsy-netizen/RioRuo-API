@@ -3,6 +3,16 @@ import otakudesu from '../otakudesu.js';
 
 const handleError = (res, e) => {
   console.log(e);
+  
+  // Handle Axios Timeout explicitly
+  if (e.code === 'ECONNABORTED') {
+      return res.status(504).json({
+          status: 'Error',
+          message: 'Upstream Request Timed Out',
+          hint: 'The weather service (wttr.in) is taking too long to respond. Please try again later.'
+      });
+  }
+
   const status = e.response?.status || 500;
   const message = e.message || 'Internal server error';
   // If it's a 403, it's likely Cloudflare blocking

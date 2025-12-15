@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
@@ -32,7 +33,8 @@ api.get('/', (_, res) => {
 
     res.status(200).json({
       status: 'OK',
-      message: 'RioRuo API Succesfully Responding | Don\'t Spam the request bitch!',
+      Creator: 'RioRuo',
+      Message: "Don't spam the request motherfucker!",
       system: {
         ram: {
           totalGB: totalMem.toFixed(2),
@@ -61,6 +63,7 @@ api.get('/genres', handler.genreListsHandler);
 api.get('/genres/:slug/:page?', handler.animeByGenreHandler);
 api.get('/movies/:page?', handler.moviesHandler);
 api.get('/movies/:year/:month/:slug', handler.singleMovieHandler);
+api.get('/jadwalRilis', handler.jadwalRilisHandler);
 api.get('/jadwal-rilis', handler.jadwalRilisHandler);
 
 export default api;

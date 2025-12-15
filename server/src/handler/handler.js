@@ -1,3 +1,4 @@
+
 import otakudesu from '../otakudesu.js';
 
 const handleError = (res, e) => {
@@ -20,7 +21,7 @@ const searchAnimeHandler = async (req, res) => {
     return handleError(res, e);
   }
 
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const homeHandler = async (_, res)  => {
@@ -31,7 +32,7 @@ const homeHandler = async (_, res)  => {
     return handleError(res, e);
   }
 
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const ongoingAnimeHandler = async (req, res) => {
@@ -50,7 +51,7 @@ const ongoingAnimeHandler = async (req, res) => {
   const { paginationData, ongoingAnimeData } = result;
 
   if (!paginationData) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
-  return res.status(200).json({ status: 'Ok', data: ongoingAnimeData, pagination: paginationData });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data: ongoingAnimeData, pagination: paginationData });
 };
 
 const completeAnimeHandler = async (req, res) => {
@@ -69,7 +70,7 @@ const completeAnimeHandler = async (req, res) => {
   const { paginationData, completeAnimeData } = result;
 
   if (!paginationData) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
-  return res.status(200).json({ status: 'Ok', data: completeAnimeData, pagination: paginationData });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data: completeAnimeData, pagination: paginationData });
 };
 
 const singleAnimeHandler = async (req, res) => {
@@ -83,7 +84,7 @@ const singleAnimeHandler = async (req, res) => {
   }
 
   if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const episodesHandler = async (req, res) => {
@@ -97,7 +98,7 @@ const episodesHandler = async (req, res) => {
   }
 
   if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const episodeByEpisodeSlugHandler = async (req, res) => {
@@ -111,7 +112,7 @@ const episodeByEpisodeSlugHandler = async (req, res) => {
   }
 
   if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const episodeByEpisodeNumberHandler = async (req, res) => {
@@ -127,7 +128,7 @@ const episodeByEpisodeNumberHandler = async (req, res) => {
   }
 
   if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const batchByBatchSlugHandler = async (req, res) => {
@@ -140,7 +141,7 @@ const batchByBatchSlugHandler = async (req, res) => {
     return handleError(res, e);
   }
 
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const batchHandler = async (req, res) => {
@@ -153,7 +154,7 @@ const batchHandler = async (req, res) => {
     return handleError(res, e);
   }
 
-  return data ? res.status(200).json({ status: 'Ok', data }) : res.status(404).json({
+  return data ? res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data }) : res.status(404).json({
     status: 'Error',
     message: 'This anime doesn\'t have a batch yet ;_;'
   });
@@ -168,7 +169,7 @@ const genreListsHandler = async (_, res) => {
     return handleError(res, e);
   }
 
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const animeByGenreHandler = async (req, res) => {
@@ -186,7 +187,7 @@ const animeByGenreHandler = async (req, res) => {
     return handleError(res, e);
   }
 
-  return res.status(200).json({ status: 'Ok', data });
+  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const jadwalRilisHandler = async (_, res) => {
@@ -201,7 +202,7 @@ const jadwalRilisHandler = async (_, res) => {
         return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
     }
 
-    return res.status(200).json({ status: 'Ok', data });
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const moviesHandler = async (req, res) => {
@@ -216,7 +217,7 @@ const moviesHandler = async (req, res) => {
     } catch (e) {
         return handleError(res, e);
     }
-    return res.status(200).json({ status: 'Ok', data });
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 const singleMovieHandler = async (req, res) => {
@@ -231,7 +232,7 @@ const singleMovieHandler = async (req, res) => {
     }
 
     if (!data) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
-    return res.status(200).json({ status: 'Ok', data });
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data });
 };
 
 export default {

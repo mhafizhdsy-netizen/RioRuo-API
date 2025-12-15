@@ -1,4 +1,5 @@
-import React, { useState, useRef, useEffect } from 'react';
+
+import React, { useState, useRef, useEffect, useCallback } from 'react';
 import { ApiEndpoint } from './src/types/types.ts';
 import { apiService, BASE_URL } from './frontend-api/api';
 import { ConsoleOutput } from './components/ConsoleOutput';
@@ -78,7 +79,7 @@ export function App() {
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 
-  const handleFetch = async () => {
+  const handleFetch = useCallback(async () => {
     setLoading(true);
     setResponseData(null);
     setIsDropdownOpen(false);
@@ -131,10 +132,10 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  };
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, movieYear, movieMonth, movieTitleSlug]);
 
   // Helper to render dynamic inputs based on selected endpoint
-  const renderInputs = () => {
+  const renderInputs = useCallback(() => {
     const inputs = [];
     
     if (selectedEndpoint === ApiEndpoint.SEARCH) {
@@ -295,7 +296,12 @@ export function App() {
         {inputs}
       </div>
     ) : null;
-  };
+  }, [
+      selectedEndpoint, keyword, setKeyword, animeSlug, setAnimeSlug, 
+      episodeSlug, setEpisodeSlug, batchSlug, setBatchSlug, genreSlug, setGenreSlug, 
+      episodeNumber, setEpisodeNumber, page, setPage, movieYear, setMovieYear, 
+      movieMonth, setMovieMonth, movieTitleSlug, setMovieTitleSlug
+  ]);
 
   const categories = [
     { name: "Discovery", icon: <Layout size={16} />, items: [ApiEndpoint.HOME] },
@@ -317,7 +323,7 @@ export function App() {
   // Logic to display meaningful base url
   const displayBaseUrl = `${BASE_URL}/otakudesu/v1`;
   
-  const Playground = () => (
+  const Playground = useCallback(() => (
     <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 flex-1">
       {/* Request Controller */}
       <div className="bg-surface border border-border rounded-xl p-5 shadow-lg relative z-20">
@@ -403,7 +409,10 @@ export function App() {
         <ConsoleOutput data={responseData} loading={loading} meta={requestMeta} />
       </div>
     </div>
-  );
+  ), [
+    apiStatus, displayBaseUrl, dropdownRef, isDropdownOpen, selectedEndpoint, 
+    categories, renderInputs, handleFetch, loading, responseData, requestMeta
+  ]);
 
   return (
     <div className="min-h-screen bg-background text-zinc-300 font-sans selection:bg-primary/20 selection:text-primary flex flex-col min-h-screen">

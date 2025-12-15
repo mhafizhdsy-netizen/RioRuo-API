@@ -11,13 +11,51 @@ const apiClient = {
       browser = await getBrowser();
       page = await browser.newPage();
 
-      // Masking as a real user
+      // STEALTH: Masking as a real user via strict header and property injection
+      
+      // 1. Override navigator.webdriver and mock plugins/chrome
+      await page.evaluateOnNewDocument(() => {
+        // Pass the Webdriver Test.
+        Object.defineProperty(navigator, 'webdriver', {
+          get: () => false,
+        });
+        
+        // Mock window.chrome
+        window.chrome = {
+          runtime: {},
+          loadTimes: function() {},
+          csi: function() {},
+          app: {}
+        };
+        
+        // Mock plugins to not look empty
+        Object.defineProperty(navigator, 'plugins', {
+          get: () => [1, 2, 3, 4, 5],
+        });
+        
+        // Mock languages
+        Object.defineProperty(navigator, 'languages', {
+          get: () => ['en-US', 'en'],
+        });
+      });
+
+      // 2. Set modern User Agent
       await page.setUserAgent('Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/123.0.0.0 Safari/537.36');
       
-      // Optimization: Block images and fonts to save bandwidth and speed up Cloudflare checks
+      // 3. Set standard headers to mimic a real browser request
+      await page.setExtraHTTPHeaders({
+        'Accept-Language': 'en-US,en;q=0.9',
+        'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
+        'Upgrade-Insecure-Requests': '1',
+        'Cache-Control': 'max-age=0'
+      });
+
+      // Optimization: Block heavy media
       await page.setRequestInterception(true);
       page.on('request', (req) => {
-        if (['image', 'stylesheet', 'font', 'media'].includes(req.resourceType())) {
+        const resourceType = req.resourceType();
+        // Block images, media, fonts. Allow scripts/stylesheets as they might drive Cloudflare challenges.
+        if (['image', 'media', 'font'].includes(resourceType)) {
           req.abort();
         } else {
           req.continue();
@@ -25,16 +63,17 @@ const apiClient = {
       });
 
       // Navigate to URL
-      // waitUntil: 'domcontentloaded' is usually enough and faster than 'networkidle0'
-      // Timeout increased to 30s for safety
+      // Use domcontentloaded for speed, but wait long enough for scripts
       const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 30000 });
       
-      // Check for Cloudflare title or specific error indicators
+      // Cloudflare Check
       const title = await page.title();
-      if (title.includes('Just a moment') || title.includes('Attention Required')) {
+      if (title.includes('Just a moment') || title.includes('Attention Required') || title.includes('Cloudflare')) {
           console.log('[Puppeteer] Cloudflare challenge detected. Waiting for resolution...');
-          // Simple wait logic for Cloudflare redirection
-          await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 15000 }).catch(() => {});
+          // Wait longer for redirection
+          await page.waitForNavigation({ waitUntil: 'domcontentloaded', timeout: 20000 }).catch(() => {
+             console.log('[Puppeteer] Navigation timeout or no navigation occurred during wait.');
+          });
       }
 
       // Get the full HTML content
@@ -45,12 +84,15 @@ const apiClient = {
       await page.close();
       page = null; 
 
-      if (status >= 400) {
+      // If status is 403, it means we were blocked.
+      // Note: Sometimes Cloudflare returns 403 on the "challenge" page, but if we passed it, 
+      // the content should be the actual site. However, scrape scripts usually fail if the initial response was 403.
+      // But scraping the *content* might work if the challenge completed inside the browser but the initial status code remains (unlikely).
+      // We'll throw if it's 403 to trigger a retry or error message.
+      if (status >= 400 && status !== 404) {
         throw new Error(`Puppeteer request failed with status ${status}`);
       }
 
-      // Return data in a format compatible with the existing "axios" style usage in utils
-      // { data: html_string }
       return {
         data: content,
         status: status,
@@ -62,7 +104,6 @@ const apiClient = {
       
       // Attempt cleanup if error occurred
       if (page) await page.close().catch(() => {});
-      // Note: We do not close the browser instance here to keep it warm for next requests (Singleton)
       
       throw error;
     }

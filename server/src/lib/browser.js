@@ -43,7 +43,7 @@ export const getBrowser = async () => {
     console.log('[Browser] Environment: Railway/Docker');
     executablePath = '/usr/bin/google-chrome';
     
-    // Args for Docker environment (Standard Puppeteer args)
+    // Args for Docker environment (Standard Puppeteer args + Stealth)
     args = [
       '--no-sandbox',
       '--disable-setuid-sandbox',
@@ -51,7 +51,13 @@ export const getBrowser = async () => {
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
-      '--disable-gpu'
+      '--disable-gpu',
+      // Anti-detection / Stealth args
+      '--disable-blink-features=AutomationControlled',
+      '--hide-scrollbars',
+      '--mute-audio',
+      '--disable-extensions',
+      '--window-size=1920,1080'
     ];
 
   } else if (isVercel) {
@@ -59,7 +65,12 @@ export const getBrowser = async () => {
     // Use sparticuz compressed binary
     console.log('[Browser] Environment: Vercel (Serverless)');
     executablePath = await chromium.executablePath();
-    // chromium.args are already optimized for Lambda
+    // chromium.args are already optimized for Lambda, adding stealth
+    const extraArgs = [
+       '--disable-blink-features=AutomationControlled',
+       '--disable-extensions'
+    ];
+    args = [...chromium.args, ...extraArgs];
     
   } else {
     // LOCAL DEVELOPMENT
@@ -76,7 +87,8 @@ export const getBrowser = async () => {
       '--disable-setuid-sandbox',
       '--disable-dev-shm-usage',
       '--disable-accelerated-2d-canvas',
-      '--disable-gpu'
+      '--disable-gpu',
+      '--disable-blink-features=AutomationControlled'
     ];
   }
 
@@ -87,7 +99,6 @@ export const getBrowser = async () => {
     defaultViewport: chromium.defaultViewport,
     executablePath: executablePath,
     // Force headless 'new' in production, railway, vercel.
-    // Fallback to false (headful) only for local non-production dev.
     headless: (isVercel || isRailway || isProduction) ? 'new' : false,
     ignoreHTTPSErrors: true,
   });

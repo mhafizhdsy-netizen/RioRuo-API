@@ -4,7 +4,7 @@
   "rewrites": [
     {
       "source": "/otakudesu/(.*)",
-      "destination": "/api/index.js"
+      "destination": "/api/index.js",
       "use": "@vercel/node"
     }
   ]

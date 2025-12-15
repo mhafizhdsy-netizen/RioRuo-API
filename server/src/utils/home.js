@@ -1,6 +1,6 @@
 import axios from 'axios';
 import { load } from 'cheerio';
-import scrapeOngoingAnime from '../lib/scapeOngoingAnime.js';
+import scrapeOngoingAnime from '../lib/scrapeOngoingAnime.js';
 import scrapeCompleteAnime from '../lib/scrapeCompleteAnime.js';
 const BASEURL = process.env.BASEURL   || 'https://otakudesu.best';
 console.log(BASEURL);

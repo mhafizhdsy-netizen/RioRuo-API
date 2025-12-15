@@ -26,5 +26,5 @@ export default {
   animeByGenre,
   movie,
   movies,
-  jadwalRilis // New export
+  jadwalRilis
 };

@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { load } from 'cheerio';
 import pagination from '../lib/pagination.js';
-import scrapeOngoingAnime from '../lib/scapeOngoingAnime.js';
+import scrapeOngoingAnime from '../lib/scrapeOngoingAnime.js';
 const BASEURL = process.env.BASEURL   || 'https://otakudesu.best';
 const ongoingAnime = async (page = 1) => {
     const { data } = await axios.get(`${BASEURL}/ongoing-anime/page/${page}`);

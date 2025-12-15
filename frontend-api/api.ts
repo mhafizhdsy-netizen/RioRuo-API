@@ -79,8 +79,8 @@ export const apiService = {
     fetchFromApi(ApiEndpoint.SINGLE_MOVIE.replace(':year', year).replace(':month', month).replace(':slug', movieSlug)),
   getJadwalRilis: () => fetchFromApi(ApiEndpoint.JADWAL_RILIS),
   // Weather Services
-  getWeather: (location: string) => fetchFromApi(ApiEndpoint.WEATHER.replace(':location', location)),
-  getWeatherAscii: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_ASCII.replace(':location', location)), // Returns text wrapped in JSON by fetchFromApi
-  getWeatherQuick: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_QUICK.replace(':location', location)),
-  getWeatherPng: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_PNG.replace(':location', location)), // Returns binary info
+  getWeather: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER.replace(':location', location), { lang }),
+  getWeatherAscii: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER_ASCII.replace(':location', location), { lang }), 
+  getWeatherQuick: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER_QUICK.replace(':location', location), { lang }),
+  getWeatherPng: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_PNG.replace(':location', location)), // Image usually doesn't take lang param in this context
 };

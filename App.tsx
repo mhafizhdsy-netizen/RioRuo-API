@@ -61,6 +61,7 @@ export function App() {
   const [movieMonth, setMovieMonth] = useState('01');
   const [movieTitleSlug, setMovieTitleSlug] = useState('dandadan');
   const [weatherLocation, setWeatherLocation] = useState('Jakarta');
+  const [weatherLang, setWeatherLang] = useState('id');
 
   // Response State
   const [loading, setLoading] = useState(false);
@@ -124,9 +125,9 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.SINGLE_MOVIE) res = await apiService.getSingleMovie(movieYear, movieMonth, movieTitleSlug);
       else if (selectedEndpoint === ApiEndpoint.JADWAL_RILIS) res = await apiService.getJadwalRilis();
       // Weather Endpoints
-      else if (selectedEndpoint === ApiEndpoint.WEATHER) res = await apiService.getWeather(weatherLocation);
-      else if (selectedEndpoint === ApiEndpoint.WEATHER_ASCII) res = await apiService.getWeatherAscii(weatherLocation);
-      else if (selectedEndpoint === ApiEndpoint.WEATHER_QUICK) res = await apiService.getWeatherQuick(weatherLocation);
+      else if (selectedEndpoint === ApiEndpoint.WEATHER) res = await apiService.getWeather(weatherLocation, weatherLang);
+      else if (selectedEndpoint === ApiEndpoint.WEATHER_ASCII) res = await apiService.getWeatherAscii(weatherLocation, weatherLang);
+      else if (selectedEndpoint === ApiEndpoint.WEATHER_QUICK) res = await apiService.getWeatherQuick(weatherLocation, weatherLang);
       else if (selectedEndpoint === ApiEndpoint.WEATHER_PNG) res = await apiService.getWeatherPng(weatherLocation);
       else res = await apiService.getHome();
 
@@ -148,7 +149,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, movieYear, movieMonth, movieTitleSlug, weatherLocation]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, movieYear, movieMonth, movieTitleSlug, weatherLocation, weatherLang]);
 
   // Input rendering logic
   const renderInputs = useCallback(() => {
@@ -249,9 +250,18 @@ export function App() {
         </div>
       );
     }
+    
+    if ([ApiEndpoint.WEATHER, ApiEndpoint.WEATHER_ASCII, ApiEndpoint.WEATHER_QUICK].includes(selectedEndpoint as ApiEndpoint)) {
+       inputs.push(
+        <div key="weatherLang" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Language (ISO)</label>
+          <input type="text" value={weatherLang} onChange={(e) => setWeatherLang(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. id, en, fr" />
+        </div>
+      );
+    }
 
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, movieYear, movieMonth, movieTitleSlug, weatherLocation]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, movieYear, movieMonth, movieTitleSlug, weatherLocation, weatherLang]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },

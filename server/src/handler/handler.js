@@ -270,9 +270,9 @@ const weatherQuickHandler = async (req, res) => {
     try {
         const { location } = req.params;
         const lang = req.query.lang || 'en';
-        const format = req.query.format;
         
-        const data = await otakudesu.weather.getWeatherQuick(location, lang, format);
+        // Format is strictly enforced in utils/weather.js
+        const data = await otakudesu.weather.getWeatherQuick(location, lang);
         return res.status(200).json(data);
     } catch (e) {
         return handleError(res, e);

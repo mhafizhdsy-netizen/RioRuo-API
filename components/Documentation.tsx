@@ -184,9 +184,10 @@ const documentationData = [
             method: 'GET',
             description: 'Mengambil data cuaca lengkap dalam format JSON dari wttr.in.',
             parameters: [
-                { name: ':location', type: 'string', required: true, description: 'Nama lokasi (kota) yang ingin dicek cuacanya.' }
+                { name: ':location', type: 'string', required: true, description: 'Nama lokasi (kota) yang ingin dicek cuacanya.' },
+                { name: '?lang', type: 'string', required: false, description: 'Kode bahasa (ISO 639-1). Default: "en".' }
             ],
-            example: '/weather/Jakarta',
+            example: '/weather/Jakarta?lang=id',
             response: 'Objek JSON berisi data cuaca lengkap.'
         },
         {
@@ -194,20 +195,22 @@ const documentationData = [
             method: 'GET',
             description: 'Mengambil tampilan cuaca dalam format ASCII art.',
             parameters: [
-                { name: ':location', type: 'string', required: true, description: 'Nama lokasi.' }
+                { name: ':location', type: 'string', required: true, description: 'Nama lokasi.' },
+                { name: '?lang', type: 'string', required: false, description: 'Kode bahasa. Default: "en".' }
             ],
-            example: '/weather/ascii/Bandung',
+            example: '/weather/ascii/Bandung?lang=id',
             response: 'String text (ASCII Art) atau JSON jika parameter format=json digunakan.'
         },
         {
             path: '/v1/weather/quick/:location',
             method: 'GET',
-            description: 'Info cuaca singkat satu baris.',
+            description: 'Info cuaca singkat satu baris dengan format yang ditentukan (Conditions, Temperature, Humidity, Wind). Bahasa output dapat disesuaikan.',
             parameters: [
-                { name: ':location', type: 'string', required: true, description: 'Nama lokasi.' }
+                { name: ':location', type: 'string', required: true, description: 'Nama lokasi.' },
+                { name: '?lang', type: 'string', required: false, description: 'Kode bahasa (ISO 639-1) untuk output teks cuaca. Default: "en". Contoh: "id" untuk Bahasa Indonesia.' }
             ],
-            example: '/weather/quick/Surabaya',
-            response: 'Objek JSON berisi string cuaca singkat.'
+            example: '/weather/quick/Surabaya?lang=id',
+            response: 'Objek JSON berisi string cuaca singkat dalam bahasa yang dipilih.'
         },
         {
             path: '/v1/weather/png/:location',

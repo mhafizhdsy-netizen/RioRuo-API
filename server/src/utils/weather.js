@@ -42,11 +42,9 @@ const getWeatherAscii = async (location, lang = 'en', format) => {
     return response.data;
 };
 
-const getWeatherQuick = async (location, lang = 'en', customFormat) => {
-    // Format custom wttr.in:
-    // %l = location, %C = weather condition, %t = temperature
-    // %h = humidity, %w = wind, %p = precipitation
-    const format = customFormat || '%l:+%C+%t+%h+%w';
+const getWeatherQuick = async (location, lang = 'en') => {
+    // Format wajib wttr.in: %l:+%C+%t+%h+%w
+    const format = '%l:+%C+%t+%h+%w';
     const url = `${WTTR_BASE_URL}/${encodeURIComponent(location)}?format=${encodeURIComponent(format)}&lang=${lang}`;
 
     const response = await axios.get(url, {

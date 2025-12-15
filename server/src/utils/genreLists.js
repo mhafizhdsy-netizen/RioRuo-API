@@ -1,10 +1,11 @@
-import apiClient from '../lib/apiClient.js';
+import axiosClient from '../lib/axiosClient.js';
 import scrapeGenreLists from '../lib/scrapeGenreLists.js';
 
 const BASEURL = 'https://otakudesu.best';
 
 const genreLists = async () => {
-  const response = await apiClient.get(`${BASEURL}/genre-list`);
+  console.log('[Handler] Using Axios client for /genres');
+  const response = await axiosClient.get(`${BASEURL}/genre-list`);
   const result = scrapeGenreLists(response.data);
 
   return result;

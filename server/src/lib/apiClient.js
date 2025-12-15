@@ -52,17 +52,17 @@ const apiClient = {
         await new Promise(r => setTimeout(r, 500 + Math.random() * 1000));
         
         console.log(`[ApiClient] Attempt ${i + 1}/${retries}: Navigating to ${url}`);
-        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 60000 });
+        const response = await page.goto(url, { waitUntil: 'domcontentloaded', timeout: 45000 }); // More aggressive timeout
 
         let pageState = 'unknown';
-        const maxChallengeAttempts = 8;
+        const maxChallengeAttempts = 5; // Reduced attempts
         for (let attempt = 1; attempt <= maxChallengeAttempts; attempt++) {
             console.log(`[ApiClient] Verifying page state, attempt ${attempt}/${maxChallengeAttempts}...`);
             try {
                 const raceResult = await Promise.race([
-                    page.waitForSelector('.venutama', { timeout: 15000 }).then(() => 'content_loaded'),
-                    page.waitForSelector('body[class*="error404"]', { timeout: 15000 }).then(() => 'error_page'),
-                    page.waitForSelector('iframe[src*="challenges.cloudflare.com"]', { timeout: 15000 }).then(() => 'challenge_detected'),
+                    page.waitForSelector('.venutama', { timeout: 10000 }).then(() => 'content_loaded'),
+                    page.waitForSelector('body[class*="error404"]', { timeout: 10000 }).then(() => 'error_page'),
+                    page.waitForSelector('iframe[src*="challenges.cloudflare.com"]', { timeout: 10000 }).then(() => 'challenge_detected'),
                 ]);
 
                 if (raceResult === 'content_loaded' || raceResult === 'error_page') {
@@ -75,18 +75,15 @@ const apiClient = {
                     console.log('[ApiClient] Cloudflare challenge detected. Attempting to solve...');
                     const iframe = await page.$('iframe[src*="challenges.cloudflare.com"]');
                     if (iframe) {
-                        // Click in the middle of the iframe to trigger the check
                         const box = await iframe.boundingBox();
                         if (box) {
                             await page.mouse.click(box.x + box.width / 2, box.y + box.height / 2, { delay: Math.random() * 150 });
                             console.log('[ApiClient] Clicked Cloudflare challenge iframe.');
                         }
                     }
-                    // Wait for the page to process the click and potentially reload/change content
-                    await new Promise(r => setTimeout(r, 3000 + Math.random() * 2000));
+                    await new Promise(r => setTimeout(r, 2000 + Math.random() * 1000)); // Shorter post-click delay
                 }
             } catch (e) {
-                // This block catches the timeout from Promise.race
                 console.warn(`[ApiClient] Wait for selectors timed out on attempt ${attempt}. Manually checking content.`);
                 const content = await page.content();
                 if (content.includes('venutama')) {

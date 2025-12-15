@@ -5,6 +5,7 @@ import scrapeBatch from '../lib/scrapeBatch.js';
 const BASEURL = 'https://otakudesu.best';
 
 const batch = async ({ batchSlug, animeSlug }) => {
+  console.log('[Handler] Using Puppeteer client for batch endpoints');
   let batch = batchSlug;
 
   if (animeSlug) {

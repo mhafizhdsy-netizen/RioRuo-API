@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 import { Copy, AlertTriangle, CheckCircle, Clock, Database, Terminal } from 'lucide-react';
 
 interface ConsoleOutputProps {
@@ -15,7 +15,6 @@ const SyntaxHighlight = ({ json }: { json: any }) => {
   if (!json) return null;
   const jsonString = JSON.stringify(json, null, 2);
   
-  // Basic Regex for syntax highlighting (Key, String, Number, Boolean, Null)
   const highlighted = jsonString.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
     let cls = 'json-number';
     if (/^"/.test(match)) {
@@ -37,28 +36,54 @@ const SyntaxHighlight = ({ json }: { json: any }) => {
   );
 };
 
+const LoadingState = () => {
+  const [loadingMessage, setLoadingMessage] = useState('Initializing Request...');
+  const messages = [
+    'Launching secure browser...',
+    'Navigating to target page...',
+    'Analyzing security challenges...',
+    'Bypassing Cloudflare checks...',
+    'Requesting content from origin...',
+    'Parsing HTML structure...',
+    'Extracting target data...',
+    'Finalizing JSON response...'
+  ];
+
+  useEffect(() => {
+    let messageIndex = 0;
+    const interval = setInterval(() => {
+      messageIndex = (messageIndex + 1) % messages.length;
+      setLoadingMessage(messages[messageIndex]);
+    }, 2500); // Change message every 2.5 seconds
+
+    return () => clearInterval(interval);
+  }, []);
+
+  return (
+    <div className="w-full h-[500px] bg-surface border border-border rounded-xl overflow-hidden shadow-2xl flex flex-col relative">
+      <div className="h-full flex flex-col items-center justify-center space-y-4">
+        <div className="relative w-16 h-16">
+          <div className="absolute top-0 left-0 w-full h-full border-4 border-surfaceLight rounded-full"></div>
+          <div className="absolute top-0 left-0 w-full h-full border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
+        </div>
+        <div className="flex flex-col items-center text-center">
+          <p className="text-primary font-mono text-sm font-bold tracking-widest animate-pulse">EXECUTING SCRAPE</p>
+          <p className="text-zinc-500 text-xs font-mono mt-2 transition-opacity duration-500" key={loadingMessage}>
+            {loadingMessage}
+          </p>
+        </div>
+      </div>
+    </div>
+  );
+};
+
+
 export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, meta }) => {
   const isError = meta.status >= 400 || (data && data.status === 'error');
-
-  // Common container class for consistent sizing (Fixed Height Box "Persegi"-ish look)
-  // aspect-square would be strict square, but h-[500px] ensures it fits screens better while remaining "fixed"
   const containerClass = "w-full h-[500px] bg-surface border border-border rounded-xl overflow-hidden shadow-2xl flex flex-col relative";
 
   if (loading) {
-    return (
-      <div className={containerClass}>
-        <div className="h-full flex flex-col items-center justify-center space-y-4">
-          <div className="relative w-16 h-16">
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-surfaceLight rounded-full"></div>
-            <div className="absolute top-0 left-0 w-full h-full border-4 border-primary rounded-full border-t-transparent animate-spin"></div>
-          </div>
-          <div className="flex flex-col items-center">
-            <p className="text-primary font-mono text-sm font-bold tracking-widest animate-pulse">ESTABLISHING CONNECTION</p>
-            <p className="text-zinc-500 text-xs font-mono mt-1">Downloading payload...</p>
-          </div>
-        </div>
-      </div>
-    );
+    return <LoadingState />;
   }
 
   if (!data) {
@@ -77,7 +102,6 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
 
   return (
     <div className={containerClass}>
-      {/* Console Toolbar */}
       <div className="flex items-center justify-between px-4 py-2 bg-surfaceLight border-b border-border shrink-0">
         <div className="flex items-center gap-2">
           <div className={`w-2.5 h-2.5 rounded-full ${isError ? 'bg-error animate-pulse' : 'bg-primary'}`}></div>
@@ -92,12 +116,10 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
         </button>
       </div>
 
-      {/* Code Editor Area - Scrollable */}
       <div className="flex-1 overflow-auto p-4 bg-[#0d0d0d] custom-scrollbar">
         <SyntaxHighlight json={data} />
       </div>
 
-      {/* Info/Debug Panel - Fixed at bottom */}
       <div className="border-t border-border bg-surfaceLight p-4 shrink-0">
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           <div className="flex flex-col gap-1">
@@ -132,7 +154,6 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
           </div>
         </div>
 
-        {/* Extended Error Info */}
         {isError && (
           <div className="mt-4 p-3 bg-error/10 border border-error/20 rounded-lg">
             <h4 className="text-error text-xs font-bold uppercase mb-1 flex items-center gap-2">

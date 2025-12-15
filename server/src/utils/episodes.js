@@ -4,6 +4,7 @@ import scrapeAnimeEpisodes from '../lib/scrapeAnimeEpisodes.js';
 const BASEURL = 'https://otakudesu.best';
 
 const episodes = async (slug) => {
+  console.log('[Handler] Using Puppeteer client for /anime/:slug/episodes');
   const { data } = await apiClient.get(`${BASEURL}/anime/${slug}`);
   const result = scrapeAnimeEpisodes(data);
 

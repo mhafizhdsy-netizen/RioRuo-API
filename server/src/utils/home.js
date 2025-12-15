@@ -1,4 +1,4 @@
-import apiClient from '../lib/apiClient.js';
+import axiosClient from '../lib/axiosClient.js';
 import { load } from 'cheerio';
 import scrapeOngoingAnime from '../lib/scrapeOngoingAnime.js';
 import scrapeCompleteAnime from '../lib/scrapeCompleteAnime.js';
@@ -6,7 +6,8 @@ import scrapeCompleteAnime from '../lib/scrapeCompleteAnime.js';
 const BASEURL = 'https://otakudesu.best';
 
 const home = async () => {
-  const { data } = await apiClient.get(BASEURL);
+  console.log('[Handler] Using Axios client for /home');
+  const { data } = await axiosClient.get(BASEURL);
   const $ = load(data);
   const ongoingAnimeEls = $('.venutama .rseries .rapi:first .venz ul li').toString();
   const completeAnimeEls = $('.venutama .rseries .rapi:last .venz ul li').toString();

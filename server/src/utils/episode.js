@@ -5,6 +5,7 @@ import scrapeEpisode from '../lib/scrapeEpisode.js';
 const BASEURL = 'https://otakudesu.best';
 
 const episode = async ({ episodeSlug, animeSlug, episodeNumber }) => {
+  console.log('[Handler] Using Puppeteer client for episode endpoints');
   let slug = '';
 
   if (episodeSlug) slug = episodeSlug;

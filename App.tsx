@@ -5,7 +5,8 @@ import { ConsoleOutput } from './components/ConsoleOutput';
 import { 
   Terminal, Search, Zap, 
   Settings, Command, Layout, 
-  List, Grid, Film, ChevronDown, Check
+  List, Grid, Film, ChevronDown, Check,
+  Github, Heart, Code, Globe
 } from 'lucide-react';
 
 export function App() {
@@ -249,7 +250,7 @@ export function App() {
           <div className="w-8 h-8 rounded bg-primary flex items-center justify-center text-black shadow-[0_0_15px_rgba(16,185,129,0.4)]">
             <Terminal size={18} strokeWidth={3} />
           </div>
-          <h1 className="font-bold text-white tracking-tight text-lg">Otakudesu API Console</h1>
+          <h1 className="font-bold text-white tracking-tight text-lg">RioRuo API</h1>
         </div>
         <div className="flex items-center gap-4">
           <div className="hidden md:flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full">
@@ -261,7 +262,7 @@ export function App() {
 
       {/* Main Content */}
       <main className="flex-1 flex flex-col p-4 lg:p-6 overflow-y-auto">
-        <div className="max-w-6xl mx-auto w-full flex flex-col gap-6">
+        <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 flex-1">
           
           {/* Request Controller */}
           <div className="bg-surface border border-border rounded-xl p-5 shadow-lg relative z-20">
@@ -364,6 +365,40 @@ export function App() {
           </div>
 
         </div>
+
+        {/* Footer */}
+        <footer className="w-full max-w-6xl mx-auto mt-12 pt-8 border-t border-border">
+          <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6">
+            
+            {/* Left: Brand & Copyright */}
+            <div className="flex flex-col items-center md:items-start gap-2">
+              <div className="flex items-center gap-2 text-zinc-300">
+                <Terminal size={16} className="text-primary" />
+                <span className="font-bold tracking-tight">RioRuo API</span>
+              </div>
+              <p className="text-xs text-zinc-500 font-mono flex items-center gap-1">
+                &copy; {new Date().getFullYear()} Developed with <Heart size={10} className="text-error fill-error animate-pulse" /> by <span className="text-primary font-bold">Rio</span>
+              </p>
+            </div>
+
+            {/* Right: Navigation */}
+            <nav className="flex items-center gap-6">
+              <a href="#" className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
+                <Github size={14} className="group-hover:text-white" />
+                <span>GitHub</span>
+              </a>
+              <a href="#" className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
+                <Code size={14} className="group-hover:text-primary" />
+                <span>Documentation</span>
+              </a>
+               <a href="#" className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors group">
+                <Globe size={14} className="group-hover:text-info" />
+                <span>Status</span>
+              </a>
+            </nav>
+          </div>
+        </footer>
+
       </main>
     </div>
   );

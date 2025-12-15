@@ -1,7 +1,6 @@
 import puppeteer from 'puppeteer-core';
 import chromium from '@sparticuz/chromium';
 import fs from 'fs';
-import path from 'path';
 
 // Helper to find local Chrome path for development
 const getLocalChromePath = () => {
@@ -29,47 +28,64 @@ export const getBrowser = async () => {
     return browserInstance;
   }
 
-  // Determine if we are running on Vercel/AWS Lambda
-  // @sparticuz/chromium works best in serverless. Local dev usually fails with it unless configured perfectly.
-  const isProduction = process.env.NODE_ENV === 'production' || process.env.VERCEL;
+  // ENVIRONMENT DETECTION
+  const isVercel = !!process.env.VERCEL;
+  const isRailway = !!process.env.RAILWAY_DEPLOYMENT;
+  const isProduction = process.env.NODE_ENV === 'production';
 
   let executablePath;
-  let args = chromium.args;
+  let args = chromium.args; // Default Vercel-optimized args
 
-  if (isProduction) {
-    // Vercel / Production Environment
-    // Use the sparticuz compressed binary
-    executablePath = await chromium.executablePath();
-  } else {
-    // Local Development
-    // Try to find local Chrome
-    executablePath = getLocalChromePath();
+  if (isRailway) {
+    // RAILWAY (Docker Container)
+    // Use the Chrome installed via Dockerfile
+    console.log('[Browser] Environment: Railway/Docker');
+    executablePath = '/usr/bin/google-chrome';
     
-    if (!executablePath) {
-      console.error('ERROR: Could not find Google Chrome installed locally.');
-      console.error('Since we are using puppeteer-core, you must have Chrome installed.');
-      throw new Error('Local Chrome not found');
-    }
-    
-    // Minimal args for local testing
+    // Args for Docker environment (Standard Puppeteer args)
     args = [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
+      '--disable-dev-shm-usage', // Important for Docker memory limits
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
       '--disable-gpu'
     ];
+
+  } else if (isVercel) {
+    // VERCEL (AWS Lambda Serverless)
+    // Use sparticuz compressed binary
+    console.log('[Browser] Environment: Vercel (Serverless)');
+    executablePath = await chromium.executablePath();
+    // chromium.args are already optimized for Lambda
+    
+  } else {
+    // LOCAL DEVELOPMENT
+    console.log('[Browser] Environment: Local Development');
+    executablePath = getLocalChromePath();
+    
+    if (!executablePath) {
+      console.error('ERROR: Could not find Google Chrome installed locally.');
+      throw new Error('Local Chrome not found');
+    }
+    
+    args = [
+      '--no-sandbox',
+      '--disable-setuid-sandbox',
+      '--disable-dev-shm-usage',
+      '--disable-accelerated-2d-canvas',
+      '--disable-gpu'
+    ];
   }
 
-  console.log(`[Browser] Launching. Production Mode: ${isProduction}. Path: ${executablePath}`);
+  console.log(`[Browser] Launching browser at: ${executablePath}`);
 
   browserInstance = await puppeteer.launch({
     args: args,
     defaultViewport: chromium.defaultViewport,
     executablePath: executablePath,
-    headless: isProduction ? chromium.headless : false, // Headless in prod, visible in local (optional)
+    headless: isProduction ? 'new' : false,
     ignoreHTTPSErrors: true,
   });
 

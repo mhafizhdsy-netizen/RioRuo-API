@@ -75,9 +75,9 @@ const documentationData = [
         method: 'GET',
         description: 'Mengambil detail lengkap dari sebuah anime berdasarkan slug-nya.',
         parameters: [
-          { name: ':slug', type: 'string', required: true, description: 'Slug unik dari anime (misal: "jujutsu-kaisen-s2").' }
+          { name: ':slug', type: 'string', required: true, description: 'Slug unik dari anime (misal: "1piece-sub-indo").' }
         ],
-        example: '/anime/jujutsu-kaisen-s2',
+        example: '/anime/1piece-sub-indo',
         response: 'Objek JSON tunggal yang berisi semua detail anime.'
       },
       {
@@ -87,7 +87,7 @@ const documentationData = [
         parameters: [
           { name: ':slug', type: 'string', required: true, description: 'Slug unik dari anime.' }
         ],
-        example: '/anime/jujutsu-kaisen-s2/episodes',
+        example: '/anime/1piece-sub-indo/episodes',
         response: 'Objek JSON dengan array `data` yang berisi daftar episode.'
       },
       {
@@ -98,7 +98,7 @@ const documentationData = [
           { name: ':slug', type: 'string', required: true, description: 'Slug unik dari anime.' },
           { name: ':episode', type: 'number', required: true, description: 'Nomor episode yang ingin diambil.' }
         ],
-        example: '/anime/jujutsu-kaisen-s2/episodes/23',
+        example: '/anime/1piece-sub-indo/episodes/1',
         response: 'Objek JSON yang berisi detail streaming dan link download untuk episode tersebut.'
       },
       {
@@ -106,9 +106,9 @@ const documentationData = [
         method: 'GET',
         description: 'Mengambil detail episode berdasarkan slug episode-nya.',
         parameters: [
-          { name: ':slug', type: 'string', required: true, description: 'Slug unik dari episode (misal: "jujutsu-kaisen-s2-episode-23").' }
+          { name: ':slug', type: 'string', required: true, description: 'Slug unik dari episode (misal: "wpoiec-episode-1152-sub-indo").' }
         ],
-        example: '/episode/jujutsu-kaisen-s2-episode-23',
+        example: '/episode/wpoiec-episode-1152-sub-indo',
         response: 'Objek JSON yang berisi detail streaming dan link download untuk episode tersebut.'
       },
       {
@@ -116,9 +116,9 @@ const documentationData = [
         method: 'GET',
         description: 'Mengambil link download batch berdasarkan slug batch-nya.',
         parameters: [
-          { name: ':slug', type: 'string', required: true, description: 'Slug unik dari halaman batch (misal: "jujutsu-kaisen-s2-batch").' }
+          { name: ':slug', type: 'string', required: true, description: 'Slug unik dari halaman batch (misal: "wpoiec-batch-sub-indo").' }
         ],
-        example: '/batch/jujutsu-kaisen-s2-batch',
+        example: '/batch/wpoiec-batch-sub-indo',
         response: 'Objek JSON yang berisi link download batch dalam berbagai resolusi.'
       },
       {
@@ -128,7 +128,7 @@ const documentationData = [
         parameters: [
           { name: ':slug', type: 'string', required: true, description: 'Slug unik dari anime.' }
         ],
-        example: '/anime/jujutsu-kaisen-s2/batch',
+        example: '/anime/1piece-sub-indo/batch',
         response: 'Objek JSON yang berisi link download batch atau pesan error 404 jika tidak ditemukan.'
       }
     ]

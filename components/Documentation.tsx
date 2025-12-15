@@ -12,7 +12,7 @@ const documentationData = [
     icon: <Layout size={16} />,
     endpoints: [
       {
-        path: '/home',
+        path: '/v1/home',
         method: 'GET',
         description: 'Mengambil daftar anime yang sedang berlangsung (ongoing) dan yang sudah tamat (completed) yang ditampilkan di halaman utama.',
         parameters: [],
@@ -27,7 +27,7 @@ const documentationData = [
     icon: <List size={16} />,
     endpoints: [
       {
-        path: '/ongoing-anime/:page?',
+        path: '/v1/ongoing-anime/:page?',
         method: 'GET',
         description: 'Mengambil daftar anime yang sedang berlangsung dengan dukungan paginasi.',
         parameters: [
@@ -37,7 +37,7 @@ const documentationData = [
         response: 'Objek JSON yang berisi `data` (array anime) dan informasi `pagination`.'
       },
       {
-        path: '/complete-anime/:page?',
+        path: '/v1/complete-anime/:page?',
         method: 'GET',
         description: 'Mengambil daftar anime yang sudah tamat dengan dukungan paginasi.',
         parameters: [
@@ -54,7 +54,7 @@ const documentationData = [
     icon: <Search size={16} />,
     endpoints: [
       {
-        path: '/search/:keyword',
+        path: '/v1/search/:keyword',
         method: 'GET',
         description: 'Mencari anime berdasarkan kata kunci yang diberikan.',
         parameters: [
@@ -71,7 +71,7 @@ const documentationData = [
     icon: <Film size={16} />,
     endpoints: [
       {
-        path: '/anime/:slug',
+        path: '/v1/anime/:slug',
         method: 'GET',
         description: 'Mengambil detail lengkap dari sebuah anime berdasarkan slug-nya.',
         parameters: [
@@ -81,7 +81,7 @@ const documentationData = [
         response: 'Objek JSON tunggal yang berisi semua detail anime.'
       },
       {
-        path: '/anime/:slug/episodes',
+        path: '/v1/anime/:slug/episodes',
         method: 'GET',
         description: 'Mengambil daftar semua episode yang tersedia untuk sebuah anime.',
         parameters: [
@@ -91,7 +91,7 @@ const documentationData = [
         response: 'Objek JSON dengan array `data` yang berisi daftar episode.'
       },
       {
-        path: '/anime/:slug/episodes/:episode',
+        path: '/v1/anime/:slug/episodes/:episode',
         method: 'GET',
         description: 'Mengambil detail episode berdasarkan nomor episodenya.',
         parameters: [
@@ -102,7 +102,7 @@ const documentationData = [
         response: 'Objek JSON yang berisi detail streaming dan link download untuk episode tersebut.'
       },
       {
-        path: '/episode/:slug',
+        path: '/v1/episode/:slug',
         method: 'GET',
         description: 'Mengambil detail episode berdasarkan slug episode-nya.',
         parameters: [
@@ -112,7 +112,7 @@ const documentationData = [
         response: 'Objek JSON yang berisi detail streaming dan link download untuk episode tersebut.'
       },
       {
-        path: '/batch/:slug',
+        path: '/v1/batch/:slug',
         method: 'GET',
         description: 'Mengambil link download batch berdasarkan slug batch-nya.',
         parameters: [
@@ -122,7 +122,7 @@ const documentationData = [
         response: 'Objek JSON yang berisi link download batch dalam berbagai resolusi.'
       },
       {
-        path: '/anime/:slug/batch',
+        path: '/v1/anime/:slug/batch',
         method: 'GET',
         description: 'Mencari dan mengambil link download batch untuk sebuah anime berdasarkan slug animenya (jika tersedia).',
         parameters: [
@@ -139,7 +139,7 @@ const documentationData = [
     icon: <Grid size={16} />,
     endpoints: [
       {
-        path: '/genres',
+        path: '/v1/genres',
         method: 'GET',
         description: 'Mengambil daftar semua genre yang tersedia di situs.',
         parameters: [],
@@ -147,7 +147,7 @@ const documentationData = [
         response: 'Objek JSON dengan array `data` yang berisi daftar semua genre.'
       },
       {
-        path: '/genres/:slug/:page?',
+        path: '/v1/genres/:slug/:page?',
         method: 'GET',
         description: 'Mengambil daftar anime berdasarkan genre tertentu dengan dukungan paginasi.',
         parameters: [
@@ -165,7 +165,7 @@ const documentationData = [
     icon: <CalendarDays size={16} />,
     endpoints: [
         {
-            path: '/jadwal-rilis',
+            path: '/v1/jadwal-rilis',
             method: 'GET',
             description: 'Mengambil jadwal rilis anime mingguan yang dikelompokkan berdasarkan hari.',
             parameters: [],

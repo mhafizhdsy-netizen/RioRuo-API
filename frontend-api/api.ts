@@ -1,3 +1,4 @@
+
 import { ApiEndpoint } from '../src/types/types.ts';
 
 // Determine Base URL based on environment
@@ -10,7 +11,8 @@ export const BASE_URL =
 
 async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
   // Construct the full path.
-  const fullApiPath = `/v1${endpoint}`;
+  // Prefix /v1 is now included in the endpoint string from types.ts
+  const fullApiPath = endpoint;
   // If BASE_URL is empty (production), it uses window.location.origin automatically via the URL constructor
   const url = new URL(`${BASE_URL}${fullApiPath}`, window.location.origin);
   

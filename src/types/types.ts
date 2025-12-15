@@ -1,3 +1,4 @@
+
 type anime = {
   title: string | undefined;
   japanese_title: string | undefined;
@@ -144,21 +145,21 @@ type jadwalRilisDay = {
 
 
 export enum ApiEndpoint {
-  HOME = '/home',
-  SEARCH = '/search/:keyword',
-  ONGOING = '/ongoing-anime/:page?',
-  COMPLETED = '/complete-anime/:page?',
-  ANIME_DETAIL = '/anime/:slug',
-  ANIME_EPISODES = '/anime/:slug/episodes',
-  EPISODE_BY_NUMBER = '/anime/:slug/episodes/:episode',
-  EPISODE_DETAIL = '/episode/:slug',
-  GENRES = '/genres',
-  GENRE_DETAIL = '/genres/:slug/:page?',
-  BATCH_DETAIL = '/batch/:slug',
-  BATCH_BY_ANIME_SLUG = '/anime/:slug/batch',
-  MOVIES = '/movies/:page?', // New Endpoint
-  SINGLE_MOVIE = '/movies/:year/:month/:slug', // Updated Endpoint
-  JADWAL_RILIS = '/jadwal-rilis', // New Endpoint
+  HOME = '/v1/home',
+  SEARCH = '/v1/search/:keyword',
+  ONGOING = '/v1/ongoing-anime/:page?',
+  COMPLETED = '/v1/complete-anime/:page?',
+  ANIME_DETAIL = '/v1/anime/:slug',
+  ANIME_EPISODES = '/v1/anime/:slug/episodes',
+  EPISODE_BY_NUMBER = '/v1/anime/:slug/episodes/:episode',
+  EPISODE_DETAIL = '/v1/episode/:slug',
+  GENRES = '/v1/genres',
+  GENRE_DETAIL = '/v1/genres/:slug/:page?',
+  BATCH_DETAIL = '/v1/batch/:slug',
+  BATCH_BY_ANIME_SLUG = '/v1/anime/:slug/batch',
+  MOVIES = '/v1/movies/:page?', // New Endpoint
+  SINGLE_MOVIE = '/v1/movies/:year/:month/:slug', // Updated Endpoint
+  JADWAL_RILIS = '/v1/jadwal-rilis', // New Endpoint
 }
 
 export {

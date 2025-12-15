@@ -60,7 +60,7 @@ export function App() {
   const checkApiStatus = async () => {
     try {
       setApiStatus('checking');
-      const response = await fetch(`${BASE_URL}/v1`); // Call the backend's root API endpoint (Updated prefix)
+      const response = await fetch(`${BASE_URL}/v1/`); // Call the backend's root API endpoint (Updated with trailing slash)
       if (response.ok) {
         setApiStatus('online');
       } else {
@@ -321,7 +321,7 @@ export function App() {
   ];
 
   // Logic to display meaningful base url
-  const displayBaseUrl = `${BASE_URL}/v1`;
+  const displayBaseUrl = 'https://rioruo.vercel.app';
   
   const Playground = useCallback(() => (
     <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 flex-1">

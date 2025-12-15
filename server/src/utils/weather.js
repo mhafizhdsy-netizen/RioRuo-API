@@ -28,7 +28,9 @@ const getWeather = async (location, lang = 'en') => {
         }
     });
     return {
-        success: true,
+        success: 'Ok',
+        Creator: 'RioRuo',
+        Message: "Don't spam the request motherfucker!",
         source: 'wttr.in',
         location: location,
         data: response.data
@@ -47,7 +49,9 @@ const getWeatherAscii = async (location, lang = 'en', format) => {
 
     if (format === 'json') {
         return {
-            success: true,
+            success: 'Ok',
+            Creator: 'RioRuo',
+            Message: "Don't spam the request motherfucker!",
             source: 'wttr.in',
             location: location,
             ascii_art: response.data
@@ -70,7 +74,9 @@ const getWeatherQuick = async (location, lang = 'en') => {
     });
 
     return {
-        success: true,
+        success: 'Ok',
+        Creator: 'RioRuo',
+        Message: "Don't spam the request motherfucker!",
         source: 'wttr.in',
         location: location,
         weather: response.data.trim()

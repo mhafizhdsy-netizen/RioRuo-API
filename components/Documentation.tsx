@@ -281,7 +281,7 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
 export function Documentation() {
   const [activeSection, setActiveSection] = useState(documentationData[0].id);
   const [isOtakudesuExpanded, setOtakudesuExpanded] = useState(true);
-  const [isWeatherExpanded, setWeatherExpanded] = useState(true);
+  const [isWeatherExpanded, setWeatherExpanded] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
   const otakudesuDocs = documentationData.filter(sect => sect.id !== 'weather');

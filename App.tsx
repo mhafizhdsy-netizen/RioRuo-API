@@ -47,7 +47,7 @@ export function App() {
   // Sidebar & Navigation State
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isOtakudesuExpanded, setOtakudesuExpanded] = useState(true);
-  const [isWeatherExpanded, setWeatherExpanded] = useState(true);
+  const [isWeatherExpanded, setWeatherExpanded] = useState(false);
 
   // Request Params
   const [keyword, setKeyword] = useState('jujutsu kaisen');

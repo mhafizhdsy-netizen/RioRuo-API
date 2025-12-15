@@ -1,54 +1,37 @@
-# Gunakan Node.js versi LTS yang ringan (Slim) sebagai base image
-FROM node:20-slim
-
-# Install Google Chrome Stable dan dependensi sistem yang dibutuhkan Puppeteer
-# Kita perlu menginstal library sistem manual karena menggunakan image 'slim'
-RUN apt-get update && apt-get install -y \
-    wget \
-    gnupg \
-    ca-certificates \
-    procps \
-    libxss1 \
-    libxtst6 \
-    --no-install-recommends \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | gpg --dearmor -o /usr/share/keyrings/googlechrome-linux-keyring.gpg \
-    && sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/googlechrome-linux-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
-    && apt-get update \
-    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf \
-    --no-install-recommends \
-    && rm -rf /var/lib/apt/lists/*
-
-# PENTING: Buat symlink karena kode browser.js Anda mencari /usr/bin/google-chrome
-# sedangkan instalasi default seringkali bernama google-chrome-stable
-RUN ln -s /usr/bin/google-chrome-stable /usr/bin/google-chrome
-
-# Set working directory
+# Stage 1: Build the React Frontend
+FROM node:18-alpine AS builder
 WORKDIR /app
-
-# Copy package.json dan package-lock.json terlebih dahulu untuk caching layer
 COPY package*.json ./
-
-# Install dependensi project
-RUN npm ci
-
-# Copy seluruh source code
+RUN npm install
 COPY . .
-
-# Build aplikasi Frontend (React/Vite)
 RUN npm run build
 
-# Set Environment Variables
-# Ini memaksa puppeteer menggunakan Chrome yang sudah kita install di atas
-ENV PUPPETEER_SKIP_CHROMIUM_DOWNLOAD=true
-ENV PUPPETEER_EXECUTABLE_PATH=/usr/bin/google-chrome
+# Stage 2: Setup Production Environment for Node.js Server + Puppeteer
+FROM node:18-slim
+ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/google-chrome"
 
-# Environment variable untuk memicu logika "Railway/Docker" di server/src/lib/browser.js
-ENV RAILWAY_ENVIRONMENT=true
-ENV PORT=5000
-ENV NODE_ENV=production
+# Install Google Chrome and necessary dependencies for Puppeteer
+RUN apt-get update \
+    && apt-get install -y wget gnupg ca-certificates \
+    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
+    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get update \
+    && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 --no-install-recommends \
+    && rm -rf /var/lib/apt/lists/*
 
-# Expose port yang digunakan aplikasi
+WORKDIR /app
+
+# Copy dependencies and install only production dependencies
+COPY package*.json ./
+RUN npm install --omit=dev
+
+# Copy server code and the built frontend from the builder stage
+COPY --from=builder /app/dist ./dist
+COPY server ./server
+COPY api ./api
+
+# Expose the port the app runs on
 EXPOSE 5000
 
-# Jalankan server
-CMD ["npm", "run", "start:server"]
+# Start the server
+CMD ["npm", "start"]

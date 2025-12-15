@@ -1,6 +1,12 @@
 import express from 'express';
 import cors from 'cors';
+import path from 'path';
+import { fileURLToPath } from 'url';
 import router from './routes/routes.js';
+
+// ES Module equivalent of __dirname
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 5000;
@@ -10,36 +16,35 @@ app.use(cors());
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
-// DIAGNOSTIC LOGGING
-app.use((req, res, next) => {
-  console.log(`[Diagnostic Log] Incoming request URL: ${req.url}`);
-  next();
+// --- API Routes ---
+// Mount the API router to handle API calls
+app.use('/otakudesu', router);
+app.use('/api', router);
+
+// --- Serve Frontend ---
+// Serve static files from the React app build directory
+app.use(express.static(path.join(__dirname, '../dist')));
+
+// The "catchall" handler: for any request that doesn't match one above,
+// send back React's index.html file.
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../dist/index.html'));
 });
 
-// IMPORTANT: Mount the router to handle multiple potential prefixes.
-// When Vercel rewrites /otakudesu/v1/home -> /api/index.js, the req.url seen by Express
-// might still contain the full path depending on the execution context.
-// By mounting on multiple paths, we ensure the internal router (which expects /v1) gets hit.
-
-app.use('/otakudesu', router); // Handles: /otakudesu/v1/home
-app.use('/api', router);       // Handles: /api/v1/home (if accessed directly)
-app.use('/', router);          // Handles: /v1/home (Local development)
-
-// 404 Handler for anything not caught by the router
-app.use((req, res) => {
+// --- 404 Handler for API ---
+// This will only be reached if a path starts with /otakudesu or /api but is not found by the router.
+// It should be placed after API routes but before the frontend catchall.
+app.use('/otakudesu|/api', (req, res) => {
   res.status(404).json({
     status: 'error',
-    message: `Endpoint not found within the Otakudesu API: ${req.method} ${req.originalUrl}.`,
-    hint: 'This means the request reached Express, but the router paths (mounted at /otakudesu, /api, or /) did not match the remaining URL.'
+    message: `Endpoint not found within the API: ${req.method} ${req.originalUrl}.`,
   });
 });
 
-// Export the Express API for Vercel
+// Export the Express API for Vercel (though this setup is for Docker/Railway)
 export default app;
 
-// Start Server
-// We listen if NOT in Vercel. 
-// This includes Local Dev AND Railway (Docker) production.
+// Start Server for Docker/Railway/Local
 if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);

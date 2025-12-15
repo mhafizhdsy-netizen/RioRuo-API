@@ -37,8 +37,10 @@ app.use((req, res) => {
 // Export the Express API for Vercel
 export default app;
 
-// Start Server (Only for local development)
-if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+// Start Server
+// We listen if NOT in Vercel. 
+// This includes Local Dev AND Railway (Docker) production.
+if (!process.env.VERCEL) {
   app.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
   });

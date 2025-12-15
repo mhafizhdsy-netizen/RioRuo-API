@@ -30,7 +30,8 @@ export const getBrowser = async () => {
 
   // ENVIRONMENT DETECTION
   const isVercel = !!process.env.VERCEL;
-  const isRailway = !!process.env.RAILWAY_DEPLOYMENT;
+  // Check common Railway environment variables or explicit flag
+  const isRailway = !!process.env.RAILWAY_ENVIRONMENT || !!process.env.RAILWAY_STATIC_URL || !!process.env.RAILWAY_DEPLOYMENT;
   const isProduction = process.env.NODE_ENV === 'production';
 
   let executablePath;
@@ -85,7 +86,9 @@ export const getBrowser = async () => {
     args: args,
     defaultViewport: chromium.defaultViewport,
     executablePath: executablePath,
-    headless: isProduction ? 'new' : false,
+    // Force headless 'new' in production, railway, vercel.
+    // Fallback to false (headful) only for local non-production dev.
+    headless: (isVercel || isRailway || isProduction) ? 'new' : false,
     ignoreHTTPSErrors: true,
   });
 

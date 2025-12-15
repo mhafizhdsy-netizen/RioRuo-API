@@ -182,7 +182,8 @@ interface EndpointCardProps {
   endpoint: Endpoint;
 }
 
-const EndpointCard = ({ endpoint }: EndpointCardProps) => (
+// FIX: Changed the component to be of type React.FC. This correctly handles React's special `key` prop, which is required when rendering lists of components, and resolves the TypeScript error.
+const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
   <div className="bg-surface border border-border rounded-xl mb-8 overflow-hidden">
     <div className="px-5 py-4 bg-surfaceLight border-b border-border">
       <div className="flex items-center gap-3">

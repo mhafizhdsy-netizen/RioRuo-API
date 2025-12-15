@@ -74,7 +74,7 @@ export function App() {
   // Effect for periodic API status check
   useEffect(() => {
     checkApiStatus(); // Initial check
-    const interval = setInterval(checkApiStatus, 30000); // Check every 30 seconds
+    const interval = setInterval(checkApiStatus, 3600000); // Check every 1 hour
     return () => clearInterval(interval); // Cleanup on unmount
   }, []);
 

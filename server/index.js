@@ -12,10 +12,9 @@ app.use((req, res, next) => {
     next();
 });
 
-// FIX: Mount the main router under the `/otakudesu` prefix.
-// The Vercel environment and the frontend API service both use this prefix.
-// This ensures that the Express router correctly matches the incoming request paths.
-app.use('/otakudesu', routes);
+// FIX: Mount the main router at the root level.
+// The Vercel configuration now routes everything to this app, and we removed the '/otakudesu' prefix.
+app.use('/', routes);
 
 app.listen(port, () => {
     console.log(`App is listening on port ${port}, http://localhost:${port}`);

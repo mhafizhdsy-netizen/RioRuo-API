@@ -1,3 +1,4 @@
+
 import React, { useState, useEffect, useRef } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
@@ -216,7 +217,7 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
       <div>
         <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><Code size={14}/> Example Request</h4>
         <code className="w-full block bg-surfaceLight border border-border rounded-lg p-3 text-sm text-emerald-300 font-mono break-all">
-          /otakudesu/v1{endpoint.example}
+          /v1{endpoint.example}
         </code>
       </div>
        <div className="mt-4">

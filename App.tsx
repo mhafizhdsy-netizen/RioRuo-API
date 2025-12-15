@@ -60,7 +60,7 @@ export function App() {
   const checkApiStatus = async () => {
     try {
       setApiStatus('checking');
-      const response = await fetch(`${BASE_URL}/otakudesu/v1`); // Call the backend's root API endpoint
+      const response = await fetch(`${BASE_URL}/v1`); // Call the backend's root API endpoint (Updated prefix)
       if (response.ok) {
         setApiStatus('online');
       } else {
@@ -321,7 +321,7 @@ export function App() {
   ];
 
   // Logic to display meaningful base url
-  const displayBaseUrl = `${BASE_URL}/otakudesu/v1`;
+  const displayBaseUrl = `${BASE_URL}/v1`;
   
   const Playground = useCallback(() => (
     <div className="max-w-6xl mx-auto w-full flex flex-col gap-6 flex-1">
@@ -333,7 +333,7 @@ export function App() {
             <h2 className="text-xl font-bold text-white">Request Controller</h2>
           </div>
           <a
-            href="https://rioruo.vercel.app/otakudesu/v1"
+            href="https://rioruo.vercel.app/v1"
             target="_blank"
             rel="noopener noreferrer"
             className="flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full hover:border-zinc-600 transition-colors"

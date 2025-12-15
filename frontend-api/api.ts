@@ -9,8 +9,8 @@ export const BASE_URL =
   : 'https://rioruo.vercel.app';
 
 async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>): Promise<T> {
-  // Construct the full path including the backend's base API route prefix
-  const fullApiPath = `/otakudesu/v1${endpoint}`;
+  // Construct the full path. Removed '/otakudesu' prefix as requested.
+  const fullApiPath = `/v1${endpoint}`;
   // If BASE_URL is absolute (e.g. https://rioruo.vercel.app), the second argument is ignored
   const url = new URL(`${BASE_URL}${fullApiPath}`, window.location.origin);
   

@@ -1,8 +1,10 @@
 {
-  "rewrites": [
-    {
-      "source": "/otakudesu/(.*)",
-      "destination": "/api/index.js"
-    }
+  "version": 2,
+  "regions": ["sin1"],
+  "builds": [
+    { "src": "/api/index.js", "use": "@vercel/node"}
+  ],
+  "routes": [
+    { "src": "/(.*)", "dest": "/api/index.js" }
   ]
 }

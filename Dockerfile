@@ -1,5 +1,6 @@
 # Stage 1: Build the React Frontend
-FROM node:18-alpine AS builder
+# Using Node 20 for the build stage as well for consistency
+FROM node:20-alpine AS builder
 WORKDIR /app
 COPY package*.json ./
 RUN npm install
@@ -7,14 +8,16 @@ COPY . .
 RUN npm run build
 
 # Stage 2: Setup Production Environment for Node.js Server + Puppeteer
-FROM node:18-slim
+# CRITICAL FIX: Upgraded from node:18-slim to node:20-slim to resolve "File is not defined" error
+FROM node:20-slim
 ENV PUPPETEER_EXECUTABLE_PATH="/usr/bin/google-chrome"
 
 # Install Google Chrome and necessary dependencies for Puppeteer
+# Using Debian's official repo is more stable than manual wget
 RUN apt-get update \
-    && apt-get install -y wget gnupg ca-certificates \
-    && wget -q -O - https://dl-ssl.google.com/linux/linux_signing_key.pub | apt-key add - \
-    && sh -c 'echo "deb [arch=amd64] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
+    && apt-get install -y gnupg wget \
+    && wget -q -O - https://dl.google.com/linux/linux_signing_key.pub | gpg --dearmor > /usr/share/keyrings/google-archive-keyring.gpg \
+    && sh -c 'echo "deb [arch=amd64 signed-by=/usr/share/keyrings/google-archive-keyring.gpg] http://dl.google.com/linux/chrome/deb/ stable main" >> /etc/apt/sources.list.d/google.list' \
     && apt-get update \
     && apt-get install -y google-chrome-stable fonts-ipafont-gothic fonts-wqy-zenhei fonts-thai-tlwg fonts-kacst fonts-freefont-ttf libxss1 --no-install-recommends \
     && rm -rf /var/lib/apt/lists/*

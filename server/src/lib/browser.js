@@ -3,10 +3,8 @@ import StealthPlugin from 'puppeteer-extra-plugin-stealth';
 import chromium from '@sparticuz/chromium';
 import fs from 'fs';
 
-// Register the stealth plugin
 puppeteer.use(StealthPlugin());
 
-// Helper to find local Chrome path for development
 const getLocalChromePath = () => {
   const paths = [
     'C:\\Program Files\\Google\\Chrome\\Application\\chrome.exe',
@@ -18,9 +16,7 @@ const getLocalChromePath = () => {
   ];
 
   for (const p of paths) {
-    if (fs.existsSync(p)) {
-      return p;
-    }
+    if (fs.existsSync(p)) return p;
   }
   return null;
 };
@@ -28,74 +24,56 @@ const getLocalChromePath = () => {
 let browserInstance = null;
 
 export const getBrowser = async () => {
-  if (browserInstance) {
+  // Return existing instance if valid
+  if (browserInstance && browserInstance.isConnected()) {
     return browserInstance;
   }
 
-  // ENVIRONMENT DETECTION
   const isVercel = !!process.env.VERCEL;
-  // Check common Railway environment variables or explicit flag
+  // Railway detection
   const isRailway = !!process.env.RAILWAY_ENVIRONMENT || !!process.env.RAILWAY_STATIC_URL || !!process.env.RAILWAY_DEPLOYMENT;
   const isProduction = process.env.NODE_ENV === 'production';
 
   let executablePath;
-  let args = chromium.args; // Default Vercel-optimized args
+  let args = [];
 
   if (isRailway) {
-    // RAILWAY (Docker Container)
-    // Use the Chrome installed via Dockerfile
+    // RAILWAY (Docker)
     console.log('[Browser] Environment: Railway/Docker');
     executablePath = '/usr/bin/google-chrome';
     
-    // Args for Docker environment
-    // Stealth plugin handles most args, but we need these for Docker stability
+    // CRITICAL ARGS FOR DOCKER
     args = [
       '--no-sandbox',
       '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
+      '--disable-dev-shm-usage', // Prevents OOM crashes in Docker
       '--disable-accelerated-2d-canvas',
       '--no-first-run',
       '--no-zygote',
       '--disable-gpu',
-      '--window-size=1920,1080'
+      '--disable-audio-output',
+      '--disable-extensions'
     ];
-
   } else if (isVercel) {
-    // VERCEL (AWS Lambda Serverless)
-    // Use sparticuz compressed binary
+    // VERCEL
     console.log('[Browser] Environment: Vercel (Serverless)');
     executablePath = await chromium.executablePath();
-    // chromium.args are already optimized for Lambda
-    args = [...chromium.args];
-    
+    args = [...chromium.args, '--disable-gpu', '--disable-dev-shm-usage'];
   } else {
-    // LOCAL DEVELOPMENT
-    console.log('[Browser] Environment: Local Development');
+    // LOCAL
+    console.log('[Browser] Environment: Local');
     executablePath = getLocalChromePath();
-    
-    if (!executablePath) {
-      console.error('ERROR: Could not find Google Chrome installed locally.');
-      throw new Error('Local Chrome not found');
-    }
-    
-    args = [
-      '--no-sandbox',
-      '--disable-setuid-sandbox',
-      '--disable-dev-shm-usage',
-      '--disable-accelerated-2d-canvas',
-      '--disable-gpu'
-    ];
+    args = ['--no-sandbox', '--disable-setuid-sandbox', '--disable-gpu'];
   }
 
-  console.log(`[Browser] Launching browser at: ${executablePath}`);
+  console.log(`[Browser] Launching... Path: ${executablePath}`);
 
   browserInstance = await puppeteer.launch({
-    args: args,
-    defaultViewport: chromium.defaultViewport,
-    executablePath: executablePath,
-    // Force headless 'new' in production/railway/vercel.
-    headless: (isVercel || isRailway || isProduction) ? 'new' : false,
+    args,
+    executablePath,
+    headless: "new", // Use new headless mode
     ignoreHTTPSErrors: true,
+    defaultViewport: null, // Allow viewport to be set by page
   });
 
   return browserInstance;

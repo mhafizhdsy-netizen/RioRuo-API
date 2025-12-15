@@ -18,9 +18,9 @@ export function App() {
   
   // Request Params
   const [keyword, setKeyword] = useState('jujutsu kaisen');
-  const [animeSlug, setAnimeSlug] = useState('jujutsu-kaisen-s2');
-  const [episodeSlug, setEpisodeSlug] = useState('jujutsu-kaisen-s2-episode-23');
-  const [batchSlug, setBatchSlug] = useState('jujutsu-kaisen-s2-batch');
+  const [animeSlug, setAnimeSlug] = useState('1piece-sub-indo');
+  const [episodeSlug, setEpisodeSlug] = useState('wpoiec-episode-1152-sub-indo');
+  const [batchSlug, setBatchSlug] = useState('wpoiec-batch-sub-indo');
   const [genreSlug, setGenreSlug] = useState('action');
   const [episodeNumber, setEpisodeNumber] = useState('1');
   const [page, setPage] = useState('1');

@@ -25,7 +25,9 @@ const getQuotes = async (page = 1) => {
 };
 
 const getQuotesByTag = async (tag, page = 1) => {
-    const url = `${BASE_URL}/quotes/tag/${tag}?page=${page}`;
+    // Encode tag to handle spaces or special characters safely
+    const encodedTag = encodeURIComponent(tag);
+    const url = `${BASE_URL}/quotes/tag/${encodedTag}?page=${page}`;
     try {
         const { data } = await axios.get(url, { headers: HEADERS });
         const quotes = scrapeQuotes(data);

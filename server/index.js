@@ -9,6 +9,10 @@ import 'dotenv/config';
 const app = express();
 const port = process.env.PORT ?? 3000;
 
+// FIX: Enable 'trust proxy' so express-rate-limit works correctly behind Vercel's proxy.
+// Without this, X-Forwarded-For headers cause a ValidationError.
+app.set('trust proxy', 1);
+
 // 1. Security Headers
 app.use(helmet());
 
@@ -27,14 +31,17 @@ const limiter = rateLimit({
         status: 'Error',
         message: 'Too many requests from this IP, please try again after 15 minutes',
         hint: 'We implement rate limiting to protect our upstream providers.'
-    }
+    },
+    // Explicitly validate to prevent the specific error shown in logs if trust proxy misses
+    validate: { xForwardedForHeader: false } 
 });
 
 // Apply the rate limiting middleware to all requests.
 app.use(limiter);
 
 app.use((req, res, next) => {
-    console.log(`[${new Date().toISOString()}] ${req.ip} ${req.method} ${req.originalUrl}`);
+    // Clean logging to avoid clutter
+    // console.log(`[${new Date().toISOString()}] ${req.ip} ${req.method} ${req.originalUrl}`);
     next();
 });
 

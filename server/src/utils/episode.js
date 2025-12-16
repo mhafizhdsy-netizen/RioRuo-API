@@ -1,10 +1,11 @@
+
 import axios from 'axios';
 import episodes from './episodes.js';
 import scrapeEpisode from '../lib/scrapeEpisode.js';
 const BASEURL = process.env.BASEURL   || 'https://otakudesu.best';
 const episode = async ({ episodeSlug, animeSlug, episodeNumber }) => {
     let slug = '';
-    console.log(episodeSlug, animeSlug, episodeNumber);
+    
     if (episodeSlug)
         slug = episodeSlug;
     if (animeSlug) {
@@ -27,7 +28,6 @@ const episode = async ({ episodeSlug, animeSlug, episodeNumber }) => {
             }
         });
         slug = firstEps == 0 ? episodeLists[episodeNumber].slug : slug;
-        console.log(slug);
     }
     const { data } = await axios.get(`${BASEURL}/episode/${slug}`);
     const result = await scrapeEpisode(data);

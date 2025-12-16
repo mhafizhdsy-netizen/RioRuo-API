@@ -1,9 +1,9 @@
+
 import { load } from 'cheerio';
 import fs from 'fs';
 import axios from 'axios';
 const ANOBOY = process.env.ANOBOY || 'https://v8.kuramanime.tel';
 const movie = async (slug) => {
-    console.log(`${ANOBOY}/anime${slug}`);
     const { data } = await axios.get(`${ANOBOY}/anime${slug}`,{
         headers: {
             "accept": "text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8",

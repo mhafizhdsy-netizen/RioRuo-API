@@ -1,6 +1,6 @@
+
 import { load } from 'cheerio';
 const pagination = (html, anoboy = false) => {
-    console.log('isAnoboy', anoboy);
     const $ = load(html);
     const current_page = anoboy ? parseInt($('.current-page').text()) : parseInt($('.pagination .pagenavix .page-numbers.current').text());
     const last_visible_page = anoboy ?  parseInt($('.page__link').not(':has(i.fa-angle-right)').last().text()) : parseInt($('.pagination .pagenavix .page-numbers:last').prev('a.page-numbers').text());

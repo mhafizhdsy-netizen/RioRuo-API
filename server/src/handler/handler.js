@@ -306,8 +306,12 @@ const weatherPngHandler = async (req, res) => {
 
 const quotesHandler = async (req, res) => {
     try {
-        // Changed to use req.params for pagination
         const { page } = req.params;
+        if (page) {
+            if (!parseInt(page)) return res.status(400).json({ status: 'Error', message: 'The page parameter must be a number!' });
+            if (parseInt(page) < 1) return res.status(400).json({ status: 'Error', message: 'The page parameter must be greater than 0!' });
+        }
+        
         const pageNumber = page ? parseInt(page) : 1;
         const data = await otakudesu.quotes.getQuotes(pageNumber);
         return res.status(200).json(data);
@@ -318,8 +322,12 @@ const quotesHandler = async (req, res) => {
 
 const quotesByTagHandler = async (req, res) => {
     try {
-        // Changed to use req.params for pagination
         const { tag, page } = req.params;
+        if (page) {
+            if (!parseInt(page)) return res.status(400).json({ status: 'Error', message: 'The page parameter must be a number!' });
+            if (parseInt(page) < 1) return res.status(400).json({ status: 'Error', message: 'The page parameter must be greater than 0!' });
+        }
+
         const pageNumber = page ? parseInt(page) : 1;
         const data = await otakudesu.quotes.getQuotesByTag(tag, pageNumber);
         return res.status(200).json(data);

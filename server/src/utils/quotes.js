@@ -53,7 +53,7 @@ const getQuotesByTag = async (req, res) => {
   res.status(200).json({ message: "Debug untuk getQuotesByTag" });
 };
 
-module.exports = {
+export default{
   getQuotes,
   getQuotesByTag
 };

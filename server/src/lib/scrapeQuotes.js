@@ -1,14 +1,16 @@
 
-import { load } from 'cheerio';
+import * as cheerio from 'cheerio';
 
 const scrapeQuotes = (html) => {
-  const $ = load(html);
+  // Menggunakan cheerio.load secara eksplisit agar sesuai dengan referensi Anda
+  const $ = cheerio.load(html);
   const quotes = [];
 
   $('.quote').each((index, element) => {
     const quoteElement = $(element);
 
     // Dapatkan teks quote, lalu bersihkan dari karakter yang tidak diinginkan
+    // Memisahkan berdasarkan dash '―' yang biasa dipakai di Goodreads
     const text = quoteElement.find('.quoteText').text().trim().split('―')[0].trim();
 
     // Dapatkan nama penulis

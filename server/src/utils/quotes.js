@@ -1,7 +1,6 @@
 // routes/quotes.js (Debugging Mode)
-
-const axios = require('axios');
-const scrapeQuotes = require('../lib/scrapeQuotes.js');
+import axios from 'axios';
+import scrapeQuotes from '../lib/scrapeQuotes.js';
 
 const getQuotes = async (req, res) => {
   console.log("🔍 [DEBUG] Fungsi getQuotes dipanggil.");

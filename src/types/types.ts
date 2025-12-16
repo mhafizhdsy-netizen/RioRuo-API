@@ -173,7 +173,12 @@ export enum ApiEndpoint {
   WEATHER_PNG = '/v1/weather/png/:location',
   // Quote Endpoints
   QUOTES = '/v1/quotes/:page?',
+  QUOTES_DEFAULT = '/v1/quotes', // No pagination param
   QUOTES_BY_TAG = '/v1/quotes/tag/:tag/:page?',
+  QUOTES_BY_TAG_DEFAULT = '/v1/quotes/tag/:tag', // No pagination param
+  // VGD Shortener Endpoints
+  SHORT_VGD = '/v1/vgd',
+  SHORT_VGD_CUSTOM = '/v1/vgd/custom',
   // Komiku Endpoints
   KOMIKU_PAGE = '/v1/manga/page/:page?',
   KOMIKU_POPULAR = '/v1/manga/popular/:page?',

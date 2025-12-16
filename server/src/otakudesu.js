@@ -14,7 +14,8 @@ import movie from './utils/movie.js';
 import movies from './utils/movies.js';
 import jadwalRilis from './utils/jadwalRilis.js';
 import weather from './utils/weather.js';
-import quotes from './utils/quotes.js'; // New import
+import quotes from './utils/quotes.js';
+import vgd from './utils/vgd.js'; // New import
 
 export default {
   home,
@@ -31,5 +32,6 @@ export default {
   movies,
   jadwalRilis,
   weather,
-  quotes // Export new utility
+  quotes,
+  vgd // Export new utility
 };

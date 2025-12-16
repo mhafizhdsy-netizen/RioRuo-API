@@ -350,6 +350,76 @@ const quotesByTagHandler = async (req, res) => {
     }
 };
 
+// --- VGD Shortener Handlers ---
+
+const vgdHandler = async (req, res) => {
+    try {
+        const { longUrl } = req.body;
+        if (!longUrl || typeof longUrl !== 'string') {
+            return res.status(400).json({ status: "Error", message: 'Field "longUrl" wajib diisi dan harus berupa string.' });
+        }
+
+        const result = await otakudesu.vgd.shorten(longUrl);
+        
+        if (result.status === 'ok') {
+            return res.status(201).json({
+                status: "Ok",
+                Creator: "RioRuo",
+                Message: "Don't spam the request motherfucker!",
+                originalUrl: longUrl,
+                shortUrl: result.shorturl,
+                type: 'random'
+            });
+        } else {
+             return res.status(400).json({
+                status: "Error",
+                message: 'Gagal memperpendek URL.',
+                details: result.error || 'Kesalahan tidak diketahui dari provider.',
+            });
+        }
+    } catch (e) {
+        return res.status(500).json({ status: "Error", message: e.message });
+    }
+};
+
+const vgdCustomHandler = async (req, res) => {
+    try {
+        const { longUrl, customAlias } = req.body;
+
+        if (!longUrl || typeof longUrl !== 'string') {
+            return res.status(400).json({ status: "Error", message: 'Field "longUrl" wajib diisi dan harus berupa string.' });
+        }
+        if (!customAlias || typeof customAlias !== 'string') {
+            return res.status(400).json({ status: "Error", message: 'Field "customAlias" wajib diisi.' });
+        }
+        if (!/^[a-zA-Z0-9-]+$/.test(customAlias)) {
+            return res.status(400).json({ status: "Error", message: 'Custom alias hanya boleh mengandung huruf, angka, dan strip (-).' });
+        }
+
+        const result = await otakudesu.vgd.shortenCustom(longUrl, customAlias);
+
+        if (result.status === 'ok') {
+            return res.status(201).json({
+                status: "Ok",
+                Creator: "RioRuo",
+                Message: "Don't spam the request motherfucker!",
+                originalUrl: longUrl,
+                shortUrl: result.shorturl,
+                type: 'custom'
+            });
+        } else {
+            return res.status(409).json({
+                status: "Error",
+                message: 'Gagal membuat URL kustom.',
+                details: result.error || 'Kesalahan tidak diketahui dari provider.',
+                suggestion: 'Coba gunakan alias yang lain.'
+            });
+        }
+    } catch (e) {
+        return res.status(500).json({ status: "Error", message: e.message });
+    }
+};
+
 // --- Komiku Handlers ---
 
 const komikuMangaPageHandler = async (req, res) => {
@@ -484,6 +554,9 @@ export default {
   // Quotes
   quotesHandler,
   quotesByTagHandler,
+  // VGD
+  vgdHandler,
+  vgdCustomHandler,
   // Komiku
   komikuMangaPageHandler,
   komikuPopularHandler,

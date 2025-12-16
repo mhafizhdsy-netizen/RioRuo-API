@@ -10,7 +10,7 @@ import {
   List, Grid, Film, ChevronDown, Check,
   Heart, Globe, CalendarDays, Cloud,
   BookOpen, SlidersHorizontal, Menu, X, Copy,
-  Book, Quote
+  Book, Quote, Link
 } from 'lucide-react';
 
 // Toast component
@@ -51,6 +51,7 @@ export function App() {
   const [isWeatherExpanded, setWeatherExpanded] = useState(false);
   const [isKomikuExpanded, setKomikuExpanded] = useState(false);
   const [isQuotesExpanded, setQuotesExpanded] = useState(false);
+  const [isShortlinkExpanded, setIsShortlinkExpanded] = useState(false);
 
   // Request Params
   const [keyword, setKeyword] = useState('jujutsu kaisen');
@@ -68,6 +69,10 @@ export function App() {
   const [mangaEndpoint, setMangaEndpoint] = useState('one-piece');
   const [mangaQuery, setMangaQuery] = useState('naruto');
   const [chapterTitle, setChapterTitle] = useState('one-piece-chapter-1100');
+
+  // Shortlink Params
+  const [longUrl, setLongUrl] = useState('https://google.com');
+  const [customAlias, setCustomAlias] = useState('my-cool-link');
 
   // Response State
   const [loading, setLoading] = useState(false);
@@ -136,7 +141,12 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.WEATHER_PNG) res = await apiService.getWeatherPng(weatherLocation);
       // Quotes Endpoints
       else if (selectedEndpoint === ApiEndpoint.QUOTES) res = await apiService.getQuotes(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.QUOTES_DEFAULT) res = await apiService.getQuotesDefault();
       else if (selectedEndpoint === ApiEndpoint.QUOTES_BY_TAG) res = await apiService.getQuotesByTag(quoteTag, parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.QUOTES_BY_TAG_DEFAULT) res = await apiService.getQuotesByTagDefault(quoteTag);
+      // Shortlink Endpoints
+      else if (selectedEndpoint === ApiEndpoint.SHORT_VGD) res = await apiService.postVgdShort(longUrl);
+      else if (selectedEndpoint === ApiEndpoint.SHORT_VGD_CUSTOM) res = await apiService.postVgdCustomShort(longUrl, customAlias);
       // Komiku Endpoints
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_PAGE) res = await apiService.getKomikuPage(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_POPULAR) res = await apiService.getKomikuPopular(parseInt(page));
@@ -197,7 +207,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias]);
 
   // Input rendering logic
   const renderInputs = useCallback(() => {
@@ -288,11 +298,30 @@ export function App() {
       );
     }
 
-    if (selectedEndpoint === ApiEndpoint.QUOTES_BY_TAG) {
+    if ([ApiEndpoint.QUOTES_BY_TAG, ApiEndpoint.QUOTES_BY_TAG_DEFAULT].includes(selectedEndpoint as ApiEndpoint)) {
         inputs.push(
             <div key="quoteTag" className="flex flex-col gap-2">
               <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Tag</label>
               <input type="text" value={quoteTag} onChange={(e) => setQuoteTag(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. love" />
+            </div>
+        );
+    }
+
+    // Shortlink Inputs
+    if ([ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint)) {
+        inputs.push(
+            <div key="longUrl" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Long URL</label>
+              <input type="text" value={longUrl} onChange={(e) => setLongUrl(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="https://example.com" />
+            </div>
+        );
+    }
+
+    if (selectedEndpoint === ApiEndpoint.SHORT_VGD_CUSTOM) {
+        inputs.push(
+            <div key="customAlias" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Custom Alias</label>
+              <input type="text" value={customAlias} onChange={(e) => setCustomAlias(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="my-link" />
             </div>
         );
     }
@@ -326,7 +355,7 @@ export function App() {
     }
 
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },
@@ -342,7 +371,11 @@ export function App() {
   ];
 
   const quoteCategories = [
-    { id: 'quotes', name: "Goodreads Quotes", icon: <Quote size={14} />, items: [ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG] },
+    { id: 'quotes', name: "Goodreads Quotes", icon: <Quote size={14} />, items: [ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_DEFAULT, ApiEndpoint.QUOTES_BY_TAG, ApiEndpoint.QUOTES_BY_TAG_DEFAULT] },
+  ];
+
+  const shortlinkCategories = [
+    { id: 'shortlink-vgd', name: "v.gd Shortener", icon: <Link size={14} />, items: [ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM] },
   ];
 
   const komikuCategories = [
@@ -591,6 +624,69 @@ export function App() {
                 </div>
               </div>
 
+              {/* Shortlink Item */}
+              <div className="space-y-1 mb-4">
+                <button 
+                  onClick={() => setIsShortlinkExpanded(!isShortlinkExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isShortlinkExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isShortlinkExpanded ? 'bg-orange-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Shortlink</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isShortlinkExpanded ? 'rotate-180 text-orange-500' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out ${isShortlinkExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden">
+                    <div className="pt-2 pb-2 pl-4 space-y-6 relative">
+                      <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
+
+                      {shortlinkCategories.map((cat) => (
+                        <div key={cat.id} className="relative">
+                          <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+                             <div className="text-zinc-500">{cat.icon}</div>
+                             <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
+                          </div>
+                          
+                          <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
+                            {cat.items.map((endpoint) => {
+                              const isSelected = selectedEndpoint === endpoint;
+                              return (
+                                <button
+                                  key={endpoint}
+                                  onClick={() => {
+                                    setSelectedEndpoint(endpoint);
+                                    setSidebarOpen(false);
+                                  }}
+                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
+                                    isSelected
+                                      ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-sm'
+                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></div>
+                                  )}
+                                  <span className="truncate">{endpoint}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Weather Item */}
               <div className="space-y-1">
                 <button 
@@ -719,8 +815,18 @@ export function App() {
                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 h-auto md:h-[60px]">
                         {/* Method */}
                         <div className="md:col-span-2 h-full bg-surfaceLight/30 border border-white/5 rounded-xl flex items-center justify-center relative overflow-hidden group">
-                           <div className="absolute inset-0 bg-gradient-to-br from-primary/20 to-transparent opacity-50 group-hover:opacity-100 transition-opacity"></div>
-                           <span className="relative font-mono font-black text-primary tracking-widest text-lg">GET</span>
+                           <div className={`absolute inset-0 bg-gradient-to-br ${
+                               [ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) 
+                               ? 'from-warning/20' 
+                               : 'from-primary/20'
+                           } to-transparent opacity-50 group-hover:opacity-100 transition-opacity`}></div>
+                           <span className={`relative font-mono font-black ${
+                               [ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) 
+                               ? 'text-warning' 
+                               : 'text-primary'
+                           } tracking-widest text-lg`}>
+                               {[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) ? 'POST' : 'GET'}
+                           </span>
                         </div>
 
                         {/* Base URL */}

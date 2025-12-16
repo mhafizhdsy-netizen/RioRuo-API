@@ -105,6 +105,10 @@ api.get('/quotes/tag/:tag/:page', cache(CACHE_SHORT), handler.quotesByTagHandler
 api.get('/quotes', cache(CACHE_SHORT), handler.quotesHandler);
 api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
 
+// VGD Shortener Routes (POST) - No Cache needed usually
+api.post('/vgd', handler.vgdHandler);
+api.post('/vgd/custom', handler.vgdCustomHandler);
+
 // Komiku Routes
 api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);
 api.get('/manga/popular/:page?', cache(CACHE_MEDIUM), handler.komikuPopularHandler);

@@ -19,7 +19,11 @@ app.use(helmet());
 // 2. CORS Configuration
 app.use(cors());
 
-// 3. Rate Limiter Configuration
+// 3. Body Parser (REQUIRED for POST requests)
+app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+
+// 4. Rate Limiter Configuration
 // Limits each IP to 100 requests per 15 minutes.
 // Standard headers are included so clients know their limits.
 const limiter = rateLimit({

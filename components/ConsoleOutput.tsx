@@ -1,6 +1,5 @@
-
 import React, { useState, useEffect } from 'react';
-import { Copy, AlertTriangle, CheckCircle, Clock, Database, Terminal, Download, Eye, X, Check, FileJson, Maximize2 } from 'lucide-react';
+import { Copy, AlertTriangle, CheckCircle, Clock, Database, Terminal, Download, Eye, X, Check, FileJson, Maximize2, ChevronRight, ChevronDown } from 'lucide-react';
 
 interface ConsoleOutputProps {
   data: any;
@@ -10,33 +9,150 @@ interface ConsoleOutputProps {
     latency: number;
     timestamp: string;
   };
-  onCopySuccess?: (message: string) => void; // Updated prop for generic copy success notification
+  onCopySuccess?: (message: string) => void;
 }
 
-const SyntaxHighlight = ({ json }: { json: any }) => {
-  if (!json) return null;
-  const jsonString = JSON.stringify(json, null, 2);
-  
-  const highlighted = jsonString.replace(/("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\s*:)?|\b(true|false|null)\b|-?\d+(?:\.\d*)?(?:[eE][+\-]?\d+)?)/g, (match) => {
-    let cls = 'json-number';
-    if (/^"/.test(match)) {
-      if (/:$/.test(match)) {
-        cls = 'json-key';
-      } else {
-        cls = 'json-string';
-      }
-    } else if (/true|false/.test(match)) {
-      cls = 'json-boolean';
-    } else if (/null/.test(match)) {
-      cls = 'json-null';
+// --- Interactive JSON Viewer Components ---
+
+const JsonPrimitive = ({ value, onCopy }: { value: any, onCopy?: (val: string) => void }) => {
+  let type: string = typeof value;
+  let displayValue = String(value);
+  let colorClass = 'text-zinc-400';
+
+  if (value === null) {
+    type = 'null';
+    displayValue = 'null';
+    colorClass = 'text-blue-400'; // VS Code null color
+  } else if (type === 'string') {
+    displayValue = `"${value}"`;
+    colorClass = 'text-orange-300'; // VS Code string color
+  } else if (type === 'number') {
+    colorClass = 'text-emerald-300'; // VS Code number color
+  } else if (type === 'boolean') {
+    colorClass = 'text-blue-400'; // VS Code boolean color
+  }
+
+  const handleClick = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    if (type === 'string') {
+        // Copy without quotes for usability
+        onCopy?.(String(value));
+    } else {
+        onCopy?.(String(value));
     }
-    return `<span class="${cls}">${match}</span>`;
-  });
+  };
 
   return (
-    <pre className="font-mono text-xs md:text-sm leading-relaxed whitespace-pre-wrap break-words" dangerouslySetInnerHTML={{ __html: highlighted }} />
+    <span 
+      className={`${colorClass} hover:underline cursor-pointer transition-colors`}
+      onClick={handleClick}
+      title="Click to copy value"
+    >
+      {displayValue}
+    </span>
   );
 };
+
+interface JsonNodeProps {
+    name?: string;
+    value: any;
+    isLast: boolean;
+    depth?: number;
+    onCopy?: (val: string) => void;
+}
+
+const JsonNode: React.FC<JsonNodeProps> = ({ name, value, isLast, depth = 0, onCopy }) => {
+  const [isOpen, setIsOpen] = useState(depth < 2); // Auto-expand up to depth 2
+  const isObject = value !== null && typeof value === 'object';
+  const isArray = Array.isArray(value);
+  const isEmpty = isObject && Object.keys(value).length === 0;
+
+  const handleToggle = (e: React.MouseEvent) => {
+    e.stopPropagation();
+    setIsOpen(!isOpen);
+  };
+
+  const copyKey = (e: React.MouseEvent) => {
+      e.stopPropagation();
+      if(name) onCopy?.(name);
+  }
+
+  if (!isObject) {
+    return (
+      <div className="pl-4 hover:bg-white/5 rounded-sm flex">
+        {name && <span className="text-sky-300 mr-1 cursor-pointer hover:text-sky-200" onClick={copyKey}>"{name}":</span>}
+        <JsonPrimitive value={value} onCopy={onCopy} />
+        {!isLast && <span className="text-zinc-500">,</span>}
+      </div>
+    );
+  }
+
+  if (isEmpty) {
+    return (
+      <div className="pl-4 hover:bg-white/5 rounded-sm flex">
+        {name && <span className="text-sky-300 mr-1 cursor-pointer hover:text-sky-200" onClick={copyKey}>"{name}":</span>}
+        <span className="text-zinc-500">{isArray ? '[]' : '{}'}</span>
+        {!isLast && <span className="text-zinc-500">,</span>}
+      </div>
+    );
+  }
+
+  const keys = Object.keys(value);
+  const itemCount = keys.length;
+
+  return (
+    <div className="pl-4">
+      <div 
+        className="flex items-center hover:bg-white/5 rounded-sm cursor-pointer select-none -ml-4 pl-4"
+        onClick={handleToggle}
+      >
+        <span className="text-zinc-500 mr-1 transform transition-transform duration-150 flex items-center">
+           {isOpen ? <ChevronDown size={12} /> : <ChevronRight size={12} />}
+        </span>
+        
+        {name && <span className="text-sky-300 mr-1 hover:text-sky-200" onClick={copyKey}>"{name}":</span>}
+        
+        <span className="text-zinc-500">{isArray ? '[' : '{'}</span>
+        
+        {!isOpen && (
+          <span className="text-zinc-600 mx-1 text-[10px] italic">
+            {isArray ? `Array(${itemCount})` : `Object(${itemCount})`}
+          </span>
+        )}
+        
+        {!isOpen && <span className="text-zinc-500">{isArray ? ']' : '}'}{!isLast && ','}</span>}
+      </div>
+
+      {isOpen && (
+        <div className="border-l border-white/5 ml-1 pl-1">
+          {keys.map((key, index) => (
+            <JsonNode
+              key={key}
+              name={isArray ? undefined : key} // Don't show index keys for arrays
+              value={value[key]}
+              isLast={index === keys.length - 1}
+              depth={depth + 1}
+              onCopy={onCopy}
+            />
+          ))}
+          <div className="pl-4 text-zinc-500">
+            {isArray ? ']' : '}'}{!isLast && ','}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
+const InteractiveJsonViewer = ({ data, onCopy }: { data: any, onCopy?: (val: string) => void }) => {
+  return (
+    <div className="font-mono text-xs md:text-sm leading-relaxed overflow-x-auto">
+      <JsonNode value={data} isLast={true} onCopy={onCopy} />
+    </div>
+  );
+};
+
+// --- Main Console Components ---
 
 const LoadingState = () => {
   const [loadingMessage, setLoadingMessage] = useState('Initializing Request...');
@@ -105,13 +221,20 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
     URL.revokeObjectURL(url);
   };
 
-  const handleCopy = () => {
+  const handleCopyAll = () => {
     if (!data) return;
     navigator.clipboard.writeText(JSON.stringify(data, null, 2));
     if (onCopySuccess) {
-      onCopySuccess('Copied to clipboard!');
+      onCopySuccess('Full JSON copied to clipboard!');
     }
   };
+
+  const handleCopyValue = (val: string) => {
+      navigator.clipboard.writeText(val);
+      if (onCopySuccess) {
+          onCopySuccess('Value copied!');
+      }
+  }
 
   if (loading) {
     return <LoadingState />;
@@ -157,18 +280,18 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
             </button>
             
             <button 
-              onClick={handleCopy}
+              onClick={handleCopyAll}
               className="p-1.5 hover:bg-white/10 rounded transition-colors text-zinc-400 hover:text-white flex items-center justify-center"
-              title="Copy to Clipboard"
+              title="Copy All to Clipboard"
             >
               <Copy size={14} />
             </button>
           </div>
         </div>
 
-        {/* Console Content */}
+        {/* Console Content - Interactive Viewer */}
         <div className="flex-1 overflow-auto p-4 bg-[#0d0d0d] custom-scrollbar relative group">
-          <SyntaxHighlight json={data} />
+          <InteractiveJsonViewer data={data} onCopy={handleCopyValue} />
         </div>
 
         {/* Console Footer / Metadata */}
@@ -240,7 +363,7 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
                     <FileJson size={20} className="text-primary" />
                  </div>
                  <div>
-                    <h3 className="font-bold text-white text-base tracking-tight">Raw JSON Inspector</h3>
+                    <h3 className="font-bold text-white text-base tracking-tight">Interactive JSON Inspector</h3>
                     <div className="flex items-center gap-3 mt-1">
                         <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${isError ? 'bg-error/10 text-error border-error/20' : 'bg-primary/10 text-primary border-primary/20'}`}>
                             Status: {meta.status}
@@ -267,10 +390,10 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
                 </div>
                 <div className="flex items-center gap-2">
                     <button 
-                        onClick={handleCopy}
+                        onClick={handleCopyAll}
                         className={`flex items-center justify-center w-8 h-8 rounded-md text-xs font-medium transition-all bg-white/5 hover:bg-white/10 text-zinc-300 border border-white/10
                         `}
-                        title="Copy JSON"
+                        title="Copy All JSON"
                     >
                         <Copy size={14} />
                     </button>
@@ -286,13 +409,14 @@ export const ConsoleOutput: React.FC<ConsoleOutputProps> = ({ data, loading, met
              {/* Modal Content */}
              <div className="flex-1 overflow-auto bg-[#050505] custom-scrollbar p-6">
                <div className="max-w-full">
-                  <SyntaxHighlight json={data} />
+                  <InteractiveJsonViewer data={data} onCopy={handleCopyValue} />
                </div>
              </div>
 
              {/* Modal Footer Hint */}
-             <div className="px-6 py-2 bg-surface border-t border-border text-[10px] text-zinc-600 font-mono text-right">
-                Press ESC to close
+             <div className="px-6 py-2 bg-surface border-t border-border text-[10px] text-zinc-600 font-mono text-right flex justify-between">
+                <span>Click key/value to copy</span>
+                <span>Press ESC to close</span>
              </div>
           </div>
         </div>

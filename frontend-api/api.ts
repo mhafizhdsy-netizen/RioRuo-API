@@ -7,7 +7,7 @@ export const BASE_URL =
   ? 'http://localhost:3000' 
   : ''; // Use relative path in production (same domain)
 
-async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>, extraQueryParams?: Record<string, string>): Promise<T> {
+async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>, extraQueryParams?: Record<string, string>, options?: RequestInit): Promise<T> {
   const fullApiPath = endpoint;
   const url = new URL(`${BASE_URL}${fullApiPath}`, window.location.origin);
   
@@ -27,7 +27,15 @@ async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>
   }
 
   try {
-      const res = await fetch(url.toString());
+      const fetchOptions: RequestInit = {
+          ...options,
+          headers: {
+              'Content-Type': 'application/json',
+              ...options?.headers
+          }
+      };
+
+      const res = await fetch(url.toString(), fetchOptions);
       
       if (!res.ok) {
           let errorMessage = `HTTP Error: ${res.status} ${res.statusText}`;
@@ -36,6 +44,8 @@ async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>
             const errorData = await res.json();
             if (errorData.message) errorMessage = errorData.message;
             if (errorData.hint) errorHint = errorData.hint;
+            // For VGD specific error from backend
+            if (errorData.details) errorMessage += ` (${errorData.details})`;
           } catch (e) { 
             // ignore json parse error
           }
@@ -94,7 +104,18 @@ export const apiService = {
   getWeatherPng: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_PNG.replace(':location', location)),
   // Quotes Services
   getQuotes: (page = 1) => fetchFromApi(ApiEndpoint.QUOTES.replace(':page?', page.toString())),
+  getQuotesDefault: () => fetchFromApi(ApiEndpoint.QUOTES_DEFAULT),
   getQuotesByTag: (tag: string, page = 1) => fetchFromApi(ApiEndpoint.QUOTES_BY_TAG.replace(':tag', tag).replace(':page?', page.toString())),
+  getQuotesByTagDefault: (tag: string) => fetchFromApi(ApiEndpoint.QUOTES_BY_TAG_DEFAULT.replace(':tag', tag)),
+  // Shortlink Services
+  postVgdShort: (longUrl: string) => fetchFromApi(ApiEndpoint.SHORT_VGD, undefined, undefined, {
+      method: 'POST',
+      body: JSON.stringify({ longUrl })
+  }),
+  postVgdCustomShort: (longUrl: string, customAlias: string) => fetchFromApi(ApiEndpoint.SHORT_VGD_CUSTOM, undefined, undefined, {
+      method: 'POST',
+      body: JSON.stringify({ longUrl, customAlias })
+  }),
   // Komiku Services
   getKomikuPage: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_PAGE.replace(':page?', page.toString())),
   getKomikuPopular: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_POPULAR.replace(':page?', page.toString())),

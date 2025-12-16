@@ -361,24 +361,30 @@ const vgdHandler = async (req, res) => {
 
         const result = await otakudesu.vgd.shorten(longUrl);
         
-        if (result.status === 'ok') {
-            return res.status(201).json({
-                status: "Ok",
-                Creator: "RioRuo",
-                Message: "Don't spam the request motherfucker!",
-                originalUrl: longUrl,
-                shortUrl: result.shorturl,
-                type: 'random'
-            });
-        } else {
-             return res.status(400).json({
-                status: "Error",
-                message: 'Gagal memperpendek URL.',
-                details: result.error || 'Kesalahan tidak diketahui dari provider.',
-            });
-        }
+        return res.status(201).json({
+            status: "Ok",
+            Creator: "RioRuo",
+            Message: "Don't spam the request motherfucker!",
+            originalUrl: longUrl,
+            shortUrl: result.shorturl,
+            type: 'random'
+        });
     } catch (e) {
-        return res.status(500).json({ status: "Error", message: e.message });
+        // Handle specific v.gd errors
+        const msg = e.message.toLowerCase();
+        let status = 400; // Default bad request
+        
+        // If it seems like a conflict (not applicable for random, but good practice)
+        if (msg.includes('exists') || msg.includes('taken')) status = 409;
+        
+        // If it seems like a blocking issue
+        if (msg.includes('blocked') || msg.includes('limit')) status = 429;
+
+        return res.status(status).json({ 
+            status: "Error", 
+            message: 'Gagal memperpendek URL.', 
+            details: e.message 
+        });
     }
 };
 
@@ -398,25 +404,29 @@ const vgdCustomHandler = async (req, res) => {
 
         const result = await otakudesu.vgd.shortenCustom(longUrl, customAlias);
 
-        if (result.status === 'ok') {
-            return res.status(201).json({
-                status: "Ok",
-                Creator: "RioRuo",
-                Message: "Don't spam the request motherfucker!",
-                originalUrl: longUrl,
-                shortUrl: result.shorturl,
-                type: 'custom'
-            });
-        } else {
-            return res.status(409).json({
-                status: "Error",
-                message: 'Gagal membuat URL kustom.',
-                details: result.error || 'Kesalahan tidak diketahui dari provider.',
-                suggestion: 'Coba gunakan alias yang lain.'
-            });
-        }
+        return res.status(201).json({
+            status: "Ok",
+            Creator: "RioRuo",
+            Message: "Don't spam the request motherfucker!",
+            originalUrl: longUrl,
+            shortUrl: result.shorturl,
+            type: 'custom'
+        });
     } catch (e) {
-        return res.status(500).json({ status: "Error", message: e.message });
+        const msg = e.message.toLowerCase();
+        let status = 400;
+
+        // Strictly check for conflict messages. Removed simple 'use' check to avoid false positives.
+        if (msg.includes('already in use') || msg.includes('already exists') || msg.includes('is taken')) {
+            status = 409;
+        }
+
+        return res.status(status).json({
+            status: "Error",
+            message: 'Gagal membuat URL kustom.',
+            details: e.message,
+            suggestion: status === 409 ? 'Coba gunakan alias yang lain.' : undefined
+        });
     }
 };
 

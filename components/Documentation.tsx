@@ -180,24 +180,24 @@ const documentationData = [
     icon: <Quote size={16} />,
     endpoints: [
         {
-            path: '/v1/quote/quotes',
+            path: '/v1/quotes/:page?',
             method: 'GET',
             description: 'Mengambil daftar quote populer dari Goodreads dengan paginasi.',
             parameters: [
-                { name: '?page', type: 'number', required: false, description: 'Nomor halaman. Default ke 1.' }
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default ke 1.' }
             ],
-            example: '/quote/quotes?page=1',
+            example: '/quotes/1',
             response: 'Objek JSON berisi array `quotes`.'
         },
         {
-            path: '/v1/quote/quotes/tag/:tag',
+            path: '/v1/quotes/tag/:tag/:page?',
             method: 'GET',
             description: 'Mengambil daftar quote berdasarkan tag tertentu dari Goodreads.',
             parameters: [
                 { name: ':tag', type: 'string', required: true, description: 'Tag quote (misal: "love", "life").' },
-                { name: '?page', type: 'number', required: false, description: 'Nomor halaman. Default ke 1.' }
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default ke 1.' }
             ],
-            example: '/quote/quotes/tag/love?page=1',
+            example: '/quotes/tag/love/1',
             response: 'Objek JSON berisi array `quotes`.'
         }
     ]

@@ -172,8 +172,8 @@ export enum ApiEndpoint {
   WEATHER_QUICK = '/v1/weather/quick/:location',
   WEATHER_PNG = '/v1/weather/png/:location',
   // Quote Endpoints
-  QUOTES = '/v1/quote/quotes',
-  QUOTES_BY_TAG = '/v1/quote/quotes/tag/:tag',
+  QUOTES = '/v1/quotes/:page?',
+  QUOTES_BY_TAG = '/v1/quotes/tag/:tag/:page?',
   // Komiku Endpoints
   KOMIKU_PAGE = '/v1/manga/page/:page?',
   KOMIKU_POPULAR = '/v1/manga/popular/:page?',

@@ -93,8 +93,8 @@ export const apiService = {
   getWeatherQuick: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER_QUICK.replace(':location', location), { lang }),
   getWeatherPng: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_PNG.replace(':location', location)),
   // Quotes Services
-  getQuotes: (page = 1) => fetchFromApi(ApiEndpoint.QUOTES, { page: page.toString() }),
-  getQuotesByTag: (tag: string, page = 1) => fetchFromApi(ApiEndpoint.QUOTES_BY_TAG.replace(':tag', tag), { page: page.toString() }),
+  getQuotes: (page = 1) => fetchFromApi(ApiEndpoint.QUOTES.replace(':page?', page.toString())),
+  getQuotesByTag: (tag: string, page = 1) => fetchFromApi(ApiEndpoint.QUOTES_BY_TAG.replace(':tag', tag).replace(':page?', page.toString())),
   // Komiku Services
   getKomikuPage: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_PAGE.replace(':page?', page.toString())),
   getKomikuPopular: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_POPULAR.replace(':page?', page.toString())),

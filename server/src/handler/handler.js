@@ -306,8 +306,10 @@ const weatherPngHandler = async (req, res) => {
 
 const quotesHandler = async (req, res) => {
     try {
-        const page = req.query.page || 1;
-        const data = await otakudesu.quotes.getQuotes(page);
+        // Changed to use req.params for pagination
+        const { page } = req.params;
+        const pageNumber = page ? parseInt(page) : 1;
+        const data = await otakudesu.quotes.getQuotes(pageNumber);
         return res.status(200).json(data);
     } catch (e) {
         return handleError(res, e);
@@ -316,9 +318,10 @@ const quotesHandler = async (req, res) => {
 
 const quotesByTagHandler = async (req, res) => {
     try {
-        const { tag } = req.params;
-        const page = req.query.page || 1;
-        const data = await otakudesu.quotes.getQuotesByTag(tag, page);
+        // Changed to use req.params for pagination
+        const { tag, page } = req.params;
+        const pageNumber = page ? parseInt(page) : 1;
+        const data = await otakudesu.quotes.getQuotesByTag(tag, pageNumber);
         return res.status(200).json(data);
     } catch (e) {
         return handleError(res, e);

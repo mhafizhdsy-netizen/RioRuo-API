@@ -82,5 +82,16 @@ export const apiService = {
   getWeather: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER.replace(':location', location), { lang }),
   getWeatherAscii: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER_ASCII.replace(':location', location), { lang }), 
   getWeatherQuick: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER_QUICK.replace(':location', location), { lang }),
-  getWeatherPng: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_PNG.replace(':location', location)), // Image usually doesn't take lang param in this context
+  getWeatherPng: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_PNG.replace(':location', location)),
+  // Komiku Services
+  getKomikuPage: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_PAGE.replace(':page?', page.toString())),
+  getKomikuPopular: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_POPULAR.replace(':page?', page.toString())),
+  getKomikuDetail: (endpoint: string) => fetchFromApi(ApiEndpoint.KOMIKU_DETAIL.replace(':endpoint', endpoint)),
+  getKomikuSearch: (query: string) => fetchFromApi(ApiEndpoint.KOMIKU_SEARCH.replace(':query', query)),
+  getKomikuGenres: () => fetchFromApi(ApiEndpoint.KOMIKU_GENRES),
+  getKomikuGenreDetail: (endpoint: string) => fetchFromApi(ApiEndpoint.KOMIKU_GENRE_DETAIL.replace(':endpoint', endpoint)),
+  getKomikuRecommended: () => fetchFromApi(ApiEndpoint.KOMIKU_RECOMMENDED),
+  getKomikuManhua: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_MANHUA.replace(':page?', page.toString())),
+  getKomikuManhwa: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_MANHWA.replace(':page?', page.toString())),
+  getKomikuChapter: (title: string) => fetchFromApi(ApiEndpoint.KOMIKU_CHAPTER.replace(':title', title)),
 };

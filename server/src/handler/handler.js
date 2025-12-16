@@ -1,5 +1,6 @@
 
 import otakudesu from '../otakudesu.js';
+import komiku from '../utils/komiku.js';
 
 const handleError = (res, e) => {
   console.log(e);
@@ -301,6 +302,106 @@ const weatherPngHandler = async (req, res) => {
     }
 };
 
+// --- Komiku Handlers ---
+
+const komikuMangaPageHandler = async (req, res) => {
+    try {
+        const { page } = req.params;
+        const data = await komiku.getMangaPage(page);
+        return res.status(200).json({ status: true, message: "success", manga_list: data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuPopularHandler = async (req, res) => {
+    try {
+        const { page } = req.params;
+        const data = await komiku.getPopularManga(page);
+        return res.status(200).json({ status: true, message: "success", manga_list: data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuDetailHandler = async (req, res) => {
+    try {
+        const { endpoint } = req.params;
+        const data = await komiku.getMangaDetail(endpoint);
+        return res.status(200).json(data);
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuSearchHandler = async (req, res) => {
+    try {
+        const { query } = req.params;
+        const data = await komiku.searchManga(query);
+        return res.status(200).json({ status: true, message: "success", manga_list: data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuGenreListHandler = async (req, res) => {
+    try {
+        const data = await komiku.getGenres();
+        return res.status(200).json({ status: true, message: "success", list_genre: data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuGenreDetailHandler = async (req, res) => {
+    try {
+        const { endpoint, page } = req.params;
+        const data = await komiku.getAnimeByGenre(endpoint, page);
+        return res.status(200).json({ status: true, message: "success", manga_list: data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuRecommendedHandler = async (req, res) => {
+    try {
+        const data = await komiku.getRecommended();
+        return res.status(200).json({ status: true, message: "success", manga_list: data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuManhuaHandler = async (req, res) => {
+    try {
+        const { page } = req.params;
+        const data = await komiku.getManhuaManhwa(page, 'manhua');
+        return res.status(200).json({ status: true, message: "success", manga_list: data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuManhwaHandler = async (req, res) => {
+    try {
+        const { page } = req.params;
+        const data = await komiku.getManhuaManhwa(page, 'manhwa');
+        return res.status(200).json({ status: true, message: "success", manga_list: data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const komikuChapterHandler = async (req, res) => {
+    try {
+        const { title } = req.params;
+        const data = await komiku.getChapter(title);
+        return res.status(200).json(data);
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 export default {
   searchAnimeHandler,
   homeHandler,
@@ -321,5 +422,16 @@ export default {
   weatherHandler,
   weatherAsciiHandler,
   weatherQuickHandler,
-  weatherPngHandler
+  weatherPngHandler,
+  // Komiku
+  komikuMangaPageHandler,
+  komikuPopularHandler,
+  komikuDetailHandler,
+  komikuSearchHandler,
+  komikuGenreListHandler,
+  komikuGenreDetailHandler,
+  komikuRecommendedHandler,
+  komikuManhuaHandler,
+  komikuManhwaHandler,
+  komikuChapterHandler
 };

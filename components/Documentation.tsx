@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
-  Layout, List, Search, Film, Grid, CalendarDays, Cloud, ArrowLeft, ChevronDown
+  Layout, List, Search, Film, Grid, CalendarDays, Cloud, ArrowLeft, ChevronDown, Book
 } from 'lucide-react';
 
 const documentationData = [
@@ -175,6 +175,109 @@ const documentationData = [
     ]
   },
   {
+    id: 'komiku',
+    name: 'Komiku',
+    icon: <Book size={16} />,
+    endpoints: [
+        {
+            path: '/v1/manga/page/:page?',
+            method: 'GET',
+            description: 'Mengambil daftar manga terbaru dengan paginasi dari Komiku.',
+            parameters: [
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default: 1.' }
+            ],
+            example: '/manga/page/1',
+            response: 'Objek JSON berisi array `manga_list`.'
+        },
+        {
+            path: '/v1/manga/popular/:page?',
+            method: 'GET',
+            description: 'Mengambil daftar manga populer/rekomendasi.',
+            parameters: [
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default: 1.' }
+            ],
+            example: '/manga/popular/1',
+            response: 'Objek JSON berisi array `manga_list` dengan detail rekomendasi.'
+        },
+        {
+            path: '/v1/manga/detail/:endpoint',
+            method: 'GET',
+            description: 'Mengambil detail lengkap manga, termasuk sinopsis dan daftar chapter.',
+            parameters: [
+                { name: ':endpoint', type: 'string', required: true, description: 'Slug atau endpoint manga.' }
+            ],
+            example: '/manga/detail/one-piece',
+            response: 'Objek JSON detail manga.'
+        },
+        {
+            path: '/v1/manga/search/:query',
+            method: 'GET',
+            description: 'Mencari manga berdasarkan query.',
+            parameters: [
+                { name: ':query', type: 'string', required: true, description: 'Kata kunci pencarian.' }
+            ],
+            example: '/manga/search/naruto',
+            response: 'Objek JSON berisi hasil pencarian.'
+        },
+        {
+            path: '/v1/manga/genre',
+            method: 'GET',
+            description: 'Mengambil daftar genre manga yang tersedia.',
+            parameters: [],
+            example: '/manga/genre',
+            response: 'Objek JSON berisi list genre.'
+        },
+        {
+            path: '/v1/manga/genre/:endpoint',
+            method: 'GET',
+            description: 'Mengambil daftar manga berdasarkan genre.',
+            parameters: [
+                { name: ':endpoint', type: 'string', required: true, description: 'Slug genre.' }
+            ],
+            example: '/manga/genre/action',
+            response: 'Objek JSON daftar manga dalam genre tersebut.'
+        },
+        {
+            path: '/v1/manga/recommended',
+            method: 'GET',
+            description: 'Mengambil manga yang sedang hot/direkomendasikan.',
+            parameters: [],
+            example: '/manga/recommended',
+            response: 'Objek JSON daftar manga hot.'
+        },
+        {
+            path: '/v1/manhua/:page?',
+            method: 'GET',
+            description: 'Mengambil daftar Manhua (komik China).',
+            parameters: [
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman.' }
+            ],
+            example: '/manhua/1',
+            response: 'Objek JSON daftar manhua.'
+        },
+        {
+            path: '/v1/manhwa/:page?',
+            method: 'GET',
+            description: 'Mengambil daftar Manhwa (komik Korea).',
+            parameters: [
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman.' }
+            ],
+            example: '/manhwa/1',
+            response: 'Objek JSON daftar manhwa.'
+        },
+        {
+            path: '/v1/chapter/:title',
+            method: 'GET',
+            description: 'Mengambil gambar-gambar dari chapter tertentu.',
+            parameters: [
+                { name: ':title', type: 'string', required: true, description: 'Slug chapter.' }
+            ],
+            example: '/chapter/one-piece-chapter-1100',
+            response: 'Objek JSON berisi array link gambar chapter.'
+        }
+    ]
+  },
+  {
     id: 'weather',
     name: 'Weather',
     icon: <Cloud size={16} />,
@@ -282,10 +385,12 @@ export function Documentation() {
   const [activeSection, setActiveSection] = useState(documentationData[0].id);
   const [isOtakudesuExpanded, setOtakudesuExpanded] = useState(true);
   const [isWeatherExpanded, setWeatherExpanded] = useState(false);
+  const [isKomikuExpanded, setKomikuExpanded] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  const otakudesuDocs = documentationData.filter(sect => sect.id !== 'weather');
+  const otakudesuDocs = documentationData.filter(sect => sect.id !== 'weather' && sect.id !== 'komiku');
   const weatherDocs = documentationData.filter(sect => sect.id === 'weather');
+  const komikuDocs = documentationData.filter(sect => sect.id === 'komiku');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -339,7 +444,6 @@ export function Documentation() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Visual indicator bar for active state */}
                     <div className={`w-1 h-4 rounded-full transition-colors ${isOtakudesuExpanded ? 'bg-primary' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
                     <span>Otakudesu</span>
                   </div>
@@ -371,7 +475,49 @@ export function Documentation() {
                 </div>
             </div>
 
-            {/* Weather Group Wrapper - Separated */}
+            {/* Komiku Group Wrapper */}
+            <div className="space-y-1 mb-4">
+                <button 
+                  onClick={() => setKomikuExpanded(!isKomikuExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isKomikuExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isKomikuExpanded ? 'bg-warning' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Komiku</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isKomikuExpanded ? 'rotate-180 text-warning' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isKomikuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
+                    {komikuDocs.map(section => (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
+                          activeSection === section.id
+                            ? 'bg-warning/10 text-warning border border-warning/20'
+                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                        }`}
+                      >
+                        <div className={`transition-colors ${activeSection === section.id ? 'text-warning' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                           {section.icon}
+                        </div>
+                        <span>{section.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+            </div>
+
+            {/* Weather Group Wrapper */}
             <div className="space-y-1">
                 <button 
                   onClick={() => setWeatherExpanded(!isWeatherExpanded)}
@@ -382,7 +528,6 @@ export function Documentation() {
                   }`}
                 >
                   <div className="flex items-center gap-3">
-                    {/* Visual indicator bar for active state */}
                     <div className={`w-1 h-4 rounded-full transition-colors ${isWeatherExpanded ? 'bg-info' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
                     <span>Weather</span>
                   </div>

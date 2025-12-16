@@ -9,7 +9,8 @@ import {
   Settings, Command, Layout, 
   List, Grid, Film, ChevronDown, Check,
   Heart, Globe, CalendarDays, Cloud,
-  BookOpen, SlidersHorizontal, Menu, X, Copy
+  BookOpen, SlidersHorizontal, Menu, X, Copy,
+  Book
 } from 'lucide-react';
 
 // Toast component
@@ -48,6 +49,7 @@ export function App() {
   const [isSidebarOpen, setSidebarOpen] = useState(false);
   const [isOtakudesuExpanded, setOtakudesuExpanded] = useState(true);
   const [isWeatherExpanded, setWeatherExpanded] = useState(false);
+  const [isKomikuExpanded, setKomikuExpanded] = useState(false);
 
   // Request Params
   const [keyword, setKeyword] = useState('jujutsu kaisen');
@@ -57,11 +59,13 @@ export function App() {
   const [genreSlug, setGenreSlug] = useState('action');
   const [episodeNumber, setEpisodeNumber] = useState('1');
   const [page, setPage] = useState('1');
-  const [movieYear, setMovieYear] = useState('2024');
-  const [movieMonth, setMovieMonth] = useState('01');
-  const [movieTitleSlug, setMovieTitleSlug] = useState('dandadan');
   const [weatherLocation, setWeatherLocation] = useState('Jakarta');
   const [weatherLang, setWeatherLang] = useState('id');
+  
+  // Komiku Specific Params
+  const [mangaEndpoint, setMangaEndpoint] = useState('one-piece');
+  const [mangaQuery, setMangaQuery] = useState('naruto');
+  const [chapterTitle, setChapterTitle] = useState('one-piece-chapter-1100');
 
   // Response State
   const [loading, setLoading] = useState(false);
@@ -109,6 +113,7 @@ export function App() {
 
     try {
       let res;
+      // Otakudesu
       if (selectedEndpoint === ApiEndpoint.HOME) res = await apiService.getHome();
       else if (selectedEndpoint === ApiEndpoint.SEARCH) res = await apiService.getSearch(keyword);
       else if (selectedEndpoint === ApiEndpoint.ONGOING) res = await apiService.getOngoing(parseInt(page));
@@ -121,14 +126,24 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.GENRE_DETAIL) res = await apiService.getGenreDetail(genreSlug, parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.BATCH_DETAIL) res = await apiService.getBatchDetail(batchSlug);
       else if (selectedEndpoint === ApiEndpoint.BATCH_BY_ANIME_SLUG) res = await apiService.getBatchByAnimeSlug(animeSlug);
-      else if (selectedEndpoint === ApiEndpoint.MOVIES) res = await apiService.getMovies(parseInt(page));
-      else if (selectedEndpoint === ApiEndpoint.SINGLE_MOVIE) res = await apiService.getSingleMovie(movieYear, movieMonth, movieTitleSlug);
       else if (selectedEndpoint === ApiEndpoint.JADWAL_RILIS) res = await apiService.getJadwalRilis();
       // Weather Endpoints
       else if (selectedEndpoint === ApiEndpoint.WEATHER) res = await apiService.getWeather(weatherLocation, weatherLang);
       else if (selectedEndpoint === ApiEndpoint.WEATHER_ASCII) res = await apiService.getWeatherAscii(weatherLocation, weatherLang);
       else if (selectedEndpoint === ApiEndpoint.WEATHER_QUICK) res = await apiService.getWeatherQuick(weatherLocation, weatherLang);
       else if (selectedEndpoint === ApiEndpoint.WEATHER_PNG) res = await apiService.getWeatherPng(weatherLocation);
+      // Komiku Endpoints
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_PAGE) res = await apiService.getKomikuPage(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_POPULAR) res = await apiService.getKomikuPopular(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_DETAIL) res = await apiService.getKomikuDetail(mangaEndpoint);
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_SEARCH) res = await apiService.getKomikuSearch(mangaQuery);
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_GENRES) res = await apiService.getKomikuGenres();
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_GENRE_DETAIL) res = await apiService.getKomikuGenreDetail(mangaEndpoint);
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_RECOMMENDED) res = await apiService.getKomikuRecommended();
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_MANHUA) res = await apiService.getKomikuManhua(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_MANHWA) res = await apiService.getKomikuManhwa(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.KOMIKU_CHAPTER) res = await apiService.getKomikuChapter(chapterTitle);
+      
       else res = await apiService.getHome();
 
       const endTime = performance.now();
@@ -149,12 +164,13 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, movieYear, movieMonth, movieTitleSlug, weatherLocation, weatherLang]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle]);
 
   // Input rendering logic
   const renderInputs = useCallback(() => {
     const inputs = [];
     
+    // Otakudesu Inputs
     if (selectedEndpoint === ApiEndpoint.SEARCH) {
       inputs.push(
         <div key="keyword" className="flex flex-col gap-2">
@@ -212,28 +228,7 @@ export function App() {
       );
     }
 
-    if (selectedEndpoint === ApiEndpoint.SINGLE_MOVIE) {
-      inputs.push(
-        <div key="movieYear" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Movie Year</label>
-          <input type="text" value={movieYear} onChange={(e) => setMovieYear(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. 2024" />
-        </div>
-      );
-      inputs.push(
-        <div key="movieMonth" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Movie Month</label>
-          <input type="text" value={movieMonth} onChange={(e) => setMovieMonth(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. 01" />
-        </div>
-      );
-      inputs.push(
-        <div key="movieTitleSlug" className="flex flex-col gap-2">
-          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Movie Title Slug</label>
-          <input type="text" value={movieTitleSlug} onChange={(e) => setMovieTitleSlug(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. dandadan" />
-        </div>
-      );
-    }
-
-    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.MOVIES].includes(selectedEndpoint as ApiEndpoint)) {
+    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.KOMIKU_MANHUA, ApiEndpoint.KOMIKU_MANHWA].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="pg" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Page</label>
@@ -260,8 +255,36 @@ export function App() {
       );
     }
 
+    // Komiku Inputs
+    if ([ApiEndpoint.KOMIKU_DETAIL, ApiEndpoint.KOMIKU_GENRE_DETAIL].includes(selectedEndpoint as ApiEndpoint)) {
+        inputs.push(
+            <div key="mangaEndpoint" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Manga Endpoint/Slug</label>
+              <input type="text" value={mangaEndpoint} onChange={(e) => setMangaEndpoint(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. one-piece" />
+            </div>
+        );
+    }
+
+    if (selectedEndpoint === ApiEndpoint.KOMIKU_SEARCH) {
+        inputs.push(
+            <div key="mangaQuery" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Manga Query</label>
+              <input type="text" value={mangaQuery} onChange={(e) => setMangaQuery(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. naruto" />
+            </div>
+        );
+    }
+
+    if (selectedEndpoint === ApiEndpoint.KOMIKU_CHAPTER) {
+        inputs.push(
+            <div key="chapterTitle" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Chapter Title/Slug</label>
+              <input type="text" value={chapterTitle} onChange={(e) => setChapterTitle(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. one-piece-chapter-1100" />
+            </div>
+        );
+    }
+
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, movieYear, movieMonth, movieTitleSlug, weatherLocation, weatherLang]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },
@@ -269,12 +292,17 @@ export function App() {
     { id: 'search', name: "Search", icon: <Search size={14} />, items: [ApiEndpoint.SEARCH] },
     { id: 'details', name: "Details", icon: <Film size={14} />, items: [ApiEndpoint.ANIME_DETAIL, ApiEndpoint.ANIME_EPISODES, ApiEndpoint.EPISODE_BY_NUMBER, ApiEndpoint.EPISODE_DETAIL, ApiEndpoint.BATCH_DETAIL, ApiEndpoint.BATCH_BY_ANIME_SLUG] },
     { id: 'metadata', name: "Metadata", icon: <Grid size={14} />, items: [ApiEndpoint.GENRES, ApiEndpoint.GENRE_DETAIL] },
-    { id: 'movies', name: "Movies", icon: <Film size={14} />, items: [ApiEndpoint.MOVIES, ApiEndpoint.SINGLE_MOVIE] }, 
     { id: 'schedule', name: "Schedule", icon: <CalendarDays size={14} />, items: [ApiEndpoint.JADWAL_RILIS]}, 
   ];
 
   const weatherCategories = [
     { id: 'weather', name: "Weather Data", icon: <Cloud size={14} />, items: [ApiEndpoint.WEATHER, ApiEndpoint.WEATHER_ASCII, ApiEndpoint.WEATHER_QUICK, ApiEndpoint.WEATHER_PNG] }, 
+  ];
+
+  const komikuCategories = [
+    { id: 'manga', name: "Manga Lists", icon: <Book size={14} />, items: [ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.KOMIKU_RECOMMENDED, ApiEndpoint.KOMIKU_MANHUA, ApiEndpoint.KOMIKU_MANHWA] },
+    { id: 'manga-details', name: "Manga Details", icon: <List size={14} />, items: [ApiEndpoint.KOMIKU_DETAIL, ApiEndpoint.KOMIKU_CHAPTER] },
+    { id: 'manga-search', name: "Search & Genre", icon: <Search size={14} />, items: [ApiEndpoint.KOMIKU_SEARCH, ApiEndpoint.KOMIKU_GENRES, ApiEndpoint.KOMIKU_GENRE_DETAIL] },
   ];
 
   const displayBaseUrl = 'https://rioruo.vercel.app';
@@ -391,7 +419,70 @@ export function App() {
                 </div>
               </div>
 
-              {/* Weather Item - SEPARATED */}
+              {/* Komiku Item - NEW */}
+              <div className="space-y-1 mb-4">
+                <button 
+                  onClick={() => setKomikuExpanded(!isKomikuExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isKomikuExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isKomikuExpanded ? 'bg-warning' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Komiku</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isKomikuExpanded ? 'rotate-180 text-warning' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out ${isKomikuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden">
+                    <div className="pt-2 pb-2 pl-4 space-y-6 relative">
+                      <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
+
+                      {komikuCategories.map((cat) => (
+                        <div key={cat.id} className="relative">
+                          <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+                             <div className="text-zinc-500">{cat.icon}</div>
+                             <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
+                          </div>
+                          
+                          <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
+                            {cat.items.map((endpoint) => {
+                              const isSelected = selectedEndpoint === endpoint;
+                              return (
+                                <button
+                                  key={endpoint}
+                                  onClick={() => {
+                                    setSelectedEndpoint(endpoint);
+                                    setSidebarOpen(false);
+                                  }}
+                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
+                                    isSelected
+                                      ? 'bg-warning/10 text-warning border border-warning/20 shadow-sm'
+                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                                  )}
+                                  <span className="truncate">{endpoint}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Weather Item */}
               <div className="space-y-1">
                 <button 
                   onClick={() => setWeatherExpanded(!isWeatherExpanded)}
@@ -504,7 +595,7 @@ export function App() {
                     <Command size={20} className="text-primary" />
                     <h2 className="text-xl font-bold text-white">Request Controller</h2>
                   </div>
-                  <a href="https://rioruo.vercel.app/v1" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full hover:border-zinc-600 transition-colors">
+                  <a href="https://rioruo.vercel.app/v1/health" target="_blank" rel="noopener noreferrer" className="flex items-center gap-2 text-xs font-mono bg-surfaceLight border border-border px-3 py-1.5 rounded-full hover:border-zinc-600 transition-colors">
                     <div className={`w-2 h-2 rounded-full ${apiStatus === 'online' ? 'bg-primary' : apiStatus === 'offline' ? 'bg-error' : 'bg-warning'} ${(apiStatus === 'checking' || apiStatus === 'offline') ? 'animate-pulse' : ''}`}></div>
                     <span className="text-zinc-400">{apiStatus === 'online' ? 'API Status' : apiStatus === 'offline' ? 'API Offline' : 'Checking API...'}</span>
                   </a>

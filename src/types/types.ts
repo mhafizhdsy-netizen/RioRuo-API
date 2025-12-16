@@ -165,6 +165,17 @@ export enum ApiEndpoint {
   WEATHER_ASCII = '/v1/weather/ascii/:location',
   WEATHER_QUICK = '/v1/weather/quick/:location',
   WEATHER_PNG = '/v1/weather/png/:location',
+  // Komiku Endpoints
+  KOMIKU_PAGE = '/v1/manga/page/:page?',
+  KOMIKU_POPULAR = '/v1/manga/popular/:page?',
+  KOMIKU_DETAIL = '/v1/manga/detail/:endpoint',
+  KOMIKU_SEARCH = '/v1/manga/search/:query',
+  KOMIKU_GENRES = '/v1/manga/genre',
+  KOMIKU_GENRE_DETAIL = '/v1/manga/genre/:endpoint', // Maps to backend /manga/genre/:endpoint/:page? logic handling if needed
+  KOMIKU_RECOMMENDED = '/v1/manga/recommended',
+  KOMIKU_MANHUA = '/v1/manhua/:page?',
+  KOMIKU_MANHWA = '/v1/manhwa/:page?',
+  KOMIKU_CHAPTER = '/v1/chapter/:title'
 }
 
 export {

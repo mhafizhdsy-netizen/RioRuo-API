@@ -3,7 +3,7 @@ import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
 import apicache from 'apicache';
-import handler from '../src/handler/handler.js'; // Corrected path to handler
+import handler from '../handler/handler.js'; 
 
 const api = Router();
 const cache = apicache.middleware;
@@ -98,9 +98,12 @@ api.get('/quote/quotes*', (req, res) => {
     res.redirect(301, newUrl);
 });
 
-// Specific routes (like /tag/...) must be defined BEFORE generic routes (/:page?) to avoid conflict.
-api.get('/quotes/tag/:tag/:page?', cache(CACHE_SHORT), handler.quotesByTagHandler);
-api.get('/quotes/:page?', cache(CACHE_SHORT), handler.quotesHandler);
+// Specific routes must be defined explicitly to prevent matching errors with optional parameters
+api.get('/quotes/tag/:tag', cache(CACHE_SHORT), handler.quotesByTagHandler);
+api.get('/quotes/tag/:tag/:page', cache(CACHE_SHORT), handler.quotesByTagHandler);
+
+api.get('/quotes', cache(CACHE_SHORT), handler.quotesHandler);
+api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
 
 // Komiku Routes
 api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);

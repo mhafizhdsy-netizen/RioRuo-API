@@ -91,6 +91,20 @@ api.get('/weather/ascii/:location', cache(CACHE_SHORT), handler.weatherAsciiHand
 api.get('/weather/quick/:location', cache(CACHE_SHORT), handler.weatherQuickHandler);
 api.get('/weather/png/:location', cache(CACHE_SHORT), handler.weatherPngHandler);
 
+// Quotes Routes
+// Redirect /quote/quotes to /quotes for backward compatibility and to fix 404s for cached clients
+api.get('/quote/quotes*', (req, res) => {
+    const newUrl = req.originalUrl.replace('/quote/quotes', '/v1/quotes');
+    res.redirect(301, newUrl);
+});
+
+// Specific routes must be defined explicitly to prevent matching errors with optional parameters
+api.get('/quotes/tag/:tag', cache(CACHE_SHORT), handler.quotesByTagHandler);
+api.get('/quotes/tag/:tag/:page', cache(CACHE_SHORT), handler.quotesByTagHandler);
+
+api.get('/quotes', cache(CACHE_SHORT), handler.quotesHandler);
+api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
+
 // Komiku Routes
 api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);
 api.get('/manga/popular/:page?', cache(CACHE_MEDIUM), handler.komikuPopularHandler);

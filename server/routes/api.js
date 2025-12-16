@@ -3,7 +3,7 @@ import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
 import apicache from 'apicache';
-import handler from '../src/handler/handler.js'; // Corrected path to handler
+import handler from '../src/handler/handler.js'; 
 
 const api = Router();
 const cache = apicache.middleware;
@@ -90,5 +90,17 @@ api.get('/weather/:location', cache(CACHE_SHORT), handler.weatherHandler);
 api.get('/weather/ascii/:location', cache(CACHE_SHORT), handler.weatherAsciiHandler);
 api.get('/weather/quick/:location', cache(CACHE_SHORT), handler.weatherQuickHandler);
 api.get('/weather/png/:location', cache(CACHE_SHORT), handler.weatherPngHandler);
+
+// Komiku Routes
+api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);
+api.get('/manga/popular/:page?', cache(CACHE_MEDIUM), handler.komikuPopularHandler);
+api.get('/manga/detail/:endpoint', cache(CACHE_LONG), handler.komikuDetailHandler);
+api.get('/manga/search/:query', cache(CACHE_SHORT), handler.komikuSearchHandler);
+api.get('/manga/genre', cache(CACHE_LONG), handler.komikuGenreListHandler);
+api.get('/manga/genre/:endpoint/:page?', cache(CACHE_MEDIUM), handler.komikuGenreDetailHandler);
+api.get('/manga/recommended', cache(CACHE_MEDIUM), handler.komikuRecommendedHandler);
+api.get('/manhua/:page?', cache(CACHE_SHORT), handler.komikuManhuaHandler);
+api.get('/manhwa/:page?', cache(CACHE_SHORT), handler.komikuManhwaHandler);
+api.get('/chapter/:title', cache(CACHE_LONG), handler.komikuChapterHandler);
 
 export default api;

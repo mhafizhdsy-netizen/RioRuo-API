@@ -67,6 +67,16 @@ api.get('/', (_, res) => {
     });
 });
 
+// --- VGD Shortener Routes ---
+// Placed early to avoid conflict with wildcard routes like /:slug
+// GET fallback to help users who try to browse to the link
+api.get('/vgd', (_, res) => res.status(405).json({ status: 'Error', message: 'Method Not Allowed. This endpoint requires POST with JSON body: { "longUrl": "..." }' }));
+// Actual POST handlers
+api.post('/vgd', handler.vgdHandler);
+api.post('/vgd/custom', handler.vgdCustomHandler);
+
+// --- Main Routes ---
+
 // Apply caching strategies
 api.get('/home', cache(CACHE_MEDIUM), handler.homeHandler);
 api.get('/search/:keyword', cache(CACHE_SHORT), handler.searchAnimeHandler);

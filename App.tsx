@@ -10,7 +10,7 @@ import {
   List, Grid, Film, ChevronDown, Check,
   Heart, Globe, CalendarDays, Cloud,
   BookOpen, SlidersHorizontal, Menu, X, Copy,
-  Book
+  Book, Quote
 } from 'lucide-react';
 
 // Toast component
@@ -50,6 +50,7 @@ export function App() {
   const [isOtakudesuExpanded, setOtakudesuExpanded] = useState(true);
   const [isWeatherExpanded, setWeatherExpanded] = useState(false);
   const [isKomikuExpanded, setKomikuExpanded] = useState(false);
+  const [isQuotesExpanded, setQuotesExpanded] = useState(false);
 
   // Request Params
   const [keyword, setKeyword] = useState('jujutsu kaisen');
@@ -61,6 +62,7 @@ export function App() {
   const [page, setPage] = useState('1');
   const [weatherLocation, setWeatherLocation] = useState('Jakarta');
   const [weatherLang, setWeatherLang] = useState('id');
+  const [quoteTag, setQuoteTag] = useState('love');
   
   // Komiku Specific Params
   const [mangaEndpoint, setMangaEndpoint] = useState('one-piece');
@@ -132,6 +134,9 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.WEATHER_ASCII) res = await apiService.getWeatherAscii(weatherLocation, weatherLang);
       else if (selectedEndpoint === ApiEndpoint.WEATHER_QUICK) res = await apiService.getWeatherQuick(weatherLocation, weatherLang);
       else if (selectedEndpoint === ApiEndpoint.WEATHER_PNG) res = await apiService.getWeatherPng(weatherLocation);
+      // Quotes Endpoints
+      else if (selectedEndpoint === ApiEndpoint.QUOTES) res = await apiService.getQuotes(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.QUOTES_BY_TAG) res = await apiService.getQuotesByTag(quoteTag, parseInt(page));
       // Komiku Endpoints
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_PAGE) res = await apiService.getKomikuPage(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_POPULAR) res = await apiService.getKomikuPopular(parseInt(page));
@@ -140,8 +145,6 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_GENRES) res = await apiService.getKomikuGenres();
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_GENRE_DETAIL) res = await apiService.getKomikuGenreDetail(mangaEndpoint);
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_RECOMMENDED) res = await apiService.getKomikuRecommended();
-      else if (selectedEndpoint === ApiEndpoint.KOMIKU_MANHUA) res = await apiService.getKomikuManhua(parseInt(page));
-      else if (selectedEndpoint === ApiEndpoint.KOMIKU_MANHWA) res = await apiService.getKomikuManhwa(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_CHAPTER) res = await apiService.getKomikuChapter(chapterTitle);
       
       else res = await apiService.getHome();
@@ -154,17 +157,47 @@ export function App() {
       setRequestMeta({ status, latency, timestamp });
     } catch (err: any) {
       const endTime = performance.now();
-      const errorStatus = err.message.includes('404') ? 404 : 503;
+      
+      let status = 500;
+      const lowerMsg = err.message ? err.message.toLowerCase() : "";
+      
+      if (lowerMsg.includes('404')) status = 404;
+      else if (lowerMsg.includes('429')) status = 429;
+      else if (lowerMsg.includes('503') || lowerMsg.includes('504') || lowerMsg.includes('timeout')) status = 503;
+      else if (lowerMsg.includes('network error') || lowerMsg.includes('failed to fetch')) status = 0;
+
+      let hint = err.hint;
+      
+      if (!hint) {
+          switch (status) {
+              case 404:
+                  hint = "Resource not found. Check your inputs (slug, page, etc) or the endpoint URL.";
+                  break;
+              case 429:
+                  hint = "Rate limit exceeded. You are sending too many requests. Please slow down.";
+                  break;
+              case 503:
+                  hint = "Upstream service unavailable or timed out. The target site might be slow or blocking requests.";
+                  break;
+              case 0:
+                  hint = "Network Error. Ensure the backend server is running on port 3000 and accessible.";
+                  break;
+              default:
+                  hint = "An unexpected error occurred. Check the server logs for more details.";
+                  if (lowerMsg.includes('json')) hint = "Failed to parse JSON response. The server might be returning HTML (error page).";
+          }
+      }
+
       setResponseData({ 
         status: "error", 
         message: err.message || "Network Failed or Backend Unreachable",
-        hint: "Make sure the backend server is running and accessible." 
+        hint: hint
       });
-      setRequestMeta({ status: errorStatus, latency: Math.round(endTime - startTime), timestamp });
+      setRequestMeta({ status, latency: Math.round(endTime - startTime), timestamp });
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag]);
 
   // Input rendering logic
   const renderInputs = useCallback(() => {
@@ -228,7 +261,7 @@ export function App() {
       );
     }
 
-    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.KOMIKU_MANHUA, ApiEndpoint.KOMIKU_MANHWA].includes(selectedEndpoint as ApiEndpoint)) {
+    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="pg" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Page</label>
@@ -253,6 +286,15 @@ export function App() {
           <input type="text" value={weatherLang} onChange={(e) => setWeatherLang(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. id, en, fr" />
         </div>
       );
+    }
+
+    if (selectedEndpoint === ApiEndpoint.QUOTES_BY_TAG) {
+        inputs.push(
+            <div key="quoteTag" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Tag</label>
+              <input type="text" value={quoteTag} onChange={(e) => setQuoteTag(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. love" />
+            </div>
+        );
     }
 
     // Komiku Inputs
@@ -284,7 +326,7 @@ export function App() {
     }
 
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },
@@ -299,8 +341,12 @@ export function App() {
     { id: 'weather', name: "Weather Data", icon: <Cloud size={14} />, items: [ApiEndpoint.WEATHER, ApiEndpoint.WEATHER_ASCII, ApiEndpoint.WEATHER_QUICK, ApiEndpoint.WEATHER_PNG] }, 
   ];
 
+  const quoteCategories = [
+    { id: 'quotes', name: "Goodreads Quotes", icon: <Quote size={14} />, items: [ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG] },
+  ];
+
   const komikuCategories = [
-    { id: 'manga', name: "Manga Lists", icon: <Book size={14} />, items: [ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.KOMIKU_RECOMMENDED, ApiEndpoint.KOMIKU_MANHUA, ApiEndpoint.KOMIKU_MANHWA] },
+    { id: 'manga', name: "Manga Lists", icon: <Book size={14} />, items: [ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.KOMIKU_RECOMMENDED] },
     { id: 'manga-details', name: "Manga Details", icon: <List size={14} />, items: [ApiEndpoint.KOMIKU_DETAIL, ApiEndpoint.KOMIKU_CHAPTER] },
     { id: 'manga-search', name: "Search & Genre", icon: <Search size={14} />, items: [ApiEndpoint.KOMIKU_SEARCH, ApiEndpoint.KOMIKU_GENRES, ApiEndpoint.KOMIKU_GENRE_DETAIL] },
   ];
@@ -419,7 +465,7 @@ export function App() {
                 </div>
               </div>
 
-              {/* Komiku Item - NEW */}
+              {/* Komiku Item */}
               <div className="space-y-1 mb-4">
                 <button 
                   onClick={() => setKomikuExpanded(!isKomikuExpanded)}
@@ -469,6 +515,69 @@ export function App() {
                                 >
                                   {isSelected && (
                                     <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
+                                  )}
+                                  <span className="truncate">{endpoint}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quotes Item */}
+              <div className="space-y-1 mb-4">
+                <button 
+                  onClick={() => setQuotesExpanded(!isQuotesExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isQuotesExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isQuotesExpanded ? 'bg-purple-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Quotes</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isQuotesExpanded ? 'rotate-180 text-purple-500' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out ${isQuotesExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden">
+                    <div className="pt-2 pb-2 pl-4 space-y-6 relative">
+                      <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
+
+                      {quoteCategories.map((cat) => (
+                        <div key={cat.id} className="relative">
+                          <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+                             <div className="text-zinc-500">{cat.icon}</div>
+                             <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
+                          </div>
+                          
+                          <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
+                            {cat.items.map((endpoint) => {
+                              const isSelected = selectedEndpoint === endpoint;
+                              return (
+                                <button
+                                  key={endpoint}
+                                  onClick={() => {
+                                    setSelectedEndpoint(endpoint);
+                                    setSidebarOpen(false);
+                                  }}
+                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
+                                    isSelected
+                                      ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20 shadow-sm'
+                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
                                   )}
                                   <span className="truncate">{endpoint}</span>
                                 </button>

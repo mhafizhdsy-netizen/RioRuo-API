@@ -26,37 +26,46 @@ async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>
       });
   }
 
-  const res = await fetch(url.toString());
-  
-  if (!res.ok) {
-      let errorMessage = `HTTP Error: ${res.status} ${res.statusText}`;
-      try {
-        const errorData = await res.json();
-        if (errorData.message) errorMessage = errorData.message;
-      } catch (e) { 
-        // ignore json parse error
+  try {
+      const res = await fetch(url.toString());
+      
+      if (!res.ok) {
+          let errorMessage = `HTTP Error: ${res.status} ${res.statusText}`;
+          let errorHint = undefined;
+          try {
+            const errorData = await res.json();
+            if (errorData.message) errorMessage = errorData.message;
+            if (errorData.hint) errorHint = errorData.hint;
+          } catch (e) { 
+            // ignore json parse error
+          }
+          const error = new Error(errorMessage);
+          (error as any).hint = errorHint;
+          throw error;
       }
-      throw new Error(errorMessage);
-  }
-  
-  // Handle Content-Types
-  const contentType = res.headers.get("content-type");
-  if (contentType && contentType.includes("application/json")) {
-      return await res.json();
-  } else if (contentType && contentType.includes("image")) {
-      // For images, we can't display blob in JSON console properly, so we return a descriptive object
-      return { 
-          status: 'OK', 
-          message: 'Binary Image Data Returned', 
-          type: contentType,
-          url: url.toString(),
-          hint: 'This endpoint returns a binary image file. In a real app, use <img src="..." />.'
-      } as any;
-  } else {
-      // Assume text (like for ASCII)
-      const text = await res.text();
-      // Wrap text in JSON so ConsoleOutput can display it nicely
-      return { data: text } as any;
+      
+      // Handle Content-Types
+      const contentType = res.headers.get("content-type");
+      if (contentType && contentType.includes("application/json")) {
+          return await res.json();
+      } else if (contentType && contentType.includes("image")) {
+          // For images, we can't display blob in JSON console properly, so we return a descriptive object
+          return { 
+              status: 'OK', 
+              message: 'Binary Image Data Returned', 
+              type: contentType,
+              url: url.toString(),
+              hint: 'This endpoint returns a binary image file. In a real app, use <img src="..." />.'
+          } as any;
+      } else {
+          // Assume text (like for ASCII)
+          const text = await res.text();
+          // Wrap text in JSON so ConsoleOutput can display it nicely
+          return { data: text } as any;
+      }
+  } catch (error: any) {
+      // Re-throw to be caught by App.tsx
+      throw error;
   }
 }
 
@@ -83,6 +92,9 @@ export const apiService = {
   getWeatherAscii: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER_ASCII.replace(':location', location), { lang }), 
   getWeatherQuick: (location: string, lang = 'en') => fetchFromApi(ApiEndpoint.WEATHER_QUICK.replace(':location', location), { lang }),
   getWeatherPng: (location: string) => fetchFromApi(ApiEndpoint.WEATHER_PNG.replace(':location', location)),
+  // Quotes Services
+  getQuotes: (page = 1) => fetchFromApi(ApiEndpoint.QUOTES, { page: page.toString() }),
+  getQuotesByTag: (tag: string, page = 1) => fetchFromApi(ApiEndpoint.QUOTES_BY_TAG.replace(':tag', tag), { page: page.toString() }),
   // Komiku Services
   getKomikuPage: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_PAGE.replace(':page?', page.toString())),
   getKomikuPopular: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_POPULAR.replace(':page?', page.toString())),

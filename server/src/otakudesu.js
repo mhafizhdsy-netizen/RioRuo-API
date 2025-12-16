@@ -13,7 +13,8 @@ import animeByGenre from './utils/animeByGenre.js';
 import movie from './utils/movie.js';
 import movies from './utils/movies.js';
 import jadwalRilis from './utils/jadwalRilis.js';
-import weather from './utils/weather.js'; // New import
+import weather from './utils/weather.js';
+import quotes from './utils/quotes.js'; // New import
 
 export default {
   home,
@@ -29,5 +30,6 @@ export default {
   movie,
   movies,
   jadwalRilis,
-  weather // Export new utility
+  weather,
+  quotes // Export new utility
 };

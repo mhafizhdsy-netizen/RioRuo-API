@@ -2,7 +2,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
-  Layout, List, Search, Film, Grid, CalendarDays, Cloud, ArrowLeft, ChevronDown, Book
+  Layout, List, Search, Film, Grid, CalendarDays, Cloud, ArrowLeft, ChevronDown, Book, Quote
 } from 'lucide-react';
 
 const documentationData = [
@@ -175,6 +175,34 @@ const documentationData = [
     ]
   },
   {
+    id: 'quotes',
+    name: 'Goodreads Quotes',
+    icon: <Quote size={16} />,
+    endpoints: [
+        {
+            path: '/v1/quote/quotes',
+            method: 'GET',
+            description: 'Mengambil daftar quote populer dari Goodreads dengan paginasi.',
+            parameters: [
+                { name: '?page', type: 'number', required: false, description: 'Nomor halaman. Default ke 1.' }
+            ],
+            example: '/quote/quotes?page=1',
+            response: 'Objek JSON berisi array `quotes`.'
+        },
+        {
+            path: '/v1/quote/quotes/tag/:tag',
+            method: 'GET',
+            description: 'Mengambil daftar quote berdasarkan tag tertentu dari Goodreads.',
+            parameters: [
+                { name: ':tag', type: 'string', required: true, description: 'Tag quote (misal: "love", "life").' },
+                { name: '?page', type: 'number', required: false, description: 'Nomor halaman. Default ke 1.' }
+            ],
+            example: '/quote/quotes/tag/love?page=1',
+            response: 'Objek JSON berisi array `quotes`.'
+        }
+    ]
+  },
+  {
     id: 'komiku',
     name: 'Komiku',
     icon: <Book size={16} />,
@@ -244,26 +272,6 @@ const documentationData = [
             parameters: [],
             example: '/manga/recommended',
             response: 'Objek JSON daftar manga hot.'
-        },
-        {
-            path: '/v1/manhua/:page?',
-            method: 'GET',
-            description: 'Mengambil daftar Manhua (komik China).',
-            parameters: [
-                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman.' }
-            ],
-            example: '/manhua/1',
-            response: 'Objek JSON daftar manhua.'
-        },
-        {
-            path: '/v1/manhwa/:page?',
-            method: 'GET',
-            description: 'Mengambil daftar Manhwa (komik Korea).',
-            parameters: [
-                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman.' }
-            ],
-            example: '/manhwa/1',
-            response: 'Objek JSON daftar manhwa.'
         },
         {
             path: '/v1/chapter/:title',
@@ -386,11 +394,13 @@ export function Documentation() {
   const [isOtakudesuExpanded, setOtakudesuExpanded] = useState(true);
   const [isWeatherExpanded, setWeatherExpanded] = useState(false);
   const [isKomikuExpanded, setKomikuExpanded] = useState(false);
+  const [isQuotesExpanded, setQuotesExpanded] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  const otakudesuDocs = documentationData.filter(sect => sect.id !== 'weather' && sect.id !== 'komiku');
+  const otakudesuDocs = documentationData.filter(sect => sect.id !== 'weather' && sect.id !== 'komiku' && sect.id !== 'quotes');
   const weatherDocs = documentationData.filter(sect => sect.id === 'weather');
   const komikuDocs = documentationData.filter(sect => sect.id === 'komiku');
+  const quoteDocs = documentationData.filter(sect => sect.id === 'quotes');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -508,6 +518,48 @@ export function Documentation() {
                         }`}
                       >
                         <div className={`transition-colors ${activeSection === section.id ? 'text-warning' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                           {section.icon}
+                        </div>
+                        <span>{section.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+            </div>
+
+            {/* Quotes Group Wrapper */}
+            <div className="space-y-1 mb-4">
+                <button 
+                  onClick={() => setQuotesExpanded(!isQuotesExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isQuotesExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isQuotesExpanded ? 'bg-purple-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Quotes</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isQuotesExpanded ? 'rotate-180 text-purple-500' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isQuotesExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
+                    {quoteDocs.map(section => (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
+                          activeSection === section.id
+                            ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20'
+                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                        }`}
+                      >
+                        <div className={`transition-colors ${activeSection === section.id ? 'text-purple-500' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
                            {section.icon}
                         </div>
                         <span>{section.name}</span>

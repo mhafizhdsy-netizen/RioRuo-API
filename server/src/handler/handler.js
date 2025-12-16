@@ -10,7 +10,7 @@ const handleError = (res, e) => {
       return res.status(504).json({
           status: 'Error',
           message: 'Upstream Request Timed Out',
-          hint: 'The weather service (wttr.in) is taking too long to respond. Please try again later.'
+          hint: 'The upstream service is taking too long to respond. Please try again later.'
       });
   }
 
@@ -61,7 +61,7 @@ const ongoingAnimeHandler = async (req, res) => {
   }
   const { paginationData, ongoingAnimeData } = result;
 
-  if (!paginationData) return res.status(404).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
+  if (!paginationData) return res.status(440).json({ status: 'Error', message: 'There\'s nothing here ;_;' });
   return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request motherfucker!", data: ongoingAnimeData, pagination: paginationData });
 };
 
@@ -302,6 +302,29 @@ const weatherPngHandler = async (req, res) => {
     }
 };
 
+// --- Quotes Handlers ---
+
+const quotesHandler = async (req, res) => {
+    try {
+        const page = req.query.page || 1;
+        const data = await otakudesu.quotes.getQuotes(page);
+        return res.status(200).json(data);
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const quotesByTagHandler = async (req, res) => {
+    try {
+        const { tag } = req.params;
+        const page = req.query.page || 1;
+        const data = await otakudesu.quotes.getQuotesByTag(tag, page);
+        return res.status(200).json(data);
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 // --- Komiku Handlers ---
 
 const komikuMangaPageHandler = async (req, res) => {
@@ -423,6 +446,9 @@ export default {
   weatherAsciiHandler,
   weatherQuickHandler,
   weatherPngHandler,
+  // Quotes
+  quotesHandler,
+  quotesByTagHandler,
   // Komiku
   komikuMangaPageHandler,
   komikuPopularHandler,

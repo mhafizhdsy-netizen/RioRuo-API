@@ -91,6 +91,10 @@ api.get('/weather/ascii/:location', cache(CACHE_SHORT), handler.weatherAsciiHand
 api.get('/weather/quick/:location', cache(CACHE_SHORT), handler.weatherQuickHandler);
 api.get('/weather/png/:location', cache(CACHE_SHORT), handler.weatherPngHandler);
 
+// Quotes Routes
+api.get('/quote/quotes', cache(CACHE_SHORT), handler.quotesHandler);
+api.get('/quote/quotes/tag/:tag', cache(CACHE_SHORT), handler.quotesByTagHandler);
+
 // Komiku Routes
 api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);
 api.get('/manga/popular/:page?', cache(CACHE_MEDIUM), handler.komikuPopularHandler);

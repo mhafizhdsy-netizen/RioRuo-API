@@ -189,7 +189,14 @@ export enum ApiEndpoint {
   KOMIKU_RECOMMENDED = '/v1/manga/recommended',
   KOMIKU_MANHUA = '/v1/manhua/:page?',
   KOMIKU_MANHWA = '/v1/manhwa/:page?',
-  KOMIKU_CHAPTER = '/v1/chapter/:title'
+  KOMIKU_CHAPTER = '/v1/chapter/:title',
+  // Animasu Endpoints
+  ANIMASU_ONGOING = '/v1/animasu/ongoing/:page?',
+  ANIMASU_DETAIL = '/v1/animasu/detail/:slug',
+  ANIMASU_EPISODE = '/v1/animasu/episode/:slug',
+  ANIMASU_SEARCH = '/v1/animasu/search/:page?', // Query param s=
+  ANIMASU_GENRE = '/v1/animasu/genre/:slug/:page?',
+  ANIMASU_MOVIES = '/v1/animasu/movies/:page?',
 }
 
 export {

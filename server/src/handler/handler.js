@@ -430,6 +430,71 @@ const vgdCustomHandler = async (req, res) => {
     }
 };
 
+// --- Animasu Handlers ---
+
+const animasuOngoingHandler = async (req, res) => {
+    try {
+        const { page } = req.params;
+        const data = await otakudesu.animasu.getOngoing(page || 1);
+        return res.status(200).json({ status: "Ok", Creator: "RioRuo", Message: "Don't spam the request motherfucker!", ...data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const animasuDetailHandler = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const data = await otakudesu.animasu.getDetail(slug);
+        return res.status(200).json({ status: "Ok", Creator: "RioRuo", Message: "Don't spam the request motherfucker!", data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const animasuEpisodeHandler = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const data = await otakudesu.animasu.getEpisode(slug);
+        return res.status(200).json({ status: "Ok", Creator: "RioRuo", Message: "Don't spam the request motherfucker!", data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const animasuSearchHandler = async (req, res) => {
+    try {
+        const { page } = req.params;
+        const { s } = req.query; // Search query is passed as query param 's' in the request
+        if (!s) return res.status(400).json({ status: "Error", message: "Search keyword 's' query parameter is required." });
+        
+        const data = await otakudesu.animasu.search(s, page || 1);
+        return res.status(200).json({ status: "Ok", Creator: "RioRuo", Message: "Don't spam the request motherfucker!", ...data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const animasuGenreHandler = async (req, res) => {
+    try {
+        const { slug, page } = req.params;
+        const data = await otakudesu.animasu.getByGenre(slug, page || 1);
+        return res.status(200).json({ status: "Ok", Creator: "RioRuo", Message: "Don't spam the request motherfucker!", ...data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const animasuMoviesHandler = async (req, res) => {
+    try {
+        const { page } = req.params;
+        const data = await otakudesu.animasu.getMovies(page || 1);
+        return res.status(200).json({ status: "Ok", Creator: "RioRuo", Message: "Don't spam the request motherfucker!", ...data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 // --- Komiku Handlers ---
 
 const komikuMangaPageHandler = async (req, res) => {
@@ -567,6 +632,13 @@ export default {
   // VGD
   vgdHandler,
   vgdCustomHandler,
+  // Animasu
+  animasuOngoingHandler,
+  animasuDetailHandler,
+  animasuEpisodeHandler,
+  animasuSearchHandler,
+  animasuGenreHandler,
+  animasuMoviesHandler,
   // Komiku
   komikuMangaPageHandler,
   komikuPopularHandler,

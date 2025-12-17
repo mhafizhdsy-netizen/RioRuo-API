@@ -10,7 +10,7 @@ import {
   List, Grid, Film, ChevronDown, Check,
   Heart, Globe, CalendarDays, Cloud,
   BookOpen, SlidersHorizontal, Menu, X, Copy,
-  Book, Quote, Link
+  Book, Quote, Link, Tv
 } from 'lucide-react';
 
 // Toast component
@@ -52,6 +52,7 @@ export function App() {
   const [isKomikuExpanded, setKomikuExpanded] = useState(false);
   const [isQuotesExpanded, setQuotesExpanded] = useState(false);
   const [isShortlinkExpanded, setIsShortlinkExpanded] = useState(false);
+  const [isAnimasuExpanded, setIsAnimasuExpanded] = useState(false);
 
   // Request Params
   const [keyword, setKeyword] = useState('jujutsu kaisen');
@@ -156,6 +157,13 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_GENRE_DETAIL) res = await apiService.getKomikuGenreDetail(mangaEndpoint);
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_RECOMMENDED) res = await apiService.getKomikuRecommended();
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_CHAPTER) res = await apiService.getKomikuChapter(chapterTitle);
+      // Animasu Endpoints
+      else if (selectedEndpoint === ApiEndpoint.ANIMASU_ONGOING) res = await apiService.getAnimasuOngoing(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.ANIMASU_DETAIL) res = await apiService.getAnimasuDetail(animeSlug);
+      else if (selectedEndpoint === ApiEndpoint.ANIMASU_EPISODE) res = await apiService.getAnimasuEpisode(episodeSlug);
+      else if (selectedEndpoint === ApiEndpoint.ANIMASU_SEARCH) res = await apiService.getAnimasuSearch(keyword, parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.ANIMASU_GENRE) res = await apiService.getAnimasuGenre(genreSlug, parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.ANIMASU_MOVIES) res = await apiService.getAnimasuMovies(parseInt(page));
       
       else res = await apiService.getHome();
 
@@ -213,8 +221,8 @@ export function App() {
   const renderInputs = useCallback(() => {
     const inputs = [];
     
-    // Otakudesu Inputs
-    if (selectedEndpoint === ApiEndpoint.SEARCH) {
+    // Search Inputs (Otakudesu, Animasu)
+    if (selectedEndpoint === ApiEndpoint.SEARCH || selectedEndpoint === ApiEndpoint.ANIMASU_SEARCH) {
       inputs.push(
         <div key="keyword" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Search Keyword</label>
@@ -226,7 +234,8 @@ export function App() {
       );
     }
     
-    if ([ApiEndpoint.ANIME_DETAIL, ApiEndpoint.ANIME_EPISODES, ApiEndpoint.BATCH_BY_ANIME_SLUG, ApiEndpoint.EPISODE_BY_NUMBER].includes(selectedEndpoint as ApiEndpoint)) {
+    // Anime Slug Inputs (Otakudesu, Animasu)
+    if ([ApiEndpoint.ANIME_DETAIL, ApiEndpoint.ANIME_EPISODES, ApiEndpoint.BATCH_BY_ANIME_SLUG, ApiEndpoint.EPISODE_BY_NUMBER, ApiEndpoint.ANIMASU_DETAIL].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="animeSlug" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Anime Slug</label>
@@ -244,7 +253,8 @@ export function App() {
       );
     }
 
-    if (selectedEndpoint === ApiEndpoint.EPISODE_DETAIL) {
+    // Episode Slug Inputs (Otakudesu, Animasu)
+    if (selectedEndpoint === ApiEndpoint.EPISODE_DETAIL || selectedEndpoint === ApiEndpoint.ANIMASU_EPISODE) {
       inputs.push(
         <div key="episodeSlug" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Episode Slug</label>
@@ -262,7 +272,8 @@ export function App() {
       );
     }
 
-    if (selectedEndpoint === ApiEndpoint.GENRE_DETAIL) {
+    // Genre Slug Inputs (Otakudesu, Animasu)
+    if (selectedEndpoint === ApiEndpoint.GENRE_DETAIL || selectedEndpoint === ApiEndpoint.ANIMASU_GENRE) {
       inputs.push(
         <div key="genreSlug" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Genre Slug</label>
@@ -271,7 +282,8 @@ export function App() {
       );
     }
 
-    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG].includes(selectedEndpoint as ApiEndpoint)) {
+    // Page Inputs (Generic)
+    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG, ApiEndpoint.ANIMASU_ONGOING, ApiEndpoint.ANIMASU_SEARCH, ApiEndpoint.ANIMASU_GENRE, ApiEndpoint.ANIMASU_MOVIES].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="pg" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Page</label>
@@ -384,6 +396,12 @@ export function App() {
     { id: 'manga-search', name: "Search & Genre", icon: <Search size={14} />, items: [ApiEndpoint.KOMIKU_SEARCH, ApiEndpoint.KOMIKU_GENRES, ApiEndpoint.KOMIKU_GENRE_DETAIL] },
   ];
 
+  const animasuCategories = [
+    { id: 'animasu-lists', name: "Lists & Movies", icon: <List size={14} />, items: [ApiEndpoint.ANIMASU_ONGOING, ApiEndpoint.ANIMASU_MOVIES] },
+    { id: 'animasu-details', name: "Detail & Episode", icon: <Tv size={14} />, items: [ApiEndpoint.ANIMASU_DETAIL, ApiEndpoint.ANIMASU_EPISODE] },
+    { id: 'animasu-search', name: "Search & Genre", icon: <Search size={14} />, items: [ApiEndpoint.ANIMASU_SEARCH, ApiEndpoint.ANIMASU_GENRE] },
+  ];
+
   const displayBaseUrl = 'https://rioruo.vercel.app';
   
   return (
@@ -428,6 +446,69 @@ export function App() {
             <div>
               <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 px-2">ENDPOINT LIST</h3>
               
+              {/* Animasu Item */}
+              <div className="space-y-1 mb-4">
+                <button 
+                  onClick={() => setIsAnimasuExpanded(!isAnimasuExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isAnimasuExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isAnimasuExpanded ? 'bg-red-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Animasu</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isAnimasuExpanded ? 'rotate-180 text-red-500' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out ${isAnimasuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden">
+                    <div className="pt-2 pb-2 pl-4 space-y-6 relative">
+                      <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
+
+                      {animasuCategories.map((cat) => (
+                        <div key={cat.id} className="relative">
+                          <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+                             <div className="text-zinc-500">{cat.icon}</div>
+                             <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
+                          </div>
+                          
+                          <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
+                            {cat.items.map((endpoint) => {
+                              const isSelected = selectedEndpoint === endpoint;
+                              return (
+                                <button
+                                  key={endpoint}
+                                  onClick={() => {
+                                    setSelectedEndpoint(endpoint);
+                                    setSidebarOpen(false);
+                                  }}
+                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
+                                    isSelected
+                                      ? 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-sm'
+                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                                  }`}
+                                >
+                                  {isSelected && (
+                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
+                                  )}
+                                  <span className="truncate">{endpoint}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
               {/* Otakudesu Item */}
               <div className="space-y-1 mb-4">
                 <button 

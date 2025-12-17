@@ -115,6 +115,14 @@ api.get('/quotes/tag/:tag/:page', cache(CACHE_SHORT), handler.quotesByTagHandler
 api.get('/quotes', cache(CACHE_SHORT), handler.quotesHandler);
 api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
 
+// Animasu Routes
+api.get('/animasu/ongoing/:page?', cache(CACHE_SHORT), handler.animasuOngoingHandler);
+api.get('/animasu/detail/:slug', cache(CACHE_LONG), handler.animasuDetailHandler);
+api.get('/animasu/episode/:slug', cache(CACHE_LONG), handler.animasuEpisodeHandler);
+api.get('/animasu/search/:page?', cache(CACHE_SHORT), handler.animasuSearchHandler); // Query param ?s=keyword
+api.get('/animasu/genre/:slug/:page?', cache(CACHE_MEDIUM), handler.animasuGenreHandler);
+api.get('/animasu/movies/:page?', cache(CACHE_MEDIUM), handler.animasuMoviesHandler);
+
 // Komiku Routes
 api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);
 api.get('/manga/popular/:page?', cache(CACHE_MEDIUM), handler.komikuPopularHandler);

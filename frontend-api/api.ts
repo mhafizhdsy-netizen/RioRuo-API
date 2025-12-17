@@ -127,11 +127,6 @@ export const apiService = {
   getKomikuManhua: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_MANHUA.replace(':page?', page.toString())),
   getKomikuManhwa: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_MANHWA.replace(':page?', page.toString())),
   getKomikuChapter: (title: string) => fetchFromApi(ApiEndpoint.KOMIKU_CHAPTER.replace(':title', title)),
-  // Animasu Services
-  getAnimasuOngoing: (page = 1) => fetchFromApi(ApiEndpoint.ANIMASU_ONGOING.replace(':page?', page.toString())),
-  getAnimasuDetail: (slug: string) => fetchFromApi(ApiEndpoint.ANIMASU_DETAIL.replace(':slug', slug)),
-  getAnimasuEpisode: (slug: string) => fetchFromApi(ApiEndpoint.ANIMASU_EPISODE.replace(':slug', slug)),
-  getAnimasuSearch: (keyword: string, page = 1) => fetchFromApi(ApiEndpoint.ANIMASU_SEARCH.replace(':page?', page.toString()), { s: keyword }),
-  getAnimasuGenre: (slug: string, page = 1) => fetchFromApi(ApiEndpoint.ANIMASU_GENRE.replace(':slug', slug).replace(':page?', page.toString())),
-  getAnimasuMovies: (page = 1) => fetchFromApi(ApiEndpoint.ANIMASU_MOVIES.replace(':page?', page.toString())),
+  // Samehadaku Services
+  getSamehadakuHome: () => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME),
 };

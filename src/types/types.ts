@@ -150,6 +150,43 @@ type quote = {
     likes: number;
 };
 
+// --- Samehadaku Types ---
+
+export type LatestReleaseType = {
+  title: string;
+  slug: string | null;
+  thumbnail: string | null;
+  current_episode: string;
+  type: string;
+  status: string | null;
+  subOrDub: string;
+};
+
+export type PaginationType = {
+  hasNext: boolean;
+  hasPrev: boolean;
+  nextText: string | null;
+  prevText: string | null;
+};
+
+export type RecommendationType = {
+  title: string;
+  slug: string | null;
+  thumbnail: string | null;
+  status: string;
+  type: string;
+  subOrDub: string;
+  genres: string[];
+};
+
+export type HomeDataType = {
+  latestRelease: LatestReleaseType[];
+  pagination: PaginationType;
+  recommendations: {
+    [key: string]: RecommendationType[];
+  };
+};
+
 export enum ApiEndpoint {
   HOME = '/v1/home',
   SEARCH = '/v1/search/:keyword',
@@ -190,13 +227,8 @@ export enum ApiEndpoint {
   KOMIKU_MANHUA = '/v1/manhua/:page?',
   KOMIKU_MANHWA = '/v1/manhwa/:page?',
   KOMIKU_CHAPTER = '/v1/chapter/:title',
-  // Animasu Endpoints
-  ANIMASU_ONGOING = '/v1/animasu/ongoing/:page?',
-  ANIMASU_DETAIL = '/v1/animasu/detail/:slug',
-  ANIMASU_EPISODE = '/v1/animasu/episode/:slug',
-  ANIMASU_SEARCH = '/v1/animasu/search/:page?', // Query param s=
-  ANIMASU_GENRE = '/v1/animasu/genre/:slug/:page?',
-  ANIMASU_MOVIES = '/v1/animasu/movies/:page?',
+  // Samehadaku Endpoints
+  SAMEHADAKU_HOME = '/v1/samehadaku/home',
 }
 
 export {

@@ -16,7 +16,7 @@ import jadwalRilis from './utils/jadwalRilis.js';
 import weather from './utils/weather.js';
 import quotes from './utils/quotes.js';
 import vgd from './utils/vgd.js';
-import animasu from './utils/animasu.js';
+import samehadaku from './utils/samehadaku.js';
 
 export default {
   home,
@@ -35,5 +35,5 @@ export default {
   weather,
   quotes,
   vgd,
-  animasu
+  samehadaku
 };

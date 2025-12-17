@@ -3,7 +3,7 @@ import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
 import apicache from 'apicache';
-import handler from '../src/handler/handler.js'; 
+import handler from '../handler/handler.js'; 
 
 const api = Router();
 const cache = apicache.middleware;
@@ -67,16 +67,6 @@ api.get('/', (_, res) => {
     });
 });
 
-// --- VGD Shortener Routes ---
-// Placed early to avoid conflict with wildcard routes like /:slug
-// GET fallback to help users who try to browse to the link
-api.get('/vgd', (_, res) => res.status(405).json({ status: 'Error', message: 'Method Not Allowed. This endpoint requires POST with JSON body: { "longUrl": "..." }' }));
-// Actual POST handlers
-api.post('/vgd', handler.vgdHandler);
-api.post('/vgd/custom', handler.vgdCustomHandler);
-
-// --- Main Routes ---
-
 // Apply caching strategies
 api.get('/home', cache(CACHE_MEDIUM), handler.homeHandler);
 api.get('/search/:keyword', cache(CACHE_SHORT), handler.searchAnimeHandler);
@@ -115,13 +105,9 @@ api.get('/quotes/tag/:tag/:page', cache(CACHE_SHORT), handler.quotesByTagHandler
 api.get('/quotes', cache(CACHE_SHORT), handler.quotesHandler);
 api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
 
-// Animasu Routes
-api.get('/animasu/ongoing/:page?', cache(CACHE_SHORT), handler.animasuOngoingHandler);
-api.get('/animasu/detail/:slug', cache(CACHE_LONG), handler.animasuDetailHandler);
-api.get('/animasu/episode/:slug', cache(CACHE_LONG), handler.animasuEpisodeHandler);
-api.get('/animasu/search/:page?', cache(CACHE_SHORT), handler.animasuSearchHandler); // Query param ?s=keyword
-api.get('/animasu/genre/:slug/:page?', cache(CACHE_MEDIUM), handler.animasuGenreHandler);
-api.get('/animasu/movies/:page?', cache(CACHE_MEDIUM), handler.animasuMoviesHandler);
+// VGD Shortener Routes (POST) - No Cache needed usually
+api.post('/vgd', handler.vgdHandler);
+api.post('/vgd/custom', handler.vgdCustomHandler);
 
 // Komiku Routes
 api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);

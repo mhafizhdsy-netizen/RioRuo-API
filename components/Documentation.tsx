@@ -10,77 +10,6 @@ const BASE_API_URL = "https://rioruo.vercel.app/v1";
 // --- Data Definitions ---
 
 const documentationData = [
-  // ... existing items ...
-  {
-    id: 'animasu',
-    name: 'Animasu',
-    icon: <Tv size={16} />,
-    endpoints: [
-        {
-            path: '/v1/animasu/ongoing/:page?',
-            method: 'GET',
-            description: 'Mengambil daftar anime yang sedang tayang (ongoing) dari Animasu.',
-            parameters: [
-                { name: ':page?', type: 'number', required: false, description: 'Halaman ke berapa (Default 1).' }
-            ],
-            example: '/animasu/ongoing/1',
-            response: 'Objek JSON berisi list anime dan paginasi.'
-        },
-        {
-            path: '/v1/animasu/detail/:slug',
-            method: 'GET',
-            description: 'Mengambil detail lengkap anime.',
-            parameters: [
-                { name: ':slug', type: 'string', required: true, description: 'Slug anime (contoh: naruto-shippuden).' }
-            ],
-            example: '/animasu/detail/shingeki-no-kyojin-final-season',
-            response: 'Objek JSON detail anime lengkap.'
-        },
-        {
-            path: '/v1/animasu/episode/:slug',
-            method: 'GET',
-            description: 'Mengambil data streaming dan download untuk episode tertentu.',
-            parameters: [
-                { name: ':slug', type: 'string', required: true, description: 'Slug episode.' }
-            ],
-            example: '/animasu/episode/shingeki-no-kyojin-final-season-episode-1',
-            response: 'Objek JSON berisi stream dan download links.'
-        },
-        {
-            path: '/v1/animasu/search/:page?',
-            method: 'GET',
-            description: 'Mencari anime berdasarkan kata kunci.',
-            parameters: [
-                { name: ':page?', type: 'number', required: false, description: 'Halaman pencarian (Default 1).' },
-                { name: '?s', type: 'string', required: true, description: 'Query parameter kata kunci pencarian.' }
-            ],
-            example: '/animasu/search/1?s=boruto',
-            response: 'Objek JSON hasil pencarian.'
-        },
-        {
-            path: '/v1/animasu/genre/:slug/:page?',
-            method: 'GET',
-            description: 'Mengambil daftar anime berdasarkan genre.',
-            parameters: [
-                { name: ':slug', type: 'string', required: true, description: 'Slug genre (contoh: action).' },
-                { name: ':page?', type: 'number', required: false, description: 'Halaman (Default 1).' }
-            ],
-            example: '/animasu/genre/action/1',
-            response: 'Objek JSON list anime berdasarkan genre.'
-        },
-        {
-            path: '/v1/animasu/movies/:page?',
-            method: 'GET',
-            description: 'Mengambil daftar movie anime.',
-            parameters: [
-                { name: ':page?', type: 'number', required: false, description: 'Halaman (Default 1).' }
-            ],
-            example: '/animasu/movies/1',
-            response: 'Objek JSON list movie.'
-        }
-    ]
-  },
-  // ... existing items ...
   {
     id: 'discovery',
     name: 'Discovery',
@@ -410,6 +339,21 @@ const documentationData = [
             ],
             example: '/chapter/one-piece-chapter-1100',
             response: 'Objek JSON berisi array link gambar chapter.'
+        }
+    ]
+  },
+  {
+    id: 'samehadaku',
+    name: 'Samehadaku',
+    icon: <Layout size={16} />,
+    endpoints: [
+        {
+            path: '/v1/samehadaku/home',
+            method: 'GET',
+            description: 'Mengambil data dari halaman utama Samehadaku, termasuk rilis terbaru, rekomendasi berdasarkan tab genre, dan pagination.',
+            parameters: [],
+            example: '/samehadaku/home',
+            response: 'Objek JSON berisi `latestRelease`, `recommendations`, dan `pagination`.'
         }
     ]
   },
@@ -1006,15 +950,15 @@ export function Documentation() {
   const [isKomikuExpanded, setKomikuExpanded] = useState(false);
   const [isQuotesExpanded, setQuotesExpanded] = useState(false);
   const [isShortlinkExpanded, setIsShortlinkExpanded] = useState(false);
-  const [isAnimasuExpanded, setIsAnimasuExpanded] = useState(false);
+  const [isSamehadakuExpanded, setIsSamehadakuExpanded] = useState(false);
   const mainContentRef = useRef<HTMLDivElement>(null);
 
-  const animasuDocs = documentationData.filter(sect => sect.id === 'animasu');
-  const otakudesuDocs = documentationData.filter(sect => !['weather', 'komiku', 'quotes', 'shortlink', 'animasu'].includes(sect.id));
+  const otakudesuDocs = documentationData.filter(sect => !['weather', 'komiku', 'quotes', 'shortlink', 'samehadaku'].includes(sect.id));
   const weatherDocs = documentationData.filter(sect => sect.id === 'weather');
   const komikuDocs = documentationData.filter(sect => sect.id === 'komiku');
   const quoteDocs = documentationData.filter(sect => sect.id === 'quotes');
   const shortlinkDocs = documentationData.filter(sect => sect.id === 'shortlink');
+  const samehadakuDocs = documentationData.filter(sect => sect.id === 'samehadaku');
 
   useEffect(() => {
     const handleScroll = () => {
@@ -1057,48 +1001,6 @@ export function Documentation() {
            <h3 className="flex items-center gap-2 text-sm font-bold text-white p-3"><BookOpen size={16} className="text-primary"/> API Endpoints</h3>
            <nav className="flex flex-col gap-1 p-2">
             
-            {/* Animasu Group Wrapper */}
-            <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setIsAnimasuExpanded(!isAnimasuExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isAnimasuExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-1 h-4 rounded-full transition-colors ${isAnimasuExpanded ? 'bg-red-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
-                    <span>Animasu</span>
-                  </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isAnimasuExpanded ? 'rotate-180 text-red-500' : ''}`} 
-                  />
-                </button>
-
-                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isAnimasuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
-                    {animasuDocs.map(section => (
-                      <button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
-                          activeSection === section.id
-                            ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`transition-colors ${activeSection === section.id ? 'text-red-500' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           {section.icon}
-                        </div>
-                        <span>{section.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-            </div>
-
             {/* Otakudesu Group Wrapper */}
             <div className="space-y-1 mb-4">
                 <button 
@@ -1132,6 +1034,48 @@ export function Documentation() {
                         }`}
                       >
                         <div className={`transition-colors ${activeSection === section.id ? 'text-primary' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
+                           {section.icon}
+                        </div>
+                        <span>{section.name}</span>
+                      </button>
+                    ))}
+                  </div>
+                </div>
+            </div>
+
+            {/* Samehadaku Group Wrapper */}
+            <div className="space-y-1 mb-4">
+                <button 
+                  onClick={() => setIsSamehadakuExpanded(!isSamehadakuExpanded)}
+                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
+                    isSamehadakuExpanded 
+                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
+                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
+                  }`}
+                >
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isSamehadakuExpanded ? 'bg-red-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>Samehadaku</span>
+                  </div>
+                  <ChevronDown 
+                    size={16} 
+                    className={`text-zinc-500 transition-transform duration-300 ${isSamehadakuExpanded ? 'rotate-180 text-red-500' : ''}`} 
+                  />
+                </button>
+
+                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isSamehadakuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
+                    {samehadakuDocs.map(section => (
+                      <button
+                        key={section.id}
+                        onClick={() => scrollToSection(section.id)}
+                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
+                          activeSection === section.id
+                            ? 'bg-red-500/10 text-red-500 border border-red-500/20'
+                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
+                        }`}
+                      >
+                        <div className={`transition-colors ${activeSection === section.id ? 'text-red-500' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
                            {section.icon}
                         </div>
                         <span>{section.name}</span>

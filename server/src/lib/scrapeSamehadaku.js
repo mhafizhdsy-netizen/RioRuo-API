@@ -261,6 +261,107 @@ export const scrapeRecommendations = ($) => {
 };
 
 /**
+ * Scrape Anime Detail
+ * Implementasi logika dari file animedetail.txt
+ * CSS Selector: .bixbox.animefull, .infox, etc
+ */
+export const scrapeAnimeDetail = ($) => {
+    const result = {
+        info: {},
+        synopsis: "",
+        trailer: "",
+        characters_voice_actors: [],
+        episodes: [],
+        recommendations: []
+    };
+
+    // 1. INFO UTAMA ANIME
+    const container = $('.bixbox.animefull');
+
+    if (container.length) {
+        // Title
+        result.info.title = container.find('.infox h1.entry-title').text().trim();
+
+        // Poster
+        result.info.poster = container.find('.thumb img').attr('src');
+
+        // Detail Info loop (Status, Studio, dll)
+        container.find('.infox .spe span').each((i, el) => {
+            const keyEl = $(el).find('b');
+            const key = keyEl.text().replace(':', '').trim(); 
+            
+            // Clone elemen, hapus <b>, ambil sisa teksnya
+            const valueEl = $(el).clone();
+            valueEl.find('b').remove(); 
+            let value = valueEl.text().trim();
+
+            // Jika value berupa link (seperti Studio/Season), ambil teks linknya
+            if (valueEl.find('a').length > 0) {
+                value = valueEl.find('a').map((i, link) => $(link).text().trim()).get().join(', ');
+            }
+
+            if (key) {
+                // Format key jadi lowercase_underscore (misal: "Posted by" -> "posted_by")
+                const cleanKey = key.toLowerCase().replace(/\s+/g, '_');
+                result.info[cleanKey] = value;
+            }
+        });
+    }
+
+    // 2. SINOPSIS & TRAILER
+    result.synopsis = $('.entry-content[itemprop="description"]').text().trim();
+    result.trailer = $('.trailer iframe').attr('src') || $('.megavid iframe').attr('src') || null;
+
+    // 3. CHARACTER & VOICE ACTOR
+    $('.cvlist .cvitem').each((i, el) => {
+        const charEl = $(el).find('.cvchar');
+        const actorEl = $(el).find('.cvactor');
+
+        result.characters_voice_actors.push({
+            character: {
+                name: charEl.find('.charname').text().trim(),
+                role: charEl.find('.charrole').text().trim(),
+                image: charEl.find('img').attr('src')
+            },
+            voice_actor: {
+                name: actorEl.find('.charname').text().trim(),
+                language: actorEl.find('.charrole').text().trim(),
+                image: actorEl.find('img').attr('src')
+            }
+        });
+    });
+
+    // 4. LIST EPISODE
+    $('.bixbox.bxcl.epcheck ul li').each((i, el) => {
+        result.episodes.push({
+            episode_number: $(el).find('.epl-num').text().trim(),
+            title: $(el).find('.epl-title').text().trim(),
+            release_date: $(el).find('.epl-date').text().trim(),
+            url: $(el).find('a').attr('href')
+        });
+    });
+
+    // 5. RECOMMENDED SERIES
+    // Kita filter .listupd yang berada di bawah header "Recommended Series"
+    const recHeader = $('h3:contains("Recommended Series")'); 
+    const recContainer = recHeader.closest('.bixbox').find('.listupd .bs');
+
+    recContainer.each((i, el) => {
+        const url = $(el).find('a').attr('href');
+        result.recommendations.push({
+            title: $(el).find('.tt h2').text().trim(),
+            status: $(el).find('.limit .status').text().trim(),
+            type: $(el).find('.limit .typez').text().trim(),
+            image: $(el).find('img').attr('src'),
+            url: url,
+            slug: extractSlug(url)
+        });
+    });
+
+    return result;
+};
+
+/**
  * Main function to scrape entire home page
  */
 export const scrapeHomePage = (html) => {

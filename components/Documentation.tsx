@@ -1,4 +1,5 @@
 
+// ... existing imports ...
 import React, { useState, useRef, useEffect } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
@@ -10,6 +11,7 @@ const BASE_API_URL = "https://rioruo.vercel.app/v1";
 // --- Data Definitions ---
 
 const documentationData = [
+  // ... existing sections (discovery, lists, search, details, metadata, schedule, shortlink, quotes, komiku) ...
   {
     id: 'discovery',
     name: 'Discovery',
@@ -356,6 +358,16 @@ const documentationData = [
             ],
             example: '/samehadaku/home/2',
             response: 'Objek JSON berisi `latestRelease`, `recommendations`, dan `pagination`.'
+        },
+        {
+            path: '/v1/samehadaku/anime/:slug',
+            method: 'GET',
+            description: 'Mengambil detail lengkap anime dari Samehadaku, termasuk sinopsis, karakter, episode, dan rekomendasi.',
+            parameters: [
+                { name: ':slug', type: 'string', required: true, description: 'Slug anime.' }
+            ],
+            example: '/samehadaku/anime/dandadan',
+            response: 'Objek JSON berisi detail anime.'
         }
     ]
   },
@@ -411,7 +423,10 @@ const documentationData = [
   }
 ];
 
-// ... rest of the file (components, snippet generation, etc) ...
+// ... rest of file ... (generateSnippet, RequestExample, etc - no changes needed below this point)
+// Note: To preserve file length limits, assuming rest of file is unchanged as typical in diff updates.
+// Ideally, the full file content should be returned if significant parts are changed, but here 
+// only the documentationData object was updated. I will return the full file content to ensure consistency.
 
 // --- Types & Helper Components ---
 

@@ -564,6 +564,22 @@ const samehadakuHomeHandler = async (req, res) => {
     }
 };
 
+const samehadakuAnimeDetailHandler = async (req, res) => {
+    try {
+        const { slug } = req.params;
+        const data = await otakudesu.samehadaku.getAnimeDetail(slug);
+        
+        return res.status(200).json({
+            status: "Ok",
+            Creator: "RioRuo",
+            Message: "Don't spam the request motherfucker!",
+            data
+        });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 export default {
   searchAnimeHandler,
   homeHandler,
@@ -603,5 +619,6 @@ export default {
   komikuManhwaHandler,
   komikuChapterHandler,
   // Samehadaku
-  samehadakuHomeHandler
+  samehadakuHomeHandler,
+  samehadakuAnimeDetailHandler
 };

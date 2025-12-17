@@ -161,6 +161,7 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_CHAPTER) res = await apiService.getKomikuChapter(chapterTitle);
       // Samehadaku
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_HOME) res = await apiService.getSamehadakuHome(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_ANIME) res = await apiService.getSamehadakuAnimeDetail(animeSlug);
       
       else res = await apiService.getHome();
 
@@ -231,8 +232,8 @@ export function App() {
       );
     }
     
-    // Anime Slug Inputs (Otakudesu)
-    if ([ApiEndpoint.ANIME_DETAIL, ApiEndpoint.ANIME_EPISODES, ApiEndpoint.BATCH_BY_ANIME_SLUG, ApiEndpoint.EPISODE_BY_NUMBER].includes(selectedEndpoint as ApiEndpoint)) {
+    // Anime Slug Inputs (Otakudesu & Samehadaku)
+    if ([ApiEndpoint.ANIME_DETAIL, ApiEndpoint.ANIME_EPISODES, ApiEndpoint.BATCH_BY_ANIME_SLUG, ApiEndpoint.EPISODE_BY_NUMBER, ApiEndpoint.SAMEHADAKU_ANIME].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="animeSlug" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Anime Slug</label>
@@ -395,6 +396,7 @@ export function App() {
 
   const samehadakuCategories = [
     { id: 'samehadaku-discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.SAMEHADAKU_HOME] },
+    { id: 'samehadaku-details', name: "Details", icon: <Film size={14} />, items: [ApiEndpoint.SAMEHADAKU_ANIME] },
   ];
 
   const displayBaseUrl = 'https://rioruo.vercel.app';

@@ -1,6 +1,6 @@
 
 import axios from 'axios';
-import { scrapeHomePage } from '../lib/scrapeSamehadaku.js';
+import { scrapeHomePage, scrapeAnimeDetail } from '../lib/scrapeSamehadaku.js';
 
 // Base URL for Samehadaku - adjust as needed if domain changes
 const BASEURL = process.env.SAMEHADAKU_URL || 'https://samehadaku.li'; 
@@ -27,6 +27,23 @@ const getHome = async (page = 1) => {
     }
 };
 
+const getAnimeDetail = async (slug) => {
+    try {
+        const url = `${BASEURL}/anime/${slug}`;
+        const { data } = await axios.get(url, {
+            headers: HEADERS,
+            timeout: 120000
+        });
+        const $ = await import('cheerio').then(m => m.load(data));
+        const result = scrapeAnimeDetail($);
+        return result;
+    } catch (error) {
+        console.error(`[Samehadaku] Error fetching anime detail ${slug}: ${error.message}`);
+        throw error;
+    }
+};
+
 export default {
-    getHome
+    getHome,
+    getAnimeDetail
 };

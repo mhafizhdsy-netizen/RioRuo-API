@@ -256,6 +256,7 @@ export enum ApiEndpoint {
   KOMIKU_CHAPTER = '/v1/chapter/:title',
   // Samehadaku Endpoints
   SAMEHADAKU_HOME = '/v1/samehadaku/home/:page?',
+  SAMEHADAKU_ANIME = '/v1/samehadaku/anime/:slug',
 }
 
 export {

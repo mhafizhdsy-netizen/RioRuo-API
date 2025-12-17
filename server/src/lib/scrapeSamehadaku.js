@@ -268,8 +268,6 @@ export const scrapeRecommendations = ($) => {
 export const scrapeAnimeDetail = ($) => {
     const result = {
         info: {},
-        synopsis: "",
-        trailer: "",
         characters_voice_actors: [],
         episodes: [],
         recommendations: []
@@ -315,12 +313,12 @@ export const scrapeAnimeDetail = ($) => {
         });
     }
 
-    // 2. SINOPSIS & TRAILER
-    result.synopsis = $('.entry-content[itemprop="description"]').text().trim();
+    // 2. SINOPSIS & TRAILER (Moved into info object)
+    result.info.synopsis = $('.entry-content[itemprop="description"]').text().trim();
     
-    // Trailer URL (Updated)
+    // Trailer URL
     // Selector: <a data-fancybox href="..." class="trailerbutton">
-    result.trailer = $('a.trailerbutton').attr('href') || null;
+    result.info.trailer = $('a.trailerbutton').attr('href') || null;
 
     // 3. CHARACTER & VOICE ACTOR
     $('.cvlist .cvitem').each((i, el) => {

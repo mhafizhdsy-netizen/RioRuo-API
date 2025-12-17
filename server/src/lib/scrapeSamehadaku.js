@@ -285,6 +285,13 @@ export const scrapeAnimeDetail = ($) => {
         // Poster
         result.info.poster = container.find('.thumb img').attr('src');
 
+        // Rating
+        // Selector based on HTML: <div class="rating"><strong>Rating 7.82</strong></div>
+        const ratingStr = container.find('.rating strong').text().trim();
+        if (ratingStr) {
+            result.info.rating = ratingStr.replace('Rating', '').trim();
+        }
+
         // Detail Info loop (Status, Studio, dll)
         container.find('.infox .spe span').each((i, el) => {
             const keyEl = $(el).find('b');
@@ -310,7 +317,10 @@ export const scrapeAnimeDetail = ($) => {
 
     // 2. SINOPSIS & TRAILER
     result.synopsis = $('.entry-content[itemprop="description"]').text().trim();
-    result.trailer = $('.trailer iframe').attr('src') || $('.megavid iframe').attr('src') || null;
+    
+    // Trailer URL (Updated)
+    // Selector: <a data-fancybox href="..." class="trailerbutton">
+    result.trailer = $('a.trailerbutton').attr('href') || null;
 
     // 3. CHARACTER & VOICE ACTOR
     $('.cvlist .cvitem').each((i, el) => {

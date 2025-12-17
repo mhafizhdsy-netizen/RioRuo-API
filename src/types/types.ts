@@ -176,7 +176,6 @@ export type RecommendationType = {
   status: string;
   type: string;
   subOrDub: string;
-  genres: string[];
 };
 
 export type HomeDataType = {

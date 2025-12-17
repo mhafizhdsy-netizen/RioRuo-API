@@ -135,9 +135,6 @@ export const scrapeRecommendations = (html) => {
 
       const subOrDub = $article.find('.bsx a .limit .bt .sb').text().trim();
 
-      // Genres are NOT available in the card structure for .series-gen based on home.html.txt
-      const genres = []; 
-
       animeList.push({
         title,
         slug,
@@ -145,7 +142,6 @@ export const scrapeRecommendations = (html) => {
         status: statusTag || statusEp,
         type,
         subOrDub,
-        genres,
       });
     });
 

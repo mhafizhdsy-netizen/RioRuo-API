@@ -113,7 +113,7 @@ export const scrapeSpotlight = ($) => {
         status,
         genres,
         summary,
-        otakudesu_url: href
+        samehadaku_url: href // Changed from otakudesu_url
       });
     } catch (error) {
       console.error('Error parsing spotlight item:', error.message);
@@ -166,7 +166,7 @@ export const scrapeTopSeries = ($) => {
           poster,
           genres,
           rating,
-          otakudesu_url: href
+          samehadaku_url: href // Changed from otakudesu_url
         });
       } catch (error) {
         // Silent fail for individual items
@@ -270,7 +270,7 @@ export const scrapeHomePage = (html) => {
     spotlight: scrapeSpotlight($),
     latestRelease: scrapeLatestRelease($),
     topSeries: scrapeTopSeries($),
-    pagination: scrapePagination($),
-    recommendations: scrapeRecommendations($),
+    recommendations: scrapeRecommendations($), // Recommendations moved up
+    pagination: scrapePagination($), // Pagination moved down
   };
 };

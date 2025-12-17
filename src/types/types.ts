@@ -171,7 +171,7 @@ export type SpotlightType = {
   status: string;
   genres: string[];
   summary: string;
-  otakudesu_url: string;
+  samehadaku_url: string;
 };
 
 export type TopSeriesItemType = {
@@ -181,7 +181,7 @@ export type TopSeriesItemType = {
   poster: string | null;
   genres: string[];
   rating: number | null;
-  otakudesu_url: string;
+  samehadaku_url: string;
 };
 
 export type PaginationType = {

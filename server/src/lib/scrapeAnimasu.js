@@ -1,29 +1,29 @@
 
 import { load } from 'cheerio';
 
+const BASE_URL = 'https://v0.animasu.app';
+
 export const getCards = ($) => {
   const cards = [];
 
-  // Menggunakan selector yang lebih umum (.listupd .bs) 
-  // karena 'listupd_custompage' mungkin tidak selalu ada atau namanya berubah.
   $('.listupd .bs').each((index, element) => {
     const el = $(element);
-    const name = el.find('div.bsx div.tt').text().trim();
+    const title = el.find('div.bsx div.tt').text().trim(); // name -> title
     const slug = el.find('div.bsx a').attr('href')?.split('/')[4];
     const type = el.find('div.bsx a div.limit div.typez').text().trim();
     const episode = el.find('div.bsx a div.limit div.bt span.epx').text().trim();
-    const img = el.find('div.bsx a div.limit img.lazy').attr('data-src');
+    const poster = el.find('div.bsx a div.limit img.lazy').attr('data-src'); // img -> poster
     const status = el.find('div.bsx a div.limit div.bt span.sb').text() || null;
 
-    // Hanya push jika minimal ada nama atau slug
-    if (name || slug) {
+    if (title || slug) {
         cards.push({
+          title: title || null,
           slug: slug || null,
-          name: name || null,
+          poster: poster || null,
           type: type || null,
-          episode: episode || null,
-          img: img || null,
           status: status || null,
+          episode: episode || null, // Keeping generic 'episode', could map to current_episode if needed
+          animasu_url: slug ? `${BASE_URL}/anime/${slug}` : null
         });
     }
   });
@@ -53,60 +53,54 @@ export const getPaginationButton = ($) => {
 };
 
 export const getAnimeDetails = ($) => {
-  const result = {}; // Changed to object for single detail
+  const result = {};
 
   $('div.bigcontent').each((index, element) => {
     const el = $(element);
-    const img = el.find('div.thumb img:first-child').attr('data-src');
+    const poster = el.find('div.thumb img:first-child').attr('data-src'); // img -> poster
     const title = el.find('div.infox h1').text().trim();
-    const name = el.find('div.infox span.alter').text().trim();
+    const japanese_title = el.find('div.infox span.alter').text().trim(); // name -> japanese_title
     
-    // Helper helper to safely extract text
     const getInfo = (key) => el.find(`div.infox div.spe span b:contains("${key}")`).first().parent().text().replace(key, '').trim();
 
     const status = getInfo('Status: ');
     const type = getInfo('Jenis: ');
-    const release = getInfo('Rilis: ');
+    const release_date = getInfo('Rilis: '); // release -> release_date
     const duration = getInfo('Durasi: ');
     
     const synopsis = $('div.sinopsis p:first-child').text().trim();
-    const episodes = [];
+    const episode_lists = []; // episodes -> episode_lists (otakudesu naming)
     const genres = [];
-    const characterTypes = [];
-
+    
+    // Animasu doesn't distinctly separate producers/studios easily in all pages, keeping what works
+    
     el.find('div.infox div.spe span b:contains("Genre:")').parent().find('a').each((index, element) => {
       genres.push({
-        genre: $(element).text() || null,
-        slug: $(element).attr('href')?.split('/')[4] || null
-      });
-    });
-
-    el.find('div.infox div.spe span#tikar_shw b:contains("Karakter:")').parent().find('a').each((index, element) => {
-      characterTypes.push({
-        type: $(element).text() || null,
-        slug: $(element).attr('href')?.split('/')[4] || null
+        name: $(element).text() || null, // genre -> name
+        slug: $(element).attr('href')?.split('/')[4] || null,
+        url: $(element).attr('href') || null
       });
     });
 
     $('div.bixbox ul#daftarepisode li').each((index, element) => {
-      episodes.push({
+      episode_lists.push({
         episode: $(element).find('span.lchx a').text().trim(),
         slug: $(element).find('span.lchx a').attr('href')?.split('/')[3],
+        url: $(element).find('span.lchx a').attr('href')
       });
     });
 
     Object.assign(result, {
-      img: img || null,
       title: title || null,
-      name: name || null,
+      japanese_title: japanese_title || null,
+      poster: poster || null,
       status: status || null,
-      release: release || null,
+      release_date: release_date || null,
       duration: duration || null,
       type: type || null,
       synopsis: synopsis || null,
       genres: genres || null,
-      characterTypes: characterTypes || null,
-      episodes: episodes || null
+      episode_lists: episode_lists || null
     });
   });
 
@@ -114,16 +108,17 @@ export const getAnimeDetails = ($) => {
 };
 
 export const getAnimeEpisode = ($) => {
-  const result = {}; // Changed to object for single episode data
+  const result = {};
 
   $('div.postbody article').each((index, element) => {
     const el = $(element);
-    const img = el.find('div.meta div.tb img').attr('data-src');
+    // Episode Detail usually doesn't need main poster, but kept for consistency
     const title = el.find('div.meta div.lm h1').text().trim();
-    const name = el.find('div.meta div.lm span.epx a:first-child').text().trim();
-    const episodeSlug = el.find('div.meta div.lm span.epx a:first-child').attr('href')?.split('/')[4];
-    const status = el.find('div.releases h3 font').text().trim();
-    const iframes = [];
+    
+    // Extract episode number/name
+    const episode = el.find('div.meta div.lm span.epx a:first-child').text().trim();
+    
+    const stream_links = []; // iframes -> stream_links (Otakudesu naming convention)
 
     el.find('select.mirror option').each((index, element) => {
       const option = $(element);
@@ -136,30 +131,23 @@ export const getAnimeEpisode = ($) => {
       const label = option.text().trim() || null;
       if (!src) return;
 
-      iframes.push({
-        label: label,
-        src: src,
+      stream_links.push({
+        resolution: label, // label -> resolution (approx)
+        link: src,         // src -> link
+        server: 'Animasu Server' 
       });
     });
 
-    const episodes = [];
-
-    // Correct selector for episode list in episode page usually similar to detail
-    $('div.bixbox ul#daftarepisode li').each((index, element) => {
-      episodes.push({
-        episode: $(element).find('span.lchx a').text().trim(),
-        slug: $(element).find('span.lchx a').attr('href')?.split('/')[3],
-      });
-    });
+    // Provide default stream url if available (first one)
+    const stream_url = stream_links.length > 0 ? stream_links[0].link : null;
 
     Object.assign(result, {
       title: title || null,
-      name: name || null,
-      status: status || null,
-      slug: episodeSlug || null,
-      img: img || null,
-      iframes: iframes || null,
-      episodes: episodes || null
+      episode: episode || null,
+      stream_url: stream_url,
+      stream_links: stream_links || null,
+      // Animasu generally doesn't expose direct download links easily without interaction, 
+      // keeping structure simple.
     });
   });
 

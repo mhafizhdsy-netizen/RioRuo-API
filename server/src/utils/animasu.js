@@ -1,4 +1,5 @@
 
+import axios from 'axios';
 import { load } from 'cheerio';
 import {
   getCards,
@@ -10,21 +11,34 @@ import {
 
 const BASE_URL = 'https://v0.animasu.app';
 
-// Helper function menggunakan fetch standar TAPI WAJIB pakai User-Agent
-// Tanpa User-Agent, website akan memblokir request (return 403 atau halaman kosong)
+// Headers yang disesuaikan agar mirip dengan browser (Chrome Windows)
+// Menggunakan axios seperti request user.
+const HEADERS = {
+    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
+    'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3;q=0.7',
+    'Accept-Encoding': 'gzip, deflate, br', // Axios handle decompression, but header helps server know we support it
+    'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
+    'Referer': 'https://v0.animasu.app/',
+    'Origin': 'https://v0.animasu.app',
+    'Connection': 'keep-alive',
+    'Upgrade-Insecure-Requests': '1',
+    'Sec-Fetch-Dest': 'document',
+    'Sec-Fetch-Mode': 'navigate',
+    'Sec-Fetch-Site': 'same-origin',
+    'Sec-Fetch-User': '?1',
+    'Cache-Control': 'max-age=0',
+};
+
 const fetchHtml = async (url) => {
     try {
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
-            }
+        const { data } = await axios.get(url, { 
+            headers: HEADERS,
+            timeout: 10000 // 10s timeout
         });
-        if (!response.ok) {
-            throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
-        }
-        return await response.text();
+        return data;
     } catch (error) {
         console.error(`[Animasu] Error fetching ${url}:`, error.message);
+        // Jika error response (misal 403/503), lempar error agar handler di atas bisa menangkapnya
         throw error;
     }
 };

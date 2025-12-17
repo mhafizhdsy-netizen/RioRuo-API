@@ -10,10 +10,15 @@ import {
 
 const BASE_URL = 'https://v0.animasu.app';
 
-// Helper function menggunakan fetch standar tanpa headers/proxy
+// Helper function menggunakan fetch standar TAPI WAJIB pakai User-Agent
+// Tanpa User-Agent, website akan memblokir request (return 403 atau halaman kosong)
 const fetchHtml = async (url) => {
     try {
-        const response = await fetch(url);
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36'
+            }
+        });
         if (!response.ok) {
             throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
         }

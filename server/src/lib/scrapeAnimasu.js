@@ -4,7 +4,9 @@ import { load } from 'cheerio';
 export const getCards = ($) => {
   const cards = [];
 
-  $('div.listupd div.listupd_custompage div.bs').each((index, element) => {
+  // Menggunakan selector yang lebih umum (.listupd .bs) 
+  // karena 'listupd_custompage' mungkin tidak selalu ada atau namanya berubah.
+  $('.listupd .bs').each((index, element) => {
     const el = $(element);
     const name = el.find('div.bsx div.tt').text().trim();
     const slug = el.find('div.bsx a').attr('href')?.split('/')[4];
@@ -13,14 +15,17 @@ export const getCards = ($) => {
     const img = el.find('div.bsx a div.limit img.lazy').attr('data-src');
     const status = el.find('div.bsx a div.limit div.bt span.sb').text() || null;
 
-    cards.push({
-      slug: slug || null,
-      name: name || null,
-      type: type || null,
-      episode: episode || null,
-      img: img || null,
-      status: status || null,
-    });
+    // Hanya push jika minimal ada nama atau slug
+    if (name || slug) {
+        cards.push({
+          slug: slug || null,
+          name: name || null,
+          type: type || null,
+          episode: episode || null,
+          img: img || null,
+          status: status || null,
+        });
+    }
   });
 
   return cards;

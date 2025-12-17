@@ -1,5 +1,4 @@
 
-import axios from 'axios';
 import { load } from 'cheerio';
 import {
   getCards,
@@ -11,8 +10,7 @@ import {
 
 const BASE_URL = 'https://v0.animasu.app';
 
-// Menggunakan headers lengkap dari browser asli (Chrome Windows)
-// Termasuk Cookie cf_clearance untuk bypass Cloudflare Challenge
+// Headers lengkap sesuai permintaan user
 const HEADERS = {
     'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36',
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/avif,image/webp,image/apng,*/*;q=0.8',
@@ -33,47 +31,85 @@ const HEADERS = {
     'Origin': 'https://v0.animasu.app',
 };
 
+// Helper function untuk fetch data (menggantikan axios)
+// Mendukung ScraperAPI jika API Key tersedia di env
+const fetchHtml = async (targetUrl) => {
+    let urlToFetch = targetUrl;
+    const fetchOptions = {
+        method: 'GET',
+        headers: HEADERS
+    };
+
+    // Integrasi ScraperAPI
+    // Jika SCRAPERAPI_KEY ada di .env, gunakan proxy service
+    if (process.env.SCRAPERAPI_KEY) {
+        const apiKey = process.env.SCRAPERAPI_KEY;
+        // Construct URL ScraperAPI
+        // keep_headers=true memastikan headers khusus kita (seperti bhs Indonesia) diteruskan
+        const params = new URLSearchParams({
+            api_key: apiKey,
+            url: targetUrl,
+            keep_headers: 'true' 
+        });
+        urlToFetch = `http://api.scraperapi.com?${params.toString()}`;
+    }
+
+    try {
+        const response = await fetch(urlToFetch, fetchOptions);
+        
+        if (!response.ok) {
+            throw new Error(`Fetch failed with status: ${response.status} ${response.statusText}`);
+        }
+
+        const text = await response.text();
+        return text;
+    } catch (error) {
+        console.error(`[Animasu Fetch Error] URL: ${targetUrl} | ScraperAPI: ${!!process.env.SCRAPERAPI_KEY}`, error.message);
+        throw error;
+    }
+};
+
 const getOngoing = async (page = 1) => {
-    const { data } = await axios.get(`${BASE_URL}/anime-sedang-tayang-terbaru/?halaman=${page}`, { headers: HEADERS });
-    const $ = load(data);
+    const html = await fetchHtml(`${BASE_URL}/anime-sedang-tayang-terbaru/?halaman=${page}`);
+    const $ = load(html);
     const anime = getCards($);
     const pagination = getPaginationButton($);
     return { anime, pagination };
 };
 
 const getDetail = async (slug) => {
-    const { data } = await axios.get(`${BASE_URL}/anime/${slug}`, { headers: HEADERS });
-    const $ = load(data);
+    const html = await fetchHtml(`${BASE_URL}/anime/${slug}`);
+    const $ = load(html);
     const result = getAnimeDetails($);
     return result;
 };
 
 const getEpisode = async (slug) => {
-    const { data } = await axios.get(`${BASE_URL}/${slug}`, { headers: HEADERS });
-    const $ = load(data);
+    const html = await fetchHtml(`${BASE_URL}/${slug}`);
+    const $ = load(html);
     const result = getAnimeEpisode($);
     return result;
 };
 
 const search = async (keyword, page = 1) => {
-    const { data } = await axios.get(`${BASE_URL}/page/${page}/?s=${keyword}`, { headers: HEADERS });
-    const $ = load(data);
+    const html = await fetchHtml(`${BASE_URL}/page/${page}/?s=${keyword}`);
+    const $ = load(html);
     const anime = getCards($);
     const paginationCount = getPaginationCount($);
     return { anime, paginationCount };
 };
 
 const getByGenre = async (slug, page = 1) => {
-    const { data } = await axios.get(`${BASE_URL}/kumpulan-genre-anime-lengkap/${slug}/page/${page}`, { headers: HEADERS });
-    const $ = load(data);
+    const html = await fetchHtml(`${BASE_URL}/kumpulan-genre-anime-lengkap/${slug}/page/${page}`);
+    const $ = load(html);
     const anime = getCards($);
     const paginationCount = getPaginationCount($);
     return { anime, paginationCount };
 };
 
 const getMovies = async (page = 1) => {
-    const { data } = await axios.get(`${BASE_URL}/anime-movie/?halaman=${page}`, { headers: HEADERS });
-    const $ = load(data);
+    const html = await fetchHtml(`${BASE_URL}/anime-movie/?halaman=${page}`);
+    const $ = load(html);
     const anime = getCards($);
     const pagination = getPaginationButton($);
     return { anime, pagination };

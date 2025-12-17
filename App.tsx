@@ -82,6 +82,8 @@ export function App() {
   const [apiStatus, setApiStatus] = useState<'online' | 'offline' | 'checking'>('checking');
   const [toasts, setToasts] = useState<{ id: string; message: string }[]>([]);
 
+  const LOGO_URL = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzEwYjk4MSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSIgZm9udC1zaXplPSIyNTAiIGZvbnQtd2VpZ2h0PSJib2xkIj5SUjwvdGV4dD48L3N2Zz4=";
+
   // API Status Check
   const checkApiStatus = async () => {
     try {
@@ -422,7 +424,7 @@ export function App() {
           <div className="flex items-center justify-between p-5 border-b border-white/5 bg-surface/50 backdrop-blur-sm">
             <div className="flex items-center gap-3">
                <img 
-                  src="https://i.postimg.cc/pXWMbTZz/20251215-182621.png" 
+                  src={LOGO_URL}
                   alt="RioRuo Logo" 
                   className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.6)] mix-blend-screen" 
                />
@@ -855,7 +857,7 @@ export function App() {
             <Menu size={20} />
           </button>
           <img 
-            src="https://i.postimg.cc/pXWMbTZz/20251215-182621.png" 
+            src={LOGO_URL}
             alt="RioRuo Logo" 
             className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.6)] mix-blend-screen" 
           />
@@ -970,28 +972,10 @@ export function App() {
             <div className="flex flex-col items-center md:items-start gap-2">
               <div className="flex items-center gap-2 text-zinc-300">
                 <img 
-                  src="https://i.postimg.cc/pXWMbTZz/20251215-182621.png" 
+                  src={LOGO_URL}
                   alt="RioRuo Logo" 
                   className="w-5 h-5 rounded-md mix-blend-screen" 
                 />
                 <span className="font-bold tracking-tight">RioRuo API</span>
               </div>
-              <p className="text-xs text-zinc-500 font-mono flex items-center gap-1">
-                &copy; {new Date().getFullYear()} Developed with <Heart size={10} className="text-error fill-error animate-pulse" /> by <span className="text-primary font-bold">Rio</span>
-              </p>
-            </div>
-          </div>
-        </footer>
-      </main>
-
-      {/* Toast Container */}
-      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
-        {toasts.map((toast) => (
-          <div key={toast.id} className="pointer-events-auto">
-             <Toast id={toast.id} message={toast.message} onRemove={removeToast} />
-          </div>
-        ))}
-      </div>
-    </div>
-  );
-}
+              <p className

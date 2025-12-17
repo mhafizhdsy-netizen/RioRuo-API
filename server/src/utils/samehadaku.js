@@ -13,7 +13,7 @@ const HEADERS = {
 
 const getHome = async (page = 1) => {
     try {
-        const url = page && page > 1 ? `${BASEURL}/?halaman=${page}` : BASEURL;
+        const url = page && page > 1 ? `${BASEURL}/page/${page}` : BASEURL;
         const { data } = await axios.get(url, { headers: HEADERS });
         const result = scrapeHomePage(data);
         return result;

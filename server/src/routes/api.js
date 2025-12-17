@@ -3,7 +3,7 @@ import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
 import apicache from 'apicache';
-import handler from '../handler/handler.js'; 
+import handler from '../src/handler/handler.js'; 
 
 const api = Router();
 const cache = apicache.middleware;

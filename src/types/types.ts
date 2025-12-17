@@ -162,6 +162,28 @@ export type LatestReleaseType = {
   subOrDub: string;
 };
 
+export type SpotlightType = {
+  title: string;
+  slug: string | null;
+  poster: string | null;
+  year: string;
+  type: string;
+  status: string;
+  genres: string[];
+  summary: string;
+  otakudesu_url: string;
+};
+
+export type TopSeriesItemType = {
+  rank: number;
+  title: string;
+  slug: string | null;
+  poster: string | null;
+  genres: string[];
+  rating: number | null;
+  otakudesu_url: string;
+};
+
 export type PaginationType = {
   hasNext: boolean;
   hasPrev: boolean;
@@ -179,7 +201,13 @@ export type RecommendationType = {
 };
 
 export type HomeDataType = {
+  spotlight: SpotlightType[];
   latestRelease: LatestReleaseType[];
+  topSeries: {
+    weekly: TopSeriesItemType[];
+    monthly: TopSeriesItemType[];
+    alltime: TopSeriesItemType[];
+  };
   pagination: PaginationType;
   recommendations: {
     [key: string]: RecommendationType[];

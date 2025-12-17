@@ -3,7 +3,7 @@ import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
 import apicache from 'apicache';
-import handler from '../handler/handler.js'; 
+import handler from '../src/handler/handler.js'; 
 
 const api = Router();
 const cache = apicache.middleware;
@@ -120,5 +120,8 @@ api.get('/manga/recommended', cache(CACHE_MEDIUM), handler.komikuRecommendedHand
 api.get('/manhua/:page?', cache(CACHE_SHORT), handler.komikuManhuaHandler);
 api.get('/manhwa/:page?', cache(CACHE_SHORT), handler.komikuManhwaHandler);
 api.get('/chapter/:title', cache(CACHE_LONG), handler.komikuChapterHandler);
+
+// Samehadaku Routes
+api.get('/samehadaku/home', cache(CACHE_MEDIUM), handler.samehadakuHomeHandler);
 
 export default api;

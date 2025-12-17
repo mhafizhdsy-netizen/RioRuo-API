@@ -11,13 +11,14 @@ const HEADERS = {
     'Accept': 'text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8',
 };
 
-const getHome = async () => {
+const getHome = async (page = 1) => {
     try {
-        const { data } = await axios.get(BASEURL, { headers: HEADERS });
+        const url = page && page > 1 ? `${BASEURL}/?halaman=${page}` : BASEURL;
+        const { data } = await axios.get(url, { headers: HEADERS });
         const result = scrapeHomePage(data);
         return result;
     } catch (error) {
-        console.error(`[Samehadaku] Error fetching home: ${error.message}`);
+        console.error(`[Samehadaku] Error fetching home page ${page}: ${error.message}`);
         throw error;
     }
 };

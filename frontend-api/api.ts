@@ -128,5 +128,5 @@ export const apiService = {
   getKomikuManhwa: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_MANHWA.replace(':page?', page.toString())),
   getKomikuChapter: (title: string) => fetchFromApi(ApiEndpoint.KOMIKU_CHAPTER.replace(':title', title)),
   // Samehadaku Services
-  getSamehadakuHome: () => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME),
+  getSamehadakuHome: (page = 1) => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME.replace(':page?', page.toString())),
 };

@@ -160,7 +160,7 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_RECOMMENDED) res = await apiService.getKomikuRecommended();
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_CHAPTER) res = await apiService.getKomikuChapter(chapterTitle);
       // Samehadaku
-      else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_HOME) res = await apiService.getSamehadakuHome();
+      else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_HOME) res = await apiService.getSamehadakuHome(parseInt(page));
       
       else res = await apiService.getHome();
 
@@ -280,7 +280,7 @@ export function App() {
     }
 
     // Page Inputs (Generic)
-    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG].includes(selectedEndpoint as ApiEndpoint)) {
+    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG, ApiEndpoint.SAMEHADAKU_HOME].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="pg" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Page</label>

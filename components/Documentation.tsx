@@ -348,11 +348,13 @@ const documentationData = [
     icon: <Layout size={16} />,
     endpoints: [
         {
-            path: '/v1/samehadaku/home',
+            path: '/v1/samehadaku/home/:page?',
             method: 'GET',
             description: 'Mengambil data dari halaman utama Samehadaku, termasuk rilis terbaru, rekomendasi berdasarkan tab genre, dan pagination.',
-            parameters: [],
-            example: '/samehadaku/home',
+            parameters: [
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default: 1.' }
+            ],
+            example: '/samehadaku/home/2',
             response: 'Objek JSON berisi `latestRelease`, `recommendations`, dan `pagination`.'
         }
     ]

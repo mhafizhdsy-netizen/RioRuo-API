@@ -544,7 +544,15 @@ const komikuChapterHandler = async (req, res) => {
 
 const samehadakuHomeHandler = async (req, res) => {
     try {
-        const data = await otakudesu.samehadaku.getHome();
+        const { page } = req.params;
+        if (page) {
+            if (!parseInt(page)) return res.status(400).json({ status: 'Error', message: 'The page parameter must be a number!' });
+            if (parseInt(page) < 1) return res.status(400).json({ status: 'Error', message: 'The page parameter must be greater than 0!' });
+        }
+        
+        const pageNumber = page ? parseInt(page) : 1;
+        const data = await otakudesu.samehadaku.getHome(pageNumber);
+        
         return res.status(200).json({
             status: "Ok",
             Creator: "RioRuo",

@@ -333,11 +333,13 @@ export const scrapeAnimeDetail = ($) => {
 
     // 4. LIST EPISODE
     $('.bixbox.bxcl.epcheck ul li').each((i, el) => {
+        const url = $(el).find('a').attr('href');
         result.episodes.push({
             episode_number: $(el).find('.epl-num').text().trim(),
             title: $(el).find('.epl-title').text().trim(),
             release_date: $(el).find('.epl-date').text().trim(),
-            url: $(el).find('a').attr('href')
+            slug: extractSlug(url),
+            samehadaku_url: url
         });
     });
 

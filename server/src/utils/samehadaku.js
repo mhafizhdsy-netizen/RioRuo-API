@@ -14,7 +14,11 @@ const HEADERS = {
 const getHome = async (page = 1) => {
     try {
         const url = page && page > 1 ? `${BASEURL}/page/${page}` : BASEURL;
-        const { data } = await axios.get(url, { headers: HEADERS });
+        // Added 2 minutes timeout (120000ms)
+        const { data } = await axios.get(url, { 
+            headers: HEADERS,
+            timeout: 120000 
+        });
         const result = scrapeHomePage(data);
         return result;
     } catch (error) {

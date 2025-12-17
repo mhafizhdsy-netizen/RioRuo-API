@@ -1,9 +1,9 @@
 
-// ... existing imports ...
 import React, { useState, useRef, useEffect } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
-  Layout, List, Search, Film, Grid, CalendarDays, Cloud, ChevronDown, Quote, Link, FileJson, Copy, Check, ChevronRight, Tv
+  Layout, List, Search, Film, Grid, CalendarDays, Cloud, ChevronDown, 
+  Quote, Link, FileJson, Copy, Check, ChevronRight, Tv, ChevronLeft, ArrowRight, ArrowLeft
 } from 'lucide-react';
 
 const BASE_API_URL = "https://rioruo.vercel.app/v1";
@@ -11,11 +11,10 @@ const BASE_API_URL = "https://rioruo.vercel.app/v1";
 // --- Data Definitions ---
 
 const documentationData = [
-  // ... existing sections (discovery, lists, search, details, metadata, schedule, shortlink, quotes, komiku) ...
   {
-    id: 'discovery',
-    name: 'Discovery',
-    icon: <Layout size={16} />,
+    id: 'otakudesu',
+    name: 'Otakudesu',
+    icon: <Layout size={20} />,
     endpoints: [
       {
         path: '/v1/home',
@@ -24,14 +23,7 @@ const documentationData = [
         parameters: [],
         example: '/home',
         response: 'Objek JSON berisi dua array: `ongoing_anime` dan `complete_anime`.'
-      }
-    ]
-  },
-  {
-    id: 'lists',
-    name: 'Lists',
-    icon: <List size={16} />,
-    endpoints: [
+      },
       {
         path: '/v1/ongoing-anime/:page?',
         method: 'GET',
@@ -51,14 +43,7 @@ const documentationData = [
         ],
         example: '/complete-anime/5',
         response: 'Objek JSON yang berisi `data` (array anime) dan informasi `pagination`.'
-      }
-    ]
-  },
-  {
-    id: 'search',
-    name: 'Search',
-    icon: <Search size={16} />,
-    endpoints: [
+      },
       {
         path: '/v1/search/:keyword',
         method: 'GET',
@@ -68,14 +53,7 @@ const documentationData = [
         ],
         example: '/search/jujutsu kaisen',
         response: 'Objek JSON dengan array `data` yang berisi hasil pencarian.'
-      }
-    ]
-  },
-  {
-    id: 'details',
-    name: 'Details',
-    icon: <Film size={16} />,
-    endpoints: [
+      },
       {
         path: '/v1/anime/:slug',
         method: 'GET',
@@ -136,14 +114,7 @@ const documentationData = [
         ],
         example: '/anime/1piece-sub-indo/batch',
         response: 'Objek JSON yang berisi link download batch atau pesan error 404 jika tidak ditemukan.'
-      }
-    ]
-  },
-  {
-    id: 'metadata',
-    name: 'Metadata',
-    icon: <Grid size={16} />,
-    endpoints: [
+      },
       {
         path: '/v1/genres',
         method: 'GET',
@@ -162,109 +133,48 @@ const documentationData = [
         ],
         example: '/genres/action/2',
         response: 'Objek JSON yang berisi `anime` (array anime) dan informasi `pagination`.'
-      }
-    ]
-  },
-  {
-    id: 'schedule',
-    name: 'Schedule',
-    icon: <CalendarDays size={16} />,
-    endpoints: [
-        {
-            path: '/v1/jadwal-rilis',
-            method: 'GET',
-            description: 'Mengambil jadwal rilis anime mingguan yang dikelompokkan berdasarkan hari.',
-            parameters: [],
-            example: '/jadwal-rilis',
-            response: 'Objek JSON dengan array `data`, di mana setiap elemen mewakili satu hari dan berisi daftar anime yang rilis pada hari tersebut.'
-        }
-    ]
-  },
-  {
-    id: 'shortlink',
-    name: 'Shortlink',
-    icon: <Link size={16} />,
-    endpoints: [
-      {
-        path: '/v1/vgd',
-        method: 'POST',
-        description: 'Membuat URL pendek acak menggunakan provider v.gd. Data dikirim melalui Body Request.',
-        parameters: [
-          { name: 'longUrl', type: 'string', required: true, description: 'URL asli yang ingin diperpendek (dalam JSON body).' }
-        ],
-        requestBody: {
-            longUrl: "https://google.com"
-        },
-        example: '/vgd',
-        response: 'Objek JSON berisi `originalUrl`, `shortUrl`, dan tipe.'
       },
       {
-        path: '/v1/vgd/custom',
-        method: 'POST',
-        description: 'Membuat URL pendek dengan alias kustom. Data dikirim melalui Body Request.',
-        parameters: [
-          { name: 'longUrl', type: 'string', required: true, description: 'URL asli.' },
-          { name: 'customAlias', type: 'string', required: true, description: 'Alias yang diinginkan (huruf, angka, strip).' }
-        ],
-        requestBody: {
-            longUrl: "https://google.com",
-            customAlias: "my-cool-link"
-        },
-        example: '/vgd/custom',
-        response: 'Objek JSON berisi `originalUrl`, `shortUrl`, dan tipe.'
+        path: '/v1/jadwal-rilis',
+        method: 'GET',
+        description: 'Mengambil jadwal rilis anime mingguan yang dikelompokkan berdasarkan hari.',
+        parameters: [],
+        example: '/jadwal-rilis',
+        response: 'Objek JSON dengan array `data`, di mana setiap elemen mewakili satu hari dan berisi daftar anime yang rilis pada hari tersebut.'
       }
     ]
   },
   {
-    id: 'quotes',
-    name: 'Goodreads Quotes',
-    icon: <Quote size={16} />,
+    id: 'samehadaku',
+    name: 'Samehadaku',
+    icon: <Tv size={20} />,
     endpoints: [
         {
-            path: '/v1/quotes',
+            path: '/v1/samehadaku/home/:page?',
             method: 'GET',
-            description: 'Mengambil daftar quote populer dari Goodreads (Halaman 1 Default).',
-            parameters: [],
-            example: '/quotes',
-            response: 'Objek JSON berisi array `quotes`.'
+            description: 'Mengambil data dari halaman utama Samehadaku, termasuk rilis terbaru, rekomendasi berdasarkan tab genre, dan pagination.',
+            parameters: [
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default: 1.' }
+            ],
+            example: '/samehadaku/home/2',
+            response: 'Objek JSON berisi `latestRelease`, `recommendations`, dan `pagination`.'
         },
         {
-            path: '/v1/quotes/:page',
+            path: '/v1/samehadaku/anime/:slug',
             method: 'GET',
-            description: 'Mengambil daftar quote populer dari Goodreads dengan spesifikasi halaman.',
+            description: 'Mengambil detail lengkap anime dari Samehadaku, termasuk sinopsis, karakter, episode, dan rekomendasi. Gunakan slug yang tidak ada teks episodenya.',
             parameters: [
-                { name: ':page', type: 'number', required: true, description: 'Nomor halaman.' }
+                { name: ':slug', type: 'string', required: true, description: 'Slug anime.' }
             ],
-            example: '/quotes/2',
-            response: 'Objek JSON berisi array `quotes`.'
-        },
-        {
-            path: '/v1/quotes/tag/:tag',
-            method: 'GET',
-            description: 'Mengambil daftar quote berdasarkan tag tertentu (Halaman 1 Default).',
-            parameters: [
-                { name: ':tag', type: 'string', required: true, description: 'Tag quote (misal: "love", "life").' }
-            ],
-            example: '/quotes/tag/love',
-            response: 'Objek JSON berisi array `quotes`.'
-        },
-        {
-            path: '/v1/quotes/tag/:tag/:page',
-            method: 'GET',
-            description: 'Mengambil daftar quote berdasarkan tag dengan spesifikasi halaman.',
-            parameters: [
-                { name: ':tag', type: 'string', required: true, description: 'Tag quote.' },
-                { name: ':page', type: 'number', required: true, description: 'Nomor halaman.' }
-            ],
-            example: '/quotes/tag/love/2',
-            response: 'Objek JSON berisi array `quotes`.'
+            example: '/samehadaku/anime/gachiakuta',
+            response: 'Objek JSON berisi detail anime.'
         }
     ]
   },
   {
     id: 'komiku',
     name: 'Komiku',
-    icon: <BookOpen size={16} />,
+    icon: <BookOpen size={20} />,
     endpoints: [
         {
             path: '/v1/manga/page/:page?',
@@ -345,36 +255,90 @@ const documentationData = [
     ]
   },
   {
-    id: 'samehadaku',
-    name: 'Samehadaku',
-    icon: <Layout size={16} />,
+    id: 'quotes',
+    name: 'Goodreads Quotes',
+    icon: <Quote size={20} />,
     endpoints: [
         {
-            path: '/v1/samehadaku/home/:page?',
+            path: '/v1/quotes',
             method: 'GET',
-            description: 'Mengambil data dari halaman utama Samehadaku, termasuk rilis terbaru, rekomendasi berdasarkan tab genre, dan pagination.',
-            parameters: [
-                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default: 1.' }
-            ],
-            example: '/samehadaku/home/2',
-            response: 'Objek JSON berisi `latestRelease`, `recommendations`, dan `pagination`.'
+            description: 'Mengambil daftar quote populer dari Goodreads (Halaman 1 Default).',
+            parameters: [],
+            example: '/quotes',
+            response: 'Objek JSON berisi array `quotes`.'
         },
         {
-            path: '/v1/samehadaku/anime/:slug',
+            path: '/v1/quotes/:page',
             method: 'GET',
-            description: 'Mengambil detail lengkap anime dari Samehadaku, termasuk sinopsis, karakter, episode, dan rekomendasi.',
+            description: 'Mengambil daftar quote populer dari Goodreads dengan spesifikasi halaman.',
             parameters: [
-                { name: ':slug', type: 'string', required: true, description: 'Slug anime.' }
+                { name: ':page', type: 'number', required: true, description: 'Nomor halaman.' }
             ],
-            example: '/samehadaku/anime/dandadan',
-            response: 'Objek JSON berisi detail anime.'
+            example: '/quotes/2',
+            response: 'Objek JSON berisi array `quotes`.'
+        },
+        {
+            path: '/v1/quotes/tag/:tag',
+            method: 'GET',
+            description: 'Mengambil daftar quote berdasarkan tag tertentu (Halaman 1 Default).',
+            parameters: [
+                { name: ':tag', type: 'string', required: true, description: 'Tag quote (misal: "love", "life").' }
+            ],
+            example: '/quotes/tag/love',
+            response: 'Objek JSON berisi array `quotes`.'
+        },
+        {
+            path: '/v1/quotes/tag/:tag/:page',
+            method: 'GET',
+            description: 'Mengambil daftar quote berdasarkan tag dengan spesifikasi halaman.',
+            parameters: [
+                { name: ':tag', type: 'string', required: true, description: 'Tag quote.' },
+                { name: ':page', type: 'number', required: true, description: 'Nomor halaman.' }
+            ],
+            example: '/quotes/tag/love/2',
+            response: 'Objek JSON berisi array `quotes`.'
         }
+    ]
+  },
+  {
+    id: 'shortlink',
+    name: 'Shortlink',
+    icon: <Link size={20} />,
+    endpoints: [
+      {
+        path: '/v1/vgd',
+        method: 'POST',
+        description: 'Membuat URL pendek acak menggunakan provider v.gd. Data dikirim melalui Body Request.',
+        parameters: [
+          { name: 'longUrl', type: 'string', required: true, description: 'URL asli yang ingin diperpendek (dalam JSON body).' }
+        ],
+        requestBody: {
+            longUrl: "https://google.com"
+        },
+        example: '/vgd',
+        response: 'Objek JSON berisi `originalUrl`, `shortUrl`, dan tipe.'
+      },
+      {
+        path: '/v1/vgd/custom',
+        method: 'POST',
+        description: 'Membuat URL pendek dengan alias kustom. Data dikirim melalui Body Request.',
+        parameters: [
+          { name: 'longUrl', type: 'string', required: true, description: 'URL asli.' },
+          { name: 'customAlias', type: 'string', required: true, description: 'Alias yang diinginkan (huruf, angka, strip).' }
+        ],
+        requestBody: {
+            longUrl: "https://google.com",
+            customAlias: "my-cool-link"
+        },
+        example: '/vgd/custom',
+        response: 'Objek JSON berisi `originalUrl`, `shortUrl`, dan tipe.'
+      }
     ]
   },
   {
     id: 'weather',
     name: 'Weather',
-    icon: <Cloud size={16} />,
+    icon: <Cloud size={20} />,
     endpoints: [
         {
             path: '/v1/weather/:location',
@@ -423,11 +387,6 @@ const documentationData = [
   }
 ];
 
-// ... rest of file ... (generateSnippet, RequestExample, etc - no changes needed below this point)
-// Note: To preserve file length limits, assuming rest of file is unchanged as typical in diff updates.
-// Ideally, the full file content should be returned if significant parts are changed, but here 
-// only the documentationData object was updated. I will return the full file content to ensure consistency.
-
 // --- Types & Helper Components ---
 
 type Endpoint = typeof documentationData[number]['endpoints'][number] & { requestBody?: any };
@@ -449,15 +408,12 @@ const languages = {
 };
 
 const generateSnippet = (lang: string, lib: string, endpoint: Endpoint) => {
-  // Safe replace for example URL
   const examplePath = endpoint.example ? endpoint.example.replace('/v1', '') : '';
   const fullUrl = `${BASE_API_URL}${examplePath}`;
   const method = endpoint.method;
   const body = endpoint.requestBody ? JSON.stringify(endpoint.requestBody, null, 2) : null;
   const bodyOneLine = endpoint.requestBody ? JSON.stringify(endpoint.requestBody) : null;
 
-  // Defensive Check: Ensure the requested library belongs to the requested language
-  // This prevents crashes during rapid tab switching where state might be momentarily out of sync
   if (!languages[lang as keyof typeof languages]?.includes(lib)) {
       return `// Loading snippet for ${lang}...`;
   }
@@ -756,7 +712,7 @@ let postData = parameters.data(using: .utf8)
 
 var request = URLRequest(url: URL(string: "${fullUrl}")!,timeoutInterval: Double.infinity)
 request.httpMethod = "${method}"
-${method === 'POST' ? `request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+${method === 'POST' ? `request.addValue("application/json", forHeaderField: "Content-Type")
 request.httpBody = postData` : ''}
 
 let task = URLSession.shared.dataTask(with: request) { data, response, error in 
@@ -784,25 +740,19 @@ const RequestExample: React.FC<{ endpoint: Endpoint }> = ({ endpoint }) => {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
-  // FIX: Instead of useEffect which causes a render race condition,
-  // we update the Library immediately when Language changes.
   const handleLangChange = (lang: string) => {
     setActiveLang(lang);
-    // Reset library to the first one available for this language immediately
     setActiveLib(languages[lang as keyof typeof languages][0]);
   };
 
-  // Close dropdown when clicking outside
-  React.useEffect(() => {
+  useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
         setIsDropdownOpen(false);
       }
     };
     document.addEventListener("mousedown", handleClickOutside);
-    return () => {
-      document.removeEventListener("mousedown", handleClickOutside);
-    };
+    return () => document.removeEventListener("mousedown", handleClickOutside);
   }, []);
 
   const code = generateSnippet(activeLang, activeLib, endpoint);
@@ -832,7 +782,6 @@ const RequestExample: React.FC<{ endpoint: Endpoint }> = ({ endpoint }) => {
           ))}
         </div>
         <div className="flex items-center gap-2 pr-2">
-           {/* Custom Styled Dropdown for Library/Variant */}
            <div className="relative" ref={dropdownRef}>
               <button 
                 onClick={() => setIsDropdownOpen(!isDropdownOpen)}
@@ -884,10 +833,10 @@ const RequestExample: React.FC<{ endpoint: Endpoint }> = ({ endpoint }) => {
             __html: code
               .replace(/</g, '&lt;')
               .replace(/>/g, '&gt;')
-              .replace(/("(?:[^"\\]|\\.)*")/g, '<span class="text-orange-300">$1</span>') // strings
-              .replace(/\b(curl|fetch|const|var|let|import|from|class|function|return|if|else|true|false|null|await|async|new|void|int|public|private)\b/g, '<span class="text-purple-400">$1</span>') // keywords
-              .replace(/\b(GET|POST)\b/g, '<span class="text-blue-400 font-bold">$1</span>') // methods
-              .replace(/(\/\/.*)/g, '<span class="text-zinc-500 italic">$1</span>') // comments
+              .replace(/("(?:[^"\\]|\\.)*")/g, '<span class="text-orange-300">$1</span>')
+              .replace(/\b(curl|fetch|const|var|let|import|from|class|function|return|if|else|true|false|null|await|async|new|void|int|public|private)\b/g, '<span class="text-purple-400">$1</span>')
+              .replace(/\b(GET|POST)\b/g, '<span class="text-blue-400 font-bold">$1</span>')
+              .replace(/(\/\/.*)/g, '<span class="text-zinc-500 italic">$1</span>')
           }} />
         </pre>
       </div>
@@ -927,7 +876,6 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
         </>
       )}
 
-      {/* Render Request Body if it exists (For POST requests), BUT HIDE for VGD endpoints as requested */}
       {endpoint.requestBody && !endpoint.path.includes('/vgd') && (
         <div className="mb-5">
             <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><FileJson size={14}/> Request Body (JSON)</h4>
@@ -940,7 +888,6 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
         </div>
       )}
 
-      {/* Request Code Generator Section */}
       <div className="mb-6">
          <h4 className="text-sm font-bold text-zinc-300 flex items-center gap-2"><Code size={14}/> Request Example</h4>
          <RequestExample endpoint={endpoint} />
@@ -961,337 +908,103 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
 );
 
 export function Documentation() {
-  const [activeSection, setActiveSection] = useState(documentationData[0].id);
-  const [isOtakudesuExpanded, setOtakudesuExpanded] = useState(true);
-  const [isWeatherExpanded, setWeatherExpanded] = useState(false);
-  const [isKomikuExpanded, setKomikuExpanded] = useState(false);
-  const [isQuotesExpanded, setQuotesExpanded] = useState(false);
-  const [isShortlinkExpanded, setIsShortlinkExpanded] = useState(false);
-  const [isSamehadakuExpanded, setIsSamehadakuExpanded] = useState(false);
-  const mainContentRef = useRef<HTMLDivElement>(null);
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const activeSection = documentationData[currentIndex];
 
-  const otakudesuDocs = documentationData.filter(sect => !['weather', 'komiku', 'quotes', 'shortlink', 'samehadaku'].includes(sect.id));
-  const weatherDocs = documentationData.filter(sect => sect.id === 'weather');
-  const komikuDocs = documentationData.filter(sect => sect.id === 'komiku');
-  const quoteDocs = documentationData.filter(sect => sect.id === 'quotes');
-  const shortlinkDocs = documentationData.filter(sect => sect.id === 'shortlink');
-  const samehadakuDocs = documentationData.filter(sect => sect.id === 'samehadaku');
+  const handleNext = () => {
+    if (currentIndex < documentationData.length - 1) {
+      setCurrentIndex(currentIndex + 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  };
 
-  useEffect(() => {
-    const handleScroll = () => {
-      const mainNode = mainContentRef.current;
-      if (!mainNode) return;
-
-      let currentSectionId = activeSection;
-      for (const section of documentationData) {
-        const element = document.getElementById(section.id);
-        if (element) {
-          const rect = element.getBoundingClientRect();
-          // Check if section is in the top part of the viewport
-          if (rect.top >= 0 && rect.top < 150) {
-            currentSectionId = section.id;
-            break;
-          }
-        }
-      }
-      setActiveSection(currentSectionId);
-    };
-
-    const mainEl = mainContentRef.current;
-    mainEl?.addEventListener('scroll', handleScroll);
-    return () => mainEl?.removeEventListener('scroll', handleScroll);
-  }, [activeSection]);
-  
-  const scrollToSection = (id: string) => {
-    const element = document.getElementById(id);
-    if (element) {
-      element.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      setActiveSection(id);
+  const handlePrev = () => {
+    if (currentIndex > 0) {
+      setCurrentIndex(currentIndex - 1);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     }
   };
 
   return (
-    <div className="max-w-6xl mx-auto w-full flex flex-col md:flex-row gap-8 animate-in fade-in duration-300">
-      {/* Sidebar */}
-      <aside className="md:w-1/4 md:sticky md:top-20 self-start">
-         <div className="p-1 bg-surface border border-border rounded-xl">
-           <h3 className="flex items-center gap-2 text-sm font-bold text-white p-3"><BookOpen size={16} className="text-primary"/> API Endpoints</h3>
-           <nav className="flex flex-col gap-1 p-2">
-            
-            {/* Otakudesu Group Wrapper */}
-            <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setOtakudesuExpanded(!isOtakudesuExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isOtakudesuExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-1 h-4 rounded-full transition-colors ${isOtakudesuExpanded ? 'bg-primary' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
-                    <span>Otakudesu</span>
-                  </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isOtakudesuExpanded ? 'rotate-180 text-primary' : ''}`} 
-                  />
-                </button>
+    <div className="max-w-4xl mx-auto w-full pb-20 px-4 animate-in fade-in duration-500">
+      {/* Page Header */}
+      <div className="mb-12 pt-8 text-center md:text-left">
+          <h1 className="text-4xl font-black text-white flex items-center justify-center md:justify-start gap-4">
+            <span className="p-3 bg-primary/10 rounded-2xl text-primary border border-primary/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
+              {activeSection.icon}
+            </span>
+            {activeSection.name}
+          </h1>
+          <p className="text-zinc-400 mt-4 text-lg max-w-2xl">
+            Panduan lengkap untuk menggunakan endpoint <span className="text-primary font-bold">{activeSection.name}</span>. Semua endpoint mengembalikan respons dalam format JSON standar.
+          </p>
+      </div>
 
-                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isOtakudesuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
-                    {otakudesuDocs.map(section => (
-                      <button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
-                          activeSection === section.id
-                            ? 'bg-primary/10 text-primary border border-primary/20'
-                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`transition-colors ${activeSection === section.id ? 'text-primary' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           {section.icon}
-                        </div>
-                        <span>{section.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-            </div>
-
-            {/* Samehadaku Group Wrapper */}
-            <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setIsSamehadakuExpanded(!isSamehadakuExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isSamehadakuExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-1 h-4 rounded-full transition-colors ${isSamehadakuExpanded ? 'bg-red-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
-                    <span>Samehadaku</span>
-                  </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isSamehadakuExpanded ? 'rotate-180 text-red-500' : ''}`} 
-                  />
-                </button>
-
-                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isSamehadakuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
-                    {samehadakuDocs.map(section => (
-                      <button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
-                          activeSection === section.id
-                            ? 'bg-red-500/10 text-red-500 border border-red-500/20'
-                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`transition-colors ${activeSection === section.id ? 'text-red-500' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           {section.icon}
-                        </div>
-                        <span>{section.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-            </div>
-
-            {/* Komiku Group Wrapper */}
-            <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setKomikuExpanded(!isKomikuExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isKomikuExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-1 h-4 rounded-full transition-colors ${isKomikuExpanded ? 'bg-warning' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
-                    <span>Komiku</span>
-                  </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isKomikuExpanded ? 'rotate-180 text-warning' : ''}`} 
-                  />
-                </button>
-
-                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isKomikuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
-                    {komikuDocs.map(section => (
-                      <button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
-                          activeSection === section.id
-                            ? 'bg-warning/10 text-warning border border-warning/20'
-                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`transition-colors ${activeSection === section.id ? 'text-warning' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           {section.icon}
-                        </div>
-                        <span>{section.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-            </div>
-
-            {/* Quotes Group Wrapper */}
-            <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setQuotesExpanded(!isQuotesExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isQuotesExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-1 h-4 rounded-full transition-colors ${isQuotesExpanded ? 'bg-purple-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
-                    <span>Quotes</span>
-                  </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isQuotesExpanded ? 'rotate-180 text-purple-500' : ''}`} 
-                  />
-                </button>
-
-                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isQuotesExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
-                    {quoteDocs.map(section => (
-                      <button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
-                          activeSection === section.id
-                            ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20'
-                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`transition-colors ${activeSection === section.id ? 'text-purple-500' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           {section.icon}
-                        </div>
-                        <span>{section.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-            </div>
-
-            {/* Shortlink Group Wrapper */}
-            <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setIsShortlinkExpanded(!isShortlinkExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isShortlinkExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-1 h-4 rounded-full transition-colors ${isShortlinkExpanded ? 'bg-orange-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
-                    <span>Shortlink</span>
-                  </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isShortlinkExpanded ? 'rotate-180 text-orange-500' : ''}`} 
-                  />
-                </button>
-
-                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isShortlinkExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
-                    {shortlinkDocs.map(section => (
-                      <button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
-                          activeSection === section.id
-                            ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20'
-                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`transition-colors ${activeSection === section.id ? 'text-orange-500' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           {section.icon}
-                        </div>
-                        <span>{section.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-            </div>
-
-            {/* Weather Group Wrapper */}
-            <div className="space-y-1">
-                <button 
-                  onClick={() => setWeatherExpanded(!isWeatherExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isWeatherExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
-                  <div className="flex items-center gap-3">
-                    <div className={`w-1 h-4 rounded-full transition-colors ${isWeatherExpanded ? 'bg-info' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
-                    <span>Weather</span>
-                  </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isWeatherExpanded ? 'rotate-180 text-info' : ''}`} 
-                  />
-                </button>
-
-                <div className={`grid transition-all duration-300 ease-in-out pl-4 ${isWeatherExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
-                  <div className="overflow-hidden border-l border-white/5 ml-2 pl-2 pt-1 space-y-1">
-                    {weatherDocs.map(section => (
-                      <button
-                        key={section.id}
-                        onClick={() => scrollToSection(section.id)}
-                        className={`flex items-center gap-3 w-full text-left px-3 py-2 rounded-lg text-xs transition-colors font-mono group ${
-                          activeSection === section.id
-                            ? 'bg-info/10 text-info border border-info/20'
-                            : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                        }`}
-                      >
-                        <div className={`transition-colors ${activeSection === section.id ? 'text-info' : 'text-zinc-500 group-hover:text-zinc-300'}`}>
-                           {section.icon}
-                        </div>
-                        <span>{section.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-            </div>
-
-           </nav>
-         </div>
-      </aside>
-
-      {/* Main Content */}
-      <main ref={mainContentRef} className="md:w-3/4 md:max-h-[calc(100vh-120px)] overflow-y-auto custom-scrollbar pr-2">
-        <div className="mb-8">
-            <h1 className="text-3xl font-bold text-white">API Documentation</h1>
-            <p className="text-zinc-400 mt-2">Panduan lengkap untuk menggunakan RioRuo API. Semua endpoint mengembalikan respons dalam format JSON.</p>
+      {/* Main Content Area */}
+      <main key={activeSection.id} className="animate-in slide-in-from-bottom-4 duration-500">
+        <div className="space-y-4">
+          {activeSection.endpoints.map(endpoint => (
+            <EndpointCard key={endpoint.path} endpoint={endpoint} />
+          ))}
         </div>
-        
-        {documentationData.map(section => (
-          <section key={section.id} id={section.id} className="pt-4 mb-8">
-            <h2 className="text-xl font-bold text-white mb-4 pb-2 border-b-2 border-primary/20 flex items-center gap-3">
-                {section.icon} {section.name}
-            </h2>
-            {section.endpoints.map(endpoint => (
-              <EndpointCard key={endpoint.path} endpoint={endpoint} />
-            ))}
-          </section>
-        ))}
       </main>
+
+      {/* Pagination Navigation */}
+      <div className="mt-16 pt-8 border-t border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-4">
+        {/* Previous Button */}
+        <div>
+          {currentIndex > 0 ? (
+            <button 
+              onClick={handlePrev}
+              className="group w-full flex flex-col items-start gap-2 p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 hover:bg-surfaceLight transition-all duration-300 text-left"
+            >
+              <div className="flex items-center gap-2 text-zinc-500 group-hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest">
+                <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
+                Previous Group
+              </div>
+              <span className="text-white font-bold text-xl">{documentationData[currentIndex - 1].name}</span>
+            </button>
+          ) : <div />}
+        </div>
+
+        {/* Next Button */}
+        <div>
+          {currentIndex < documentationData.length - 1 ? (
+            <button 
+              onClick={handleNext}
+              className="group w-full flex flex-col items-end gap-2 p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 hover:bg-surfaceLight transition-all duration-300 text-right"
+            >
+              <div className="flex items-center gap-2 text-zinc-500 group-hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest">
+                Next Group
+                <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
+              </div>
+              <span className="text-white font-bold text-xl">{documentationData[currentIndex + 1].name}</span>
+            </button>
+          ) : (
+            <div className="w-full h-full flex items-center justify-center p-6 rounded-2xl bg-primary/5 border border-primary/20 border-dashed text-primary/60 font-mono text-sm uppercase tracking-widest">
+               End of Documentation
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* Progress Indicator */}
+      <div className="mt-12 flex justify-center items-center gap-3">
+        {documentationData.map((_, idx) => (
+          <button
+            key={idx}
+            onClick={() => {
+              setCurrentIndex(idx);
+              window.scrollTo({ top: 0, behavior: 'smooth' });
+            }}
+            className={`h-1.5 rounded-full transition-all duration-300 ${
+              idx === currentIndex 
+                ? 'w-8 bg-primary shadow-[0_0_10px_rgba(16,185,129,0.5)]' 
+                : 'w-1.5 bg-zinc-800 hover:bg-zinc-600'
+            }`}
+          />
+        ))}
+      </div>
     </div>
   );
 }

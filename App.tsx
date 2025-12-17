@@ -82,7 +82,7 @@ export function App() {
   const [apiStatus, setApiStatus] = useState<'online' | 'offline' | 'checking'>('checking');
   const [toasts, setToasts] = useState<{ id: string; message: string }[]>([]);
 
-  const LOGO_URL = "data:image/svg+xml;base64,PHN2ZyB4bWxucz0iaHR0cDovL3d3dy53My5vcmcvMjAwMC9zdmciIHZpZXdCb3g9IjAgMCA1MTIgNTEyIj48cmVjdCB3aWR0aD0iNTEyIiBoZWlnaHQ9IjUxMiIgcng9IjEwMCIgZmlsbD0iIzEwYjk4MSIvPjx0ZXh0IHg9IjUwJSIgeT0iNTAlIiBkb21pbmFudC1iYXNlbGluZT0ibWlkZGxlIiB0ZXh0LWFuY2hvcj0ibWlkZGxlIiBmaWxsPSJ3aGl0ZSIgZm9udC1mYW1pbHk9Im1vbm9zcGFjZSIgZm9udC1zaXplPSIyNTAiIGZvbnQtd2VpZ2h0PSJib2xkIj5SUjwvdGV4dD48L3N2Zz4=";
+  const LOGO_URL = "/logo.png";
 
   // API Status Check
   const checkApiStatus = async () => {
@@ -421,7 +421,7 @@ export function App() {
                <img 
                   src={LOGO_URL}
                   alt="RioRuo Logo" 
-                  className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.6)] mix-blend-screen" 
+                  className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" 
                />
                <div>
                  <h2 className="font-bold text-white text-sm tracking-tight">RioRuo API</h2>
@@ -854,7 +854,7 @@ export function App() {
           <img 
             src={LOGO_URL}
             alt="RioRuo Logo" 
-            className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.6)] mix-blend-screen" 
+            className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" 
           />
         </div>
         <div className="flex items-center gap-4">
@@ -969,7 +969,7 @@ export function App() {
                 <img 
                   src={LOGO_URL}
                   alt="RioRuo Logo" 
-                  className="w-5 h-5 rounded-md mix-blend-screen" 
+                  className="w-5 h-5 rounded-md" 
                 />
                 <span className="font-bold tracking-tight">RioRuo API</span>
               </div>

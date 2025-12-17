@@ -13,11 +13,13 @@ export const scrapeLatestRelease = (html) => {
   $('.listupd .excstf article.bs').each((index, element) => {
     const $el = $(element);
 
-    // Data extraction
-    const title = $el.find('.bsx .tt').first().contents().filter(function() {
+    // Title is the text node inside .tt, excluding the <h2> child
+    const title = $el.find('.bsx .tt').contents().filter(function() {
       return this.type === 'text';
     }).text().trim();
 
+    // URL: https://samehadaku.li/slug-episode-1/
+    // Split: ['https:', 'samehadaku.li', 'slug-episode-1'] -> Index 2
     const slug = $el.find('.bsx a').attr('href')?.split('/').filter(Boolean)[2] || null;
     
     const thumbnail = $el.find('.bsx a .limit img').attr('src') || null;
@@ -100,32 +102,32 @@ export const scrapeRecommendations = (html) => {
     $tab.find('article.bs').each((idx, article) => {
       const $article = $(article);
 
-      const title = $article.find('.bsx .tt').first().contents().filter(function() {
+      const title = $article.find('.bsx .tt').contents().filter(function() {
         return this.type === 'text';
       }).text().trim();
 
-      const slug = $article.find('.bsx a').attr('href')?.split('/').filter(Boolean)[2] || null;
+      // URL: https://samehadaku.li/anime/slug/
+      // Split: ['https:', 'samehadaku.li', 'anime', 'slug'] -> Index 3
+      const slug = $article.find('.bsx a').attr('href')?.split('/').filter(Boolean)[3] || null;
 
       const thumbnail = $article.find('.bsx a .limit img').attr('src') || null;
 
+      // In recommendations, .epx often holds status like "Completed" or "Ongoing"
       const statusEp = $article.find('.bsx a .limit .bt .epx').text().trim();
+      const statusTag = $article.find('.bsx a .limit .status').text().trim();
       
       const type = $article.find('.bsx a .limit .typez').text().trim();
 
       const subOrDub = $article.find('.bsx a .limit .bt .sb').text().trim();
 
-      // Extract genres from title attribute or other sources if available
-      const genres = [];
-      const genreText = $article.find('.bsx .tt span b').text();
-      if (genreText) {
-        genres.push(...genreText.split(',').map(g => g.trim()));
-      }
+      // Genres are NOT available in the card structure for .series-gen based on home.html.txt
+      const genres = []; 
 
       animeList.push({
         title,
         slug,
         thumbnail,
-        status: statusEp,
+        status: statusTag || statusEp,
         type,
         subOrDub,
         genres,

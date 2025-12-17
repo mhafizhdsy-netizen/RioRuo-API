@@ -3,7 +3,7 @@ import axios from 'axios';
 import { scrapeHomePage } from '../lib/scrapeSamehadaku.js';
 
 // Base URL for Samehadaku - adjust as needed if domain changes
-const BASEURL = process.env.SAMEHADAKU_URL || 'https://samehadaku.email'; 
+const BASEURL = process.env.SAMEHADAKU_URL || 'https://samehadaku.li'; 
 
 // Headers to mimic a real browser request
 const HEADERS = {

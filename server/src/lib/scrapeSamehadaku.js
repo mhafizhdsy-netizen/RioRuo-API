@@ -2,6 +2,23 @@
 import { load } from 'cheerio';
 
 /**
+ * Helper to extract slug from URL
+ * Handles:
+ * - https://samehadaku.li/anime/slug/
+ * - https://samehadaku.li/slug-episode-1/
+ * - https://samehadaku.li/movie-slug/
+ */
+const extractSlug = (url) => {
+  if (!url) return null;
+  // Remove protocol and domain
+  let path = url.replace(/^(?:https?:\/\/)?[^\/]+/, '');
+  // Remove /anime/ prefix if present
+  path = path.replace(/^\/anime\//, '/');
+  // Remove leading and trailing slashes
+  return path.replace(/^\/|\/$/g, '');
+};
+
+/**
  * Scrape Latest Release Anime
  * CSS Selector: .listupd .excstf article.bs
  */
@@ -18,9 +35,8 @@ export const scrapeLatestRelease = (html) => {
       return this.type === 'text';
     }).text().trim();
 
-    // URL: https://samehadaku.li/slug-episode-1/
-    // Split: ['https:', 'samehadaku.li', 'slug-episode-1'] -> Index 2
-    const slug = $el.find('.bsx a').attr('href')?.split('/').filter(Boolean)[2] || null;
+    const href = $el.find('.bsx a').attr('href');
+    const slug = extractSlug(href);
     
     const thumbnail = $el.find('.bsx a .limit img').attr('src') || null;
     
@@ -106,9 +122,8 @@ export const scrapeRecommendations = (html) => {
         return this.type === 'text';
       }).text().trim();
 
-      // URL: https://samehadaku.li/anime/slug/
-      // Split: ['https:', 'samehadaku.li', 'anime', 'slug'] -> Index 3
-      const slug = $article.find('.bsx a').attr('href')?.split('/').filter(Boolean)[3] || null;
+      const href = $article.find('.bsx a').attr('href');
+      const slug = extractSlug(href);
 
       const thumbnail = $article.find('.bsx a .limit img').attr('src') || null;
 

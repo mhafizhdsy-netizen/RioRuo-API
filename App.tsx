@@ -978,4 +978,22 @@ export function App() {
                 />
                 <span className="font-bold tracking-tight">RioRuo API</span>
               </div>
-              <p className
+              <p className="text-xs text-zinc-500 font-mono flex items-center gap-1">
+                &copy; {new Date().getFullYear()} Developed with <Heart size={10} className="text-error fill-error animate-pulse" /> by <span className="text-primary font-bold">Rio</span>
+              </p>
+            </div>
+          </div>
+        </footer>
+      </main>
+
+      {/* Toast Container */}
+      <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
+        {toasts.map((toast) => (
+          <div key={toast.id} className="pointer-events-auto">
+             <Toast id={toast.id} message={toast.message} onRemove={removeToast} />
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}

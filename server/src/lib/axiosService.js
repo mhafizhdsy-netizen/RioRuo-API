@@ -2,9 +2,6 @@
 import axios from "axios";
 import { baseUrl } from "../constants/urls.js";
 
-// DO NOT set global defaults here, it affects other modules (like Animasu)
-// axios.defaults.baseURL = baseUrl; 
-
 const AxiosService = async (url) => {
   return new Promise(async (resolve, reject) => {
     const _url = url == null ? url : encodeURI(url);

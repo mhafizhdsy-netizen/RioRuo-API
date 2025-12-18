@@ -6,6 +6,12 @@ const extractSlugFromUrl = (url) => {
   return url.replace(/https?:\/\/[^\/]+/, '').replace(/^\/|\/$/g, '');
 };
 
+const extractAnimeSlug = (url) => {
+  if (!url) return '';
+  // Menghilangkan protocol, domain, dan prefix /anime/ untuk mendapatkan slug series murni
+  return url.replace(/https?:\/\/[^\/]+\/anime\//, '').replace(/^\/|\/$/g, '');
+};
+
 const scrapeSamehadakuStream = (html) => {
   const $ = load(html);
   
@@ -111,7 +117,7 @@ const scrapeSamehadakuStream = (html) => {
     downloadUrl = $('a[aria-label*="ownload" i]').first().attr('href') || '';
   }
 
-  // Recommended Anime Logic - Sanitized keys
+  // Recommended Anime Logic - Sanitized keys and separate slug extraction
   const recommendedAnime = [];
   $('.bixbox').each(function() {
     const headingText = $(this).find('.releases h3').text().trim();
@@ -127,7 +133,7 @@ const scrapeSamehadakuStream = (html) => {
         recommendedAnime.push({
           title: $tt.find('h2').text().trim(),
           url: url,
-          slug: extractSlugFromUrl(url),
+          slug: extractAnimeSlug(url),
           thumbnail: $img.attr('src') || '',
           status: $limit.find('.status').text().trim(),
           type: $limit.find('.typez').text().trim(),

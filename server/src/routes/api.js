@@ -1,4 +1,3 @@
-
 import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
@@ -8,7 +7,6 @@ import handler from '../handler/handler.js';
 const api = Router();
 const cache = apicache.middleware;
 
-// Helper for consistency cache duration
 const CACHE_SHORT = '5 minutes';   
 const CACHE_MEDIUM = '30 minutes'; 
 const CACHE_LONG = '1 hour';       
@@ -24,34 +22,15 @@ api.get('/health', (_, res) => {
       const df = execSync('df -h /').toString();
       const lines = df.trim().split('\n');
       const parts = lines[1].split(/\s+/);
-      diskInfo = {
-        size: parts[1],
-        used: parts[2],
-        avail: parts[3],
-        usePercent: parts[4],
-        mount: parts[5],
-      };
+      diskInfo = { size: parts[1], used: parts[2], avail: parts[3], usePercent: parts[4], mount: parts[5] };
     } catch {
-      diskInfo = { error: 'Disk info unavailable (df command failed)' };
+      diskInfo = { error: 'Disk info unavailable' };
     }
-    res.status(200).json({
-      status: 'OK',
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-      system: {
-        ram: { totalGB: totalMem.toFixed(2), freeGB: freeMem.toFixed(2) },
-        os: { platform, release, arch },
-        disk: diskInfo,
-      },
-    });
+    res.status(200).json({ status: 'OK', uptime: process.uptime(), timestamp: new Date().toISOString(), system: { ram: { totalGB: totalMem.toFixed(2), freeGB: freeMem.toFixed(2) }, os: { platform, release, arch }, disk: diskInfo } });
 });
 
 api.get('/', (_, res) => {
-    res.status(200).json({
-      status: 'OK',
-      Creator: 'RioRuo',
-      Message: "Welcome to RioRuo API. Use /health for system status.",
-    });
+    res.status(200).json({ status: 'OK', Creator: 'RioRuo', Message: "Welcome to RioRuo API." });
 });
 
 api.get('/home', cache(CACHE_MEDIUM), handler.homeHandler);
@@ -76,14 +55,8 @@ api.get('/weather/ascii/:location', cache(CACHE_SHORT), handler.weatherAsciiHand
 api.get('/weather/quick/:location', cache(CACHE_SHORT), handler.weatherQuickHandler);
 api.get('/weather/png/:location', cache(CACHE_SHORT), handler.weatherPngHandler);
 
-api.get('/quote/quotes*', (req, res) => {
-    const newUrl = req.originalUrl.replace('/quote/quotes', '/v1/quotes');
-    res.redirect(301, newUrl);
-});
-api.get('/quotes/tag/:tag', cache(CACHE_SHORT), handler.quotesByTagHandler);
-api.get('/quotes/tag/:tag/:page', cache(CACHE_SHORT), handler.quotesByTagHandler);
-api.get('/quotes', cache(CACHE_SHORT), handler.quotesHandler);
-api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
+api.get('/quotes/tag/:tag/:page?', cache(CACHE_SHORT), handler.quotesByTagHandler);
+api.get('/quotes/:page?', cache(CACHE_SHORT), handler.quotesHandler);
 
 api.post('/vgd', handler.vgdHandler);
 api.post('/vgd/custom', handler.vgdCustomHandler);

@@ -64,7 +64,7 @@ const scrapeSamehadakuStream = (html) => {
         dataIndex: $this.attr('data-index') || ''
       });
     }
-  });
+ });
 
   // Main Embed
   const mainEmbed = $('#embed_holder iframe').attr('src') || '';
@@ -97,21 +97,23 @@ const scrapeSamehadakuStream = (html) => {
     nextUrl: nextLink.attr('href') || null
   };
 
-  // --- LOGIKA DOWNLOADURL DENGAN .FIND() ---
+  // --- LOGIKA DOWNLOADURL DITINGKATKAN ---
   let downloadUrl = '';
-  const $iconx = $('.iconx');
+  // Cari di dalam .iconx untuk link yang punya kata 'download' di aria-label atau di dalam teksnya
+  $('.iconx a').each(function() {
+    const $link = $(this);
+    const ariaLabel = ($link.attr('aria-label') || '').toLowerCase();
+    const linkText = $link.text().toLowerCase();
+    
+    if (ariaLabel.includes('Download') || linkText.includes('download')) {
+      downloadUrl = $link.attr('href') || '';
+      if (downloadUrl) return false; // Berhenti jika sudah ketemu
+    }
+  });
 
-  // 1. Cari elemen <a> yang punya aria-label="download" (kecil)
-  let $target = $iconx.find('a[aria-label="download"]');
-
-  // 2. Kalau tidak ada, cari yang aria-label="Download" (Besar)
-  if ($target.length === 0) {
-    $target = $iconx.find('a[aria-label="Download"]');
-  }
-
-  // 3. Ambil href-nya
-  if ($target.length > 0) {
-    downloadUrl = $target.attr('href') || '';
+  // Fallback: Jika di .iconx tidak ada, cari link manapun yang punya aria-label download
+  if (!downloadUrl) {
+    downloadUrl = $('a[aria-label*="ownload" i]').first().attr('href') || '';
   }
   // --- END LOGIKA ---
 

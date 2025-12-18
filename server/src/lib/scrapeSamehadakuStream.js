@@ -113,7 +113,7 @@ const scrapeSamehadakuStream = (html) => {
 
   // Fallback: Jika di .iconx tidak ada, cari link manapun yang punya aria-label download
   if (!downloadUrl) {
-    downloadUrl = $('a[aria-label*="ownload" i]').first().attr('href') || '';
+    downloadUrl = $('a[aria-label="Download" i]').first().attr('href') || '';
   }
   // --- END LOGIKA ---
 

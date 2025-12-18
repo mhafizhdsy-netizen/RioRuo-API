@@ -74,7 +74,7 @@ api.get('/manhwa/:page?', cache(CACHE_SHORT), handler.komikuManhwaHandler);
 api.get('/chapter/:title', cache(CACHE_LONG), handler.komikuChapterHandler);
 
 api.get('/samehadaku/home/:page?', cache(CACHE_MEDIUM), handler.samehadakuHomeHandler);
-api.get('/samehadaku/sesion/:page?', cache(CACHE_SHORT), handler.samehadakuSesionHandler);
+api.get('/samehadaku/sesion/:page/:orderby', cache(CACHE_SHORT), handler.samehadakuSesionHandler);
 api.get('/samehadaku/search', cache(CACHE_SHORT), handler.samehadakuSearchHandler);
 api.get('/samehadaku/anime/:slug', cache(CACHE_LONG), handler.samehadakuAnimeDetailHandler);
 api.get('/samehadaku/stream/:slug', cache(CACHE_LONG), handler.samehadakuStreamHandler);

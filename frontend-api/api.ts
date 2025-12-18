@@ -8,7 +8,6 @@ export const BASE_URL =
   : ''; 
 
 async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>, extraQueryParams?: Record<string, string>, options?: RequestInit): Promise<T> {
-  // Ambil hanya bagian path (sebelum tanda tanya jika ada di template enum)
   const cleanEndpointPath = endpoint.split('?')[0];
   const url = new URL(`${BASE_URL}${cleanEndpointPath}`, window.location.origin);
   
@@ -76,6 +75,7 @@ export const apiService = {
   getCompleted: (page = 1) => fetchFromApi(ApiEndpoint.COMPLETED.replace(':page?', page.toString())),
   getGenres: () => fetchFromApi(ApiEndpoint.GENRES),
   getGenreDetail: (slug: string, page = 1) => fetchFromApi(ApiEndpoint.GENRE_DETAIL.replace(':slug', slug).replace(':page?', page.toString())),
+  getGenreDetailById: (slug: string, page = 1) => fetchFromApi(ApiEndpoint.GENRE_DETAIL.replace(':slug', slug).replace(':page?', page.toString())),
   getBatchDetail: (slug: string) => fetchFromApi(ApiEndpoint.BATCH_DETAIL.replace(':slug', slug)),
   getAnimeDetail: (slug: string) => fetchFromApi(ApiEndpoint.ANIME_DETAIL.replace(':slug', slug)),
   getAnimeEpisodes: (slug: string) => fetchFromApi(ApiEndpoint.ANIME_EPISODES.replace(':slug', slug)),
@@ -117,9 +117,7 @@ export const apiService = {
   getKomikuChapter: (title: string) => fetchFromApi(ApiEndpoint.KOMIKU_CHAPTER.replace(':title', title)),
   getSamehadakuHome: (page = 1) => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME.replace(':page?', page.toString())),
   getSamehadakuSesion: (page = 1, orderBy = 'latest') => {
-      // Ambil path template dari enum, ganti :page? lalu tambahkan query param secara manual atau via fetchFromApi params
-      const endpointTemplate = ApiEndpoint.SAMEHADAKU_SESION.split('?')[0];
-      return fetchFromApi(endpointTemplate.replace(':page?', page.toString()), { orderBy: orderBy.toLowerCase() });
+      return fetchFromApi(ApiEndpoint.SAMEHADAKU_SESION.replace(':page', page.toString()).replace(':orderby', orderBy.toLowerCase()));
   },
   getSamehadakuAnimeDetail: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_ANIME.replace(':slug', slug)),
   getSamehadakuStream: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_STREAM.replace(':slug', slug)),

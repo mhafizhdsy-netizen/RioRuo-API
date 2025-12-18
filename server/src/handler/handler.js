@@ -1,3 +1,4 @@
+
 import otakudesu from '../otakudesu.js';
 import komiku from '../utils/komiku.js';
 
@@ -366,19 +367,20 @@ const samehadakuHomeHandler = async (req, res) => {
 
 const samehadakuSesionHandler = async (req, res) => {
     try {
-        const { page } = req.params;
-        const { orderBy } = req.query;
+        const { page, orderby } = req.params;
         const validOrders = ['latest', 'update', 'popular', 'rating', 'title'];
         
-        if (orderBy && !validOrders.includes(orderBy)) {
+        const cleanOrderBy = orderby ? orderby.toLowerCase() : 'latest';
+        
+        if (orderby && !validOrders.includes(cleanOrderBy)) {
             return res.status(400).json({ 
                 status: "Error", 
-                message: "Invalid orderBy value.", 
+                message: "Invalid orderby value.", 
                 hint: "Only these values are allowed: latest, update, popular, rating, title" 
             });
         }
 
-        const data = await otakudesu.samehadaku.getSesion(page ? parseInt(page) : 1, orderBy);
+        const data = await otakudesu.samehadaku.getSesion(page ? parseInt(page) : 1, cleanOrderBy);
         return res.status(200).json({ status: "Ok", Creator: "RioRuo", data });
     } catch (e) {
         return handleError(res, e);

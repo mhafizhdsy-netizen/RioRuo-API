@@ -152,24 +152,8 @@ export enum ApiEndpoint {
   KOMIKU_MANHWA = '/v1/manhwa/:page?',
   KOMIKU_CHAPTER = '/v1/chapter/:title',
   SAMEHADAKU_HOME = '/v1/samehadaku/home/:page?',
-  SAMEHADAKU_SESION = '/v1/samehadaku/sesion/:page?orderBy=:query',
+  SAMEHADAKU_SESION = '/v1/samehadaku/sesion/:page/:orderby',
   SAMEHADAKU_ANIME = '/v1/samehadaku/anime/:slug',
   SAMEHADAKU_STREAM = '/v1/samehadaku/stream/:slug',
   SAMEHADAKU_SEARCH = '/v1/samehadaku/search',
 }
-
-export {
-  anime,
-  searchResultAnime,
-  ongoingAnime,
-  completeAnime,
-  genre,
-  episode_list,
-  episode,
-  batch,
-  movie,
-  movies,
-  jadwalRilisDay,
-  jadwalRilisItem,
-  quote
-};

@@ -1,3 +1,4 @@
+
 import React, { useState, useRef, useEffect } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
@@ -157,14 +158,14 @@ const documentationData = [
             response: 'Objek JSON berisi `latestRelease`, `recommendations`, dan `pagination`.'
         },
         {
-            path: '/v1/samehadaku/sesion/:page?',
+            path: '/v1/samehadaku/sesion/:page/:orderby',
             method: 'GET',
-            description: 'Mengambil daftar anime dari database Samehadaku dengan pengurutan dan filter tertentu.',
+            description: 'Mengambil daftar anime dari database Samehadaku dengan pengurutan dan filter tertentu menggunakan path parameters.',
             parameters: [
-                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default: 1.' },
-                { name: 'orderBy', type: 'string', required: true, description: 'Kriteria pengurutan. Hanya menerima: latest, update, popular, rating, title.' }
+                { name: ':page', type: 'number', required: true, description: 'Nomor halaman.' },
+                { name: ':orderby', type: 'string', required: true, description: 'Kriteria pengurutan. Hanya menerima: latest, update, popular, rating, title.' }
             ],
-            example: '/samehadaku/sesion/1?orderBy=popular',
+            example: '/samehadaku/sesion/1/popular',
             response: 'Objek JSON berisi `anime_list` (array anime) dan informasi `pagination`.'
         },
         {

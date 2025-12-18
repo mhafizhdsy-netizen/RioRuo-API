@@ -66,6 +66,9 @@ export function App() {
   const [weatherLang, setWeatherLang] = useState('id');
   const [quoteTag, setQuoteTag] = useState('love');
   
+  // Samehadaku Stream Slug
+  const [samehadakuStreamSlug, setSamehadakuStreamSlug] = useState('one-piece-episode-1122');
+
   // Komiku Specific Params
   const [mangaEndpoint, setMangaEndpoint] = useState('one-piece');
   const [mangaQuery, setMangaQuery] = useState('naruto');
@@ -84,7 +87,6 @@ export function App() {
 
   const LOGO_URL = "/logo.png";
 
-  // API Status Check
   const checkApiStatus = async () => {
     try {
       setApiStatus('checking');
@@ -162,6 +164,7 @@ export function App() {
       // Samehadaku
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_HOME) res = await apiService.getSamehadakuHome(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_ANIME) res = await apiService.getSamehadakuAnimeDetail(animeSlug);
+      else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_STREAM) res = await apiService.getSamehadakuStream(samehadakuStreamSlug);
       
       else res = await apiService.getHome();
 
@@ -173,7 +176,6 @@ export function App() {
       setRequestMeta({ status, latency, timestamp });
     } catch (err: any) {
       const endTime = performance.now();
-      
       let status = 500;
       const lowerMsg = err.message ? err.message.toLowerCase() : "";
       
@@ -183,21 +185,12 @@ export function App() {
       else if (lowerMsg.includes('network error') || lowerMsg.includes('failed to fetch')) status = 0;
 
       let hint = err.hint;
-      
       if (!hint) {
           switch (status) {
-              case 404:
-                  hint = "Resource not found. Check your inputs (slug, page, etc) or the endpoint URL.";
-                  break;
-              case 429:
-                  hint = "Rate limit exceeded. You are sending too many requests. Please slow down.";
-                  break;
-              case 503:
-                  hint = "Upstream service unavailable or timed out. The target site might be slow or blocking requests.";
-                  break;
-              case 0:
-                  hint = "Network Error. Ensure the backend server is running on port 3000 and accessible.";
-                  break;
+              case 404: hint = "Resource not found. Check your inputs (slug, page, etc) or the endpoint URL."; break;
+              case 429: hint = "Rate limit exceeded. You are sending too many requests. Please slow down."; break;
+              case 503: hint = "Upstream service unavailable or timed out. The target site might be slow or blocking requests."; break;
+              case 0: hint = "Network Error. Ensure the backend server is running on port 3000 and accessible."; break;
               default:
                   hint = "An unexpected error occurred. Check the server logs for more details.";
                   if (lowerMsg.includes('json')) hint = "Failed to parse JSON response. The server might be returning HTML (error page).";
@@ -213,13 +206,11 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug]);
 
-  // Input rendering logic
   const renderInputs = useCallback(() => {
     const inputs = [];
     
-    // Search Inputs (Otakudesu)
     if (selectedEndpoint === ApiEndpoint.SEARCH) {
       inputs.push(
         <div key="keyword" className="flex flex-col gap-2">
@@ -232,7 +223,6 @@ export function App() {
       );
     }
     
-    // Anime Slug Inputs (Otakudesu & Samehadaku)
     if ([ApiEndpoint.ANIME_DETAIL, ApiEndpoint.ANIME_EPISODES, ApiEndpoint.BATCH_BY_ANIME_SLUG, ApiEndpoint.EPISODE_BY_NUMBER, ApiEndpoint.SAMEHADAKU_ANIME].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="animeSlug" className="flex flex-col gap-2">
@@ -251,7 +241,6 @@ export function App() {
       );
     }
 
-    // Episode Slug Inputs (Otakudesu)
     if (selectedEndpoint === ApiEndpoint.EPISODE_DETAIL) {
       inputs.push(
         <div key="episodeSlug" className="flex flex-col gap-2">
@@ -270,7 +259,6 @@ export function App() {
       );
     }
 
-    // Genre Slug Inputs (Otakudesu)
     if (selectedEndpoint === ApiEndpoint.GENRE_DETAIL) {
       inputs.push(
         <div key="genreSlug" className="flex flex-col gap-2">
@@ -280,7 +268,6 @@ export function App() {
       );
     }
 
-    // Page Inputs (Generic)
     if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG, ApiEndpoint.SAMEHADAKU_HOME].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="pg" className="flex flex-col gap-2">
@@ -317,7 +304,6 @@ export function App() {
         );
     }
 
-    // Shortlink Inputs
     if ([ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint)) {
         inputs.push(
             <div key="longUrl" className="flex flex-col gap-2">
@@ -336,7 +322,6 @@ export function App() {
         );
     }
 
-    // Komiku Inputs
     if ([ApiEndpoint.KOMIKU_DETAIL, ApiEndpoint.KOMIKU_GENRE_DETAIL].includes(selectedEndpoint as ApiEndpoint)) {
         inputs.push(
             <div key="mangaEndpoint" className="flex flex-col gap-2">
@@ -364,8 +349,17 @@ export function App() {
         );
     }
 
+    if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_STREAM) {
+        inputs.push(
+            <div key="samehadakuStreamSlug" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Stream Slug</label>
+              <input type="text" value={samehadakuStreamSlug} onChange={(e) => setSamehadakuStreamSlug(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white font-mono" placeholder="e.g. one-piece-episode-1122" />
+            </div>
+        );
+    }
+
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },
@@ -396,111 +390,55 @@ export function App() {
 
   const samehadakuCategories = [
     { id: 'samehadaku-discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.SAMEHADAKU_HOME] },
-    { id: 'samehadaku-details', name: "Details", icon: <Film size={14} />, items: [ApiEndpoint.SAMEHADAKU_ANIME] },
+    { id: 'samehadaku-details', name: "Details", icon: <Film size={14} />, items: [ApiEndpoint.SAMEHADAKU_ANIME, ApiEndpoint.SAMEHADAKU_STREAM] },
   ];
 
   const displayBaseUrl = 'https://rioruo.vercel.app';
   
   return (
     <div className="min-h-screen bg-background text-zinc-300 font-sans selection:bg-primary/20 selection:text-primary flex flex-col min-h-screen relative">
-      
-      {/* Sidebar Overlay and Drawer */}
       <div className={`fixed inset-0 z-[100] transition-visibility duration-300 ${isSidebarOpen ? 'visible' : 'invisible'}`}>
-        {/* Backdrop */}
-        <div 
-          className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`}
-          onClick={() => setSidebarOpen(false)}
-        />
-        
-        {/* Sidebar Drawer */}
+        <div className={`absolute inset-0 bg-black/60 backdrop-blur-sm transition-opacity duration-300 ${isSidebarOpen ? 'opacity-100' : 'opacity-0'}`} onClick={() => setSidebarOpen(false)} />
         <div className={`absolute left-0 top-0 bottom-0 w-80 bg-[#0c0c0c] border-r border-border shadow-2xl transform transition-transform duration-300 ease-out flex flex-col ${isSidebarOpen ? 'translate-x-0' : '-translate-x-full'}`}>
-          
-          {/* Header */}
           <div className="flex items-center justify-between p-5 border-b border-white/5 bg-surface/50 backdrop-blur-sm">
             <div className="flex items-center gap-3">
-               <img 
-                  src={LOGO_URL}
-                  alt="RioRuo Logo" 
-                  className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" 
-               />
+               <img src={LOGO_URL} alt="RioRuo Logo" className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
                <div>
                  <h2 className="font-bold text-white text-sm tracking-tight">RioRuo API</h2>
                  <p className="text-[10px] text-zinc-500 font-mono">v1.0.0</p>
                </div>
             </div>
-            <button 
-              onClick={() => setSidebarOpen(false)} 
-              className="p-2 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors border border-transparent hover:border-white/5"
-            >
+            <button onClick={() => setSidebarOpen(false)} className="p-2 hover:bg-white/5 rounded-lg text-zinc-400 hover:text-white transition-colors border border-transparent hover:border-white/5">
               <X size={18} />
             </button>
           </div>
-          
-          {/* Content */}
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
-            
-            {/* Menu Section */}
             <div>
               <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 px-2">ENDPOINT LIST</h3>
-              
-              {/* Otakudesu Item */}
               <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setOtakudesuExpanded(!isOtakudesuExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isOtakudesuExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
+                <button onClick={() => setOtakudesuExpanded(!isOtakudesuExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isOtakudesuExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
-                    {/* Visual indicator bar for active state */}
                     <div className={`w-1 h-4 rounded-full transition-colors ${isOtakudesuExpanded ? 'bg-primary' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
                     <span>Otakudesu</span>
                   </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isOtakudesuExpanded ? 'rotate-180 text-primary' : ''}`} 
-                  />
+                  <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isOtakudesuExpanded ? 'rotate-180 text-primary' : ''}`} />
                 </button>
-
-                {/* Submenu */}
                 <div className={`grid transition-all duration-300 ease-in-out ${isOtakudesuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                   <div className="overflow-hidden">
                     <div className="pt-2 pb-2 pl-4 space-y-6 relative">
-                      {/* Vertical connector line */}
                       <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
-
                       {otakudesuCategories.map((cat) => (
                         <div key={cat.id} className="relative">
-                          {/* Category Header */}
                           <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
                              <div className="text-zinc-500">{cat.icon}</div>
                              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
                           </div>
-                          
-                          {/* Endpoints List */}
                           <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
                             {cat.items.map((endpoint) => {
                               const isSelected = selectedEndpoint === endpoint;
                               return (
-                                <button
-                                  key={endpoint}
-                                  onClick={() => {
-                                    setSelectedEndpoint(endpoint);
-                                    setSidebarOpen(false);
-                                  }}
-                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
-                                    isSelected
-                                      ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm'
-                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                                  }`}
-                                >
-                                  {/* Selection Dot */}
-                                  {isSelected && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>
-                                  )}
-                                  
+                                <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+                                  {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>}
                                   <span className="truncate">{endpoint}</span>
                                 </button>
                               );
@@ -513,57 +451,30 @@ export function App() {
                 </div>
               </div>
 
-              {/* Samehadaku Item */}
               <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setIsSamehadakuExpanded(!isSamehadakuExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isSamehadakuExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
+                <button onClick={() => setIsSamehadakuExpanded(!isSamehadakuExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isSamehadakuExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-1 h-4 rounded-full transition-colors ${isSamehadakuExpanded ? 'bg-red-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
                     <span>Samehadaku</span>
                   </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isSamehadakuExpanded ? 'rotate-180 text-red-500' : ''}`} 
-                  />
+                  <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isSamehadakuExpanded ? 'rotate-180 text-red-500' : ''}`} />
                 </button>
-
                 <div className={`grid transition-all duration-300 ease-in-out ${isSamehadakuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                   <div className="overflow-hidden">
                     <div className="pt-2 pb-2 pl-4 space-y-6 relative">
                       <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
-
                       {samehadakuCategories.map((cat) => (
                         <div key={cat.id} className="relative">
                           <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
                              <div className="text-zinc-500">{cat.icon}</div>
                              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
                           </div>
-                          
                           <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
                             {cat.items.map((endpoint) => {
                               const isSelected = selectedEndpoint === endpoint;
                               return (
-                                <button
-                                  key={endpoint}
-                                  onClick={() => {
-                                    setSelectedEndpoint(endpoint);
-                                    setSidebarOpen(false);
-                                  }}
-                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
-                                    isSelected
-                                      ? 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-sm'
-                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                                  }`}
-                                >
-                                  {isSelected && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>
-                                  )}
+                                <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-red-500/10 text-red-500 border border-red-500/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+                                  {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-red-500 shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>}
                                   <span className="truncate">{endpoint}</span>
                                 </button>
                               );
@@ -576,57 +487,30 @@ export function App() {
                 </div>
               </div>
 
-              {/* Komiku Item */}
               <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setKomikuExpanded(!isKomikuExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isKomikuExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
+                <button onClick={() => setKomikuExpanded(!isKomikuExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isKomikuExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-1 h-4 rounded-full transition-colors ${isKomikuExpanded ? 'bg-warning' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
                     <span>Komiku</span>
                   </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isKomikuExpanded ? 'rotate-180 text-warning' : ''}`} 
-                  />
+                  <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isKomikuExpanded ? 'rotate-180 text-warning' : ''}`} />
                 </button>
-
                 <div className={`grid transition-all duration-300 ease-in-out ${isKomikuExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                   <div className="overflow-hidden">
                     <div className="pt-2 pb-2 pl-4 space-y-6 relative">
                       <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
-
                       {komikuCategories.map((cat) => (
                         <div key={cat.id} className="relative">
                           <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
                              <div className="text-zinc-500">{cat.icon}</div>
                              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
                           </div>
-                          
                           <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
                             {cat.items.map((endpoint) => {
                               const isSelected = selectedEndpoint === endpoint;
                               return (
-                                <button
-                                  key={endpoint}
-                                  onClick={() => {
-                                    setSelectedEndpoint(endpoint);
-                                    setSidebarOpen(false);
-                                  }}
-                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
-                                    isSelected
-                                      ? 'bg-warning/10 text-warning border border-warning/20 shadow-sm'
-                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                                  }`}
-                                >
-                                  {isSelected && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>
-                                  )}
+                                <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-warning/10 text-warning border border-warning/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+                                  {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-warning shadow-[0_0_8px_rgba(245,158,11,0.5)]"></div>}
                                   <span className="truncate">{endpoint}</span>
                                 </button>
                               );
@@ -639,57 +523,30 @@ export function App() {
                 </div>
               </div>
 
-              {/* Quotes Item */}
               <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setQuotesExpanded(!isQuotesExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isQuotesExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
+                <button onClick={() => setQuotesExpanded(!isQuotesExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isQuotesExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-1 h-4 rounded-full transition-colors ${isQuotesExpanded ? 'bg-purple-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
                     <span>Quotes</span>
                   </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isQuotesExpanded ? 'rotate-180 text-purple-500' : ''}`} 
-                  />
+                  <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isQuotesExpanded ? 'rotate-180 text-purple-500' : ''}`} />
                 </button>
-
                 <div className={`grid transition-all duration-300 ease-in-out ${isQuotesExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                   <div className="overflow-hidden">
                     <div className="pt-2 pb-2 pl-4 space-y-6 relative">
                       <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
-
                       {quoteCategories.map((cat) => (
                         <div key={cat.id} className="relative">
                           <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
                              <div className="text-zinc-500">{cat.icon}</div>
                              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
                           </div>
-                          
                           <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
                             {cat.items.map((endpoint) => {
                               const isSelected = selectedEndpoint === endpoint;
                               return (
-                                <button
-                                  key={endpoint}
-                                  onClick={() => {
-                                    setSelectedEndpoint(endpoint);
-                                    setSidebarOpen(false);
-                                  }}
-                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
-                                    isSelected
-                                      ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20 shadow-sm'
-                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                                  }`}
-                                >
-                                  {isSelected && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>
-                                  )}
+                                <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-purple-500/10 text-purple-500 border border-purple-500/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+                                  {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-purple-500 shadow-[0_0_8px_rgba(168,85,247,0.5)]"></div>}
                                   <span className="truncate">{endpoint}</span>
                                 </button>
                               );
@@ -702,57 +559,30 @@ export function App() {
                 </div>
               </div>
 
-              {/* Shortlink Item */}
               <div className="space-y-1 mb-4">
-                <button 
-                  onClick={() => setIsShortlinkExpanded(!isShortlinkExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isShortlinkExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
+                <button onClick={() => setIsShortlinkExpanded(!isShortlinkExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isShortlinkExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
                     <div className={`w-1 h-4 rounded-full transition-colors ${isShortlinkExpanded ? 'bg-orange-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
                     <span>Shortlink</span>
                   </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isShortlinkExpanded ? 'rotate-180 text-orange-500' : ''}`} 
-                  />
+                  <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isShortlinkExpanded ? 'rotate-180 text-orange-500' : ''}`} />
                 </button>
-
                 <div className={`grid transition-all duration-300 ease-in-out ${isShortlinkExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                   <div className="overflow-hidden">
                     <div className="pt-2 pb-2 pl-4 space-y-6 relative">
                       <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
-
                       {shortlinkCategories.map((cat) => (
                         <div key={cat.id} className="relative">
                           <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
                              <div className="text-zinc-500">{cat.icon}</div>
                              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
                           </div>
-                          
                           <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
                             {cat.items.map((endpoint) => {
                               const isSelected = selectedEndpoint === endpoint;
                               return (
-                                <button
-                                  key={endpoint}
-                                  onClick={() => {
-                                    setSelectedEndpoint(endpoint);
-                                    setSidebarOpen(false);
-                                  }}
-                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
-                                    isSelected
-                                      ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-sm'
-                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                                  }`}
-                                >
-                                  {isSelected && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></div>
-                                  )}
+                                <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-orange-500/10 text-orange-500 border border-orange-500/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+                                  {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-orange-500 shadow-[0_0_8px_rgba(249,115,22,0.5)]"></div>}
                                   <span className="truncate">{endpoint}</span>
                                 </button>
                               );
@@ -765,64 +595,30 @@ export function App() {
                 </div>
               </div>
 
-              {/* Weather Item */}
               <div className="space-y-1">
-                <button 
-                  onClick={() => setWeatherExpanded(!isWeatherExpanded)}
-                  className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${
-                    isWeatherExpanded 
-                      ? 'bg-surfaceLight border-white/5 text-white shadow-sm' 
-                      : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'
-                  }`}
-                >
+                <button onClick={() => setWeatherExpanded(!isWeatherExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isWeatherExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
-                    {/* Visual indicator bar for active state */}
                     <div className={`w-1 h-4 rounded-full transition-colors ${isWeatherExpanded ? 'bg-info' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
                     <span>Weather</span>
                   </div>
-                  <ChevronDown 
-                    size={16} 
-                    className={`text-zinc-500 transition-transform duration-300 ${isWeatherExpanded ? 'rotate-180 text-info' : ''}`} 
-                  />
+                  <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isWeatherExpanded ? 'rotate-180 text-info' : ''}`} />
                 </button>
-
-                {/* Submenu */}
                 <div className={`grid transition-all duration-300 ease-in-out ${isWeatherExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
                   <div className="overflow-hidden">
                     <div className="pt-2 pb-2 pl-4 space-y-6 relative">
-                      {/* Vertical connector line */}
                       <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
-
                       {weatherCategories.map((cat) => (
                         <div key={cat.id} className="relative">
-                          {/* Category Header */}
                           <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
                              <div className="text-zinc-500">{cat.icon}</div>
                              <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
                           </div>
-                          
-                          {/* Endpoints List */}
                           <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
                             {cat.items.map((endpoint) => {
                               const isSelected = selectedEndpoint === endpoint;
                               return (
-                                <button
-                                  key={endpoint}
-                                  onClick={() => {
-                                    setSelectedEndpoint(endpoint);
-                                    setSidebarOpen(false);
-                                  }}
-                                  className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${
-                                    isSelected
-                                      ? 'bg-info/10 text-info border border-info/20 shadow-sm'
-                                      : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'
-                                  }`}
-                                >
-                                  {/* Selection Dot */}
-                                  {isSelected && (
-                                    <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-info shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>
-                                  )}
-                                  
+                                <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-info/10 text-info border border-info/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+                                  {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-info shadow-[0_0_8px_rgba(59,130,246,0.5)]"></div>}
                                   <span className="truncate">{endpoint}</span>
                                 </button>
                               );
@@ -834,34 +630,20 @@ export function App() {
                   </div>
                 </div>
               </div>
-
             </div>
-
           </div>
-
         </div>
       </div>
 
       <header className="h-14 border-b border-border bg-surface/50 backdrop-blur-md flex items-center justify-between px-4 lg:px-6 sticky top-0 z-50 shrink-0">
         <div className="flex items-center gap-3">
-          <button 
-            onClick={() => setSidebarOpen(true)}
-            className="p-2 -ml-2 mr-1 hover:bg-white/10 rounded-lg text-zinc-300 hover:text-white transition-colors"
-            aria-label="Open Menu"
-          >
+          <button onClick={() => setSidebarOpen(true)} className="p-2 -ml-2 mr-1 hover:bg-white/10 rounded-lg text-zinc-300 hover:text-white transition-colors" aria-label="Open Menu">
             <Menu size={20} />
           </button>
-          <img 
-            src={LOGO_URL}
-            alt="RioRuo Logo" 
-            className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" 
-          />
+          <img src={LOGO_URL} alt="RioRuo Logo" className="w-8 h-8 rounded-lg drop-shadow-[0_0_8px_rgba(16,185,129,0.4)]" />
         </div>
         <div className="flex items-center gap-4">
-           <button 
-             onClick={() => setView(view === 'playground' ? 'docs' : 'playground')}
-             className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors bg-surfaceLight border border-border px-3 py-1.5 rounded-full"
-           >
+           <button onClick={() => setView(view === 'playground' ? 'docs' : 'playground')} className="flex items-center gap-2 text-xs font-medium text-zinc-400 hover:text-white transition-colors bg-surfaceLight border border-border px-3 py-1.5 rounded-full">
              {view === 'playground' ? <><BookOpen size={14} /> Docs</> : <><SlidersHorizontal size={14}/> Playground</>}
            </button>
         </div>
@@ -871,7 +653,6 @@ export function App() {
         {view === 'playground' ? (
           <div className="flex-1 max-w-7xl mx-auto w-full flex flex-col gap-6">
             <div className="flex-1 flex flex-col gap-6 min-w-0">
-              {/* Request Controller */}
               <div className="bg-surface border border-border rounded-xl p-5 shadow-lg relative z-20">
                 <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 mb-6">
                   <div className="flex items-center gap-2">
@@ -883,58 +664,28 @@ export function App() {
                     <span className="text-zinc-400">{apiStatus === 'online' ? 'API Status' : apiStatus === 'offline' ? 'API Offline' : 'Checking API...'}</span>
                   </a>
                 </div>
-                
                 <div className="mb-8">
                   <div className="flex flex-col gap-2">
-                     <div className="flex items-center justify-between">
-                        <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Request Configuration</label>
-                     </div>
-                     
+                     <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Request Configuration</label>
                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 h-auto md:h-[60px]">
-                        {/* Method */}
                         <div className="md:col-span-2 h-full bg-surfaceLight/30 border border-white/5 rounded-xl flex items-center justify-center relative overflow-hidden group">
-                           <div className={`absolute inset-0 bg-gradient-to-br ${
-                               [ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) 
-                               ? 'from-warning/20' 
-                               : 'from-primary/20'
-                           } to-transparent opacity-50 group-hover:opacity-100 transition-opacity`}></div>
-                           <span className={`relative font-mono font-black ${
-                               [ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) 
-                               ? 'text-warning' 
-                               : 'text-primary'
-                           } tracking-widest text-lg`}>
+                           <div className={`absolute inset-0 bg-gradient-to-br ${[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) ? 'from-warning/20' : 'from-primary/20'} to-transparent opacity-50 group-hover:opacity-100 transition-opacity`}></div>
+                           <span className={`relative font-mono font-black ${[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) ? 'text-warning' : 'text-primary'} tracking-widest text-lg`}>
                                {[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) ? 'POST' : 'GET'}
                            </span>
                         </div>
-
-                        {/* Base URL */}
                         <div className="md:col-span-4 h-full bg-[#09090b] border border-border rounded-xl flex flex-col justify-center px-4 py-2 relative group hover:border-zinc-700 transition-all">
-                           <span className="text-[9px] uppercase font-bold text-zinc-600 tracking-widest mb-0.5 flex items-center gap-1.5">
-                             <Globe size={10} /> Base URL
-                           </span>
+                           <span className="text-[9px] uppercase font-bold text-zinc-600 tracking-widest mb-0.5 flex items-center gap-1.5"><Globe size={10} /> Base URL</span>
                            <div className="font-mono text-xs md:text-sm text-zinc-400 truncate select-all">{displayBaseUrl}</div>
                         </div>
-
-                        {/* Endpoint */}
                         <div className="md:col-span-6 h-full bg-[#09090b] border border-border rounded-xl flex items-center relative group hover:border-primary/30 transition-all overflow-hidden">
                            <div className="absolute left-0 top-0 bottom-0 w-1 bg-primary/50"></div>
-                           
                            <div className="flex-1 flex flex-col justify-center px-4 py-2 min-w-0">
-                              <span className="text-[9px] uppercase font-bold text-primary tracking-widest mb-0.5 flex items-center gap-1.5">
-                                 <Terminal size={10} /> Endpoint
-                              </span>
+                              <span className="text-[9px] uppercase font-bold text-primary tracking-widest mb-0.5 flex items-center gap-1.5"><Terminal size={10} /> Endpoint</span>
                               <div className="font-mono text-xs md:text-sm text-white truncate">{selectedEndpoint}</div>
                            </div>
-
                            <div className="pr-2 pl-2 border-l border-white/5 h-1/2 flex items-center">
-                              <button 
-                                onClick={() => {
-                                  navigator.clipboard.writeText(`${displayBaseUrl}${selectedEndpoint}`);
-                                  addToast('URL copied to clipboard');
-                                }}
-                                className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors"
-                                title="Copy Full URL"
-                              >
+                              <button onClick={() => { navigator.clipboard.writeText(`${displayBaseUrl}${selectedEndpoint}`); addToast('URL copied to clipboard'); }} className="p-2 text-zinc-500 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="Copy Full URL">
                                 <Copy size={16} />
                               </button>
                            </div>
@@ -942,9 +693,7 @@ export function App() {
                      </div>
                   </div>
                 </div>
-                
                 {renderInputs()}
-                
                 <div className="flex justify-end pt-4 border-t border-white/5">
                   <button onClick={handleFetch} disabled={loading} className="bg-primary hover:bg-emerald-400 text-black font-bold py-2.5 px-8 rounded-lg flex items-center gap-2 transition-all shadow-[0_0_20px_rgba(16,185,129,0.2)] hover:shadow-[0_0_30px_rgba(16,185,129,0.4)] active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed w-full md:w-auto justify-center">
                     {loading ? <Settings className="animate-spin" size={18} /> : <Zap size={18} fill="currentColor" />}
@@ -952,7 +701,6 @@ export function App() {
                   </button>
                 </div>
               </div>
-              
               <div className="flex-1 min-h-[500px]">
                 <ConsoleOutput data={responseData} loading={loading} meta={requestMeta} onCopySuccess={addToast} />
               </div>
@@ -961,16 +709,11 @@ export function App() {
         ) : (
           <Documentation />
         )}
-        
         <footer className="w-full max-w-7xl mx-auto mt-12 pt-8 border-t border-border">
           <div className="flex flex-col md:flex-row items-center justify-between gap-6 pb-6">
             <div className="flex flex-col items-center md:items-start gap-2">
               <div className="flex items-center gap-2 text-zinc-300">
-                <img 
-                  src={LOGO_URL}
-                  alt="RioRuo Logo" 
-                  className="w-5 h-5 rounded-md" 
-                />
+                <img src={LOGO_URL} alt="RioRuo Logo" className="w-5 h-5 rounded-md" />
                 <span className="font-bold tracking-tight">RioRuo API</span>
               </div>
               <p className="text-xs text-zinc-500 font-mono flex items-center gap-1">
@@ -980,8 +723,6 @@ export function App() {
           </div>
         </footer>
       </main>
-
-      {/* Toast Container */}
       <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">

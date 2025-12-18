@@ -8,8 +8,6 @@ import {
 
 const BASE_API_URL = "https://rioruo.vercel.app/v1";
 
-// --- Data Definitions ---
-
 const documentationData = [
   {
     id: 'otakudesu',
@@ -168,6 +166,16 @@ const documentationData = [
             ],
             example: '/samehadaku/anime/gachiakuta',
             response: 'Objek JSON berisi detail anime.'
+        },
+        {
+            path: '/v1/samehadaku/stream/:slug',
+            method: 'GET',
+            description: 'Mengambil detail streaming dan download untuk episode tertentu dari Samehadaku.',
+            parameters: [
+                { name: ':slug', type: 'string', required: true, description: 'Slug episode (misal: "one-piece-episode-1122").' }
+            ],
+            example: '/samehadaku/stream/one-piece-episode-1122',
+            response: 'Objek JSON berisi link embed, daftar server, link download, dan series info.'
         }
     ]
   },
@@ -387,15 +395,11 @@ const documentationData = [
   }
 ];
 
-// --- Types & Helper Components ---
-
 type Endpoint = typeof documentationData[number]['endpoints'][number] & { requestBody?: any };
 
 interface EndpointCardProps {
   endpoint: Endpoint;
 }
-
-// --- Code Snippet Generator Logic ---
 
 const languages = {
   Shell: ['cURL', 'cURL (Windows)', 'HTTPie', 'Wget', 'PowerShell'],
@@ -790,7 +794,6 @@ const RequestExample: React.FC<{ endpoint: Endpoint }> = ({ endpoint }) => {
                 <span>{activeLib}</span>
                 <ChevronDown size={12} className={`text-zinc-500 transition-transform duration-200 ${isDropdownOpen ? 'rotate-180' : ''}`} />
               </button>
-              
               {isDropdownOpen && (
                 <div className="absolute right-0 top-full mt-1 w-40 bg-[#1e1e1e] border border-border rounded-lg shadow-xl overflow-hidden z-50 animate-in fade-in zoom-in-95 duration-200">
                   <div className="py-1">
@@ -817,13 +820,9 @@ const RequestExample: React.FC<{ endpoint: Endpoint }> = ({ endpoint }) => {
            </div>
         </div>
       </div>
-      
       <div className="relative group">
         <div className="absolute right-4 top-4 z-10 opacity-0 group-hover:opacity-100 transition-opacity">
-          <button 
-            onClick={handleCopy}
-            className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-zinc-200 text-[10px] px-2.5 py-1.5 rounded-md border border-white/10 transition-all"
-          >
+          <button onClick={handleCopy} className="flex items-center gap-1.5 bg-white/10 hover:bg-white/20 backdrop-blur-sm text-zinc-200 text-[10px] px-2.5 py-1.5 rounded-md border border-white/10 transition-all">
             {copied ? <Check size={12} className="text-emerald-400"/> : <Copy size={12}/>}
             {copied ? 'Copied' : 'Copy'}
           </button>
@@ -855,7 +854,6 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
       </div>
       <p className="text-zinc-400 text-sm mt-2">{endpoint.description}</p>
     </div>
-    
     <div className="p-5">
       {endpoint.parameters.length > 0 && (
         <>
@@ -875,7 +873,6 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
           <div className="border-b border-border my-5"></div>
         </>
       )}
-
       {endpoint.requestBody && !endpoint.path.includes('/vgd') && (
         <div className="mb-5">
             <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><FileJson size={14}/> Request Body (JSON)</h4>
@@ -887,12 +884,10 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
             <div className="border-b border-border my-5"></div>
         </div>
       )}
-
       <div className="mb-6">
          <h4 className="text-sm font-bold text-zinc-300 flex items-center gap-2"><Code size={14}/> Request Example</h4>
          <RequestExample endpoint={endpoint} />
       </div>
-
       <div>
         <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><Terminal size={14}/> Example {endpoint.method === 'POST' ? 'Path' : 'Request'}</h4>
         <code className="w-full block bg-surfaceLight border border-border rounded-lg p-3 text-sm text-emerald-300 font-mono break-all">
@@ -927,7 +922,6 @@ export function Documentation() {
 
   return (
     <div className="max-w-4xl mx-auto w-full pb-20 px-4 animate-in fade-in duration-500">
-      {/* Page Header */}
       <div className="mb-12 pt-8 text-center md:text-left">
           <h1 className="text-4xl font-black text-white flex items-center justify-center md:justify-start gap-4">
             <span className="p-3 bg-primary/10 rounded-2xl text-primary border border-primary/20 shadow-[0_0_20px_rgba(16,185,129,0.1)]">
@@ -939,8 +933,6 @@ export function Documentation() {
             Panduan lengkap untuk menggunakan endpoint <span className="text-primary font-bold">{activeSection.name}</span>. Semua endpoint mengembalikan respons dalam format JSON standar.
           </p>
       </div>
-
-      {/* Main Content Area */}
       <main key={activeSection.id} className="animate-in slide-in-from-bottom-4 duration-500">
         <div className="space-y-4">
           {activeSection.endpoints.map(endpoint => (
@@ -948,16 +940,10 @@ export function Documentation() {
           ))}
         </div>
       </main>
-
-      {/* Pagination Navigation */}
       <div className="mt-16 pt-8 border-t border-white/5 grid grid-cols-1 sm:grid-cols-2 gap-4">
-        {/* Previous Button */}
         <div>
           {currentIndex > 0 ? (
-            <button 
-              onClick={handlePrev}
-              className="group w-full flex flex-col items-start gap-2 p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 hover:bg-surfaceLight transition-all duration-300 text-left"
-            >
+            <button onClick={handlePrev} className="group w-full flex flex-col items-start gap-2 p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 hover:bg-surfaceLight transition-all duration-300 text-left">
               <div className="flex items-center gap-2 text-zinc-500 group-hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest">
                 <ArrowLeft size={16} className="group-hover:-translate-x-1 transition-transform" />
                 Previous Group
@@ -966,14 +952,9 @@ export function Documentation() {
             </button>
           ) : <div />}
         </div>
-
-        {/* Next Button */}
         <div>
           {currentIndex < documentationData.length - 1 ? (
-            <button 
-              onClick={handleNext}
-              className="group w-full flex flex-col items-end gap-2 p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 hover:bg-surfaceLight transition-all duration-300 text-right"
-            >
+            <button onClick={handleNext} className="group w-full flex flex-col items-end gap-2 p-6 rounded-2xl bg-surface border border-border hover:border-primary/40 hover:bg-surfaceLight transition-all duration-300 text-right">
               <div className="flex items-center gap-2 text-zinc-500 group-hover:text-primary transition-colors text-xs font-bold uppercase tracking-widest">
                 Next Group
                 <ArrowRight size={16} className="group-hover:translate-x-1 transition-transform" />
@@ -987,22 +968,9 @@ export function Documentation() {
           )}
         </div>
       </div>
-
-      {/* Progress Indicator */}
       <div className="mt-12 flex justify-center items-center gap-3">
         {documentationData.map((_, idx) => (
-          <button
-            key={idx}
-            onClick={() => {
-              setCurrentIndex(idx);
-              window.scrollTo({ top: 0, behavior: 'smooth' });
-            }}
-            className={`h-1.5 rounded-full transition-all duration-300 ${
-              idx === currentIndex 
-                ? 'w-8 bg-primary shadow-[0_0_10px_rgba(16,185,129,0.5)]' 
-                : 'w-1.5 bg-zinc-800 hover:bg-zinc-600'
-            }`}
-          />
+          <button key={idx} onClick={() => { setCurrentIndex(idx); window.scrollTo({ top: 0, behavior: 'smooth' }); }} className={`h-1.5 rounded-full transition-all duration-300 ${idx === currentIndex ? 'w-8 bg-primary shadow-[0_0_10px_rgba(16,185,129,0.5)]' : 'w-1.5 bg-zinc-800 hover:bg-zinc-600'}`} />
         ))}
       </div>
     </div>

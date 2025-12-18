@@ -150,8 +150,6 @@ type quote = {
     likes: number;
 };
 
-// --- Samehadaku Types ---
-
 export type LatestReleaseType = {
   title: string;
   slug: string | null;
@@ -230,20 +228,16 @@ export enum ApiEndpoint {
   MOVIES = '/v1/movies/:page?',
   SINGLE_MOVIE = '/v1/movies/:year/:month/:slug',
   JADWAL_RILIS = '/v1/jadwal-rilis',
-  // Weather Endpoints
   WEATHER = '/v1/weather/:location',
   WEATHER_ASCII = '/v1/weather/ascii/:location',
   WEATHER_QUICK = '/v1/weather/quick/:location',
   WEATHER_PNG = '/v1/weather/png/:location',
-  // Quote Endpoints
   QUOTES = '/v1/quotes/:page?',
-  QUOTES_DEFAULT = '/v1/quotes', // No pagination param
+  QUOTES_DEFAULT = '/v1/quotes', 
   QUOTES_BY_TAG = '/v1/quotes/tag/:tag/:page?',
-  QUOTES_BY_TAG_DEFAULT = '/v1/quotes/tag/:tag', // No pagination param
-  // VGD Shortener Endpoints
+  QUOTES_BY_TAG_DEFAULT = '/v1/quotes/tag/:tag', 
   SHORT_VGD = '/v1/vgd',
   SHORT_VGD_CUSTOM = '/v1/vgd/custom',
-  // Komiku Endpoints
   KOMIKU_PAGE = '/v1/manga/page/:page?',
   KOMIKU_POPULAR = '/v1/manga/popular/:page?',
   KOMIKU_DETAIL = '/v1/manga/detail/:endpoint',
@@ -254,9 +248,9 @@ export enum ApiEndpoint {
   KOMIKU_MANHUA = '/v1/manhua/:page?',
   KOMIKU_MANHWA = '/v1/manhwa/:page?',
   KOMIKU_CHAPTER = '/v1/chapter/:title',
-  // Samehadaku Endpoints
   SAMEHADAKU_HOME = '/v1/samehadaku/home/:page?',
   SAMEHADAKU_ANIME = '/v1/samehadaku/anime/:slug',
+  SAMEHADAKU_STREAM = '/v1/samehadaku/stream/:slug',
 }
 
 export {

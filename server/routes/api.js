@@ -92,20 +92,18 @@ api.get('/weather/quick/:location', cache(CACHE_SHORT), handler.weatherQuickHand
 api.get('/weather/png/:location', cache(CACHE_SHORT), handler.weatherPngHandler);
 
 // Quotes Routes
-// Redirect /quote/quotes to /quotes for backward compatibility and to fix 404s for cached clients
 api.get('/quote/quotes*', (req, res) => {
     const newUrl = req.originalUrl.replace('/quote/quotes', '/v1/quotes');
     res.redirect(301, newUrl);
 });
 
-// Specific routes must be defined explicitly to prevent matching errors with optional parameters
 api.get('/quotes/tag/:tag', cache(CACHE_SHORT), handler.quotesByTagHandler);
 api.get('/quotes/tag/:tag/:page', cache(CACHE_SHORT), handler.quotesByTagHandler);
 
 api.get('/quotes', cache(CACHE_SHORT), handler.quotesHandler);
 api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
 
-// VGD Shortener Routes (POST) - No Cache needed usually
+// VGD Shortener Routes (POST)
 api.post('/vgd', handler.vgdHandler);
 api.post('/vgd/custom', handler.vgdCustomHandler);
 
@@ -123,6 +121,7 @@ api.get('/chapter/:title', cache(CACHE_LONG), handler.komikuChapterHandler);
 
 // Samehadaku Routes
 api.get('/samehadaku/home/:page?', cache(CACHE_MEDIUM), handler.samehadakuHomeHandler);
+api.get('/samehadaku/search', cache(CACHE_SHORT), handler.samehadakuSearchHandler);
 api.get('/samehadaku/anime/:slug', cache(CACHE_LONG), handler.samehadakuAnimeDetailHandler);
 api.get('/samehadaku/stream/:slug', cache(CACHE_LONG), handler.samehadakuStreamHandler);
 

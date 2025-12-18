@@ -1,9 +1,8 @@
-
 import otakudesu from '../otakudesu.js';
 import komiku from '../utils/komiku.js';
 
 const handleError = (res, e) => {
-  console.log(e);
+  console.error(e);
   
   if (e.code === 'ECONNABORTED') {
       return res.status(504).json({
@@ -22,167 +21,152 @@ const handleError = (res, e) => {
 
 const searchAnimeHandler = async (req, res) => {
   const { keyword } = req.params;
-  let data;
-  try{
-    data = await otakudesu.search(keyword);
+  try {
+    const data = await otakudesu.search(keyword);
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch(e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request!", data });
 };
 
 const homeHandler = async (_, res)  => {
-  let data;
   try {
-    data = await otakudesu.home();
+    const data = await otakudesu.home();
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch(e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', Message: "Don't spam the request!", data });
 };
 
 const ongoingAnimeHandler = async (req, res) => {
   const { page } = req.params;
-  let result;
   try {
-    result = page ? await otakudesu.ongoingAnime(parseInt(page)) : await otakudesu.ongoingAnime();
+    const result = page ? await otakudesu.ongoingAnime(parseInt(page)) : await otakudesu.ongoingAnime();
+    const { paginationData, ongoingAnimeData } = result;
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data: ongoingAnimeData, pagination: paginationData });
   } catch(e) {
     return handleError(res, e);
   }
-  const { paginationData, ongoingAnimeData } = result;
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data: ongoingAnimeData, pagination: paginationData });
 };
 
 const completeAnimeHandler = async (req, res) => {
   const { page } = req.params;
-  let result;
   try {
-    result = page ? await otakudesu.completeAnime(parseInt(page)) : await otakudesu.completeAnime();
+    const result = page ? await otakudesu.completeAnime(parseInt(page)) : await otakudesu.completeAnime();
+    const { paginationData, completeAnimeData } = result;
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data: completeAnimeData, pagination: paginationData });
   } catch(e) {
     return handleError(res, e);
   }
-  const { paginationData, completeAnimeData } = result;
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data: completeAnimeData, pagination: paginationData });
 };
 
 const singleAnimeHandler = async (req, res) => {
   const { slug } = req.params;
-  let data;
   try {
-    data = await otakudesu.anime(slug);
+    const data = await otakudesu.anime(slug);
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch(e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const episodesHandler = async (req, res) => {
   const { slug } = req.params;
-  let data;
   try {
-    data = await otakudesu.episodes(slug);
+    const data = await otakudesu.episodes(slug);
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch(e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const episodeByEpisodeSlugHandler = async (req, res) => {
   const { slug } = req.params;
-  let data;
   try {
-    data = await otakudesu.episode({ episodeSlug: slug });
+    const data = await otakudesu.episode({ episodeSlug: slug });
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch (e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const episodeByEpisodeNumberHandler = async (req, res) => {
   const { slug: animeSlug, episode } = req.params;
-  let data;
   try {
-    data = await otakudesu.episode({ animeSlug, episodeNumber: parseInt(episode) });
+    const data = await otakudesu.episode({ animeSlug, episodeNumber: parseInt(episode) });
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch (e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const batchByBatchSlugHandler = async (req, res) => {
   const { slug } = req.params;
-  let data;
   try {
-    data = await otakudesu.batch({ batchSlug: slug });
+    const data = await otakudesu.batch({ batchSlug: slug });
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch (e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const batchHandler = async (req, res) => {
   const { slug } = req.params;
-  let data;
   try {
-    data = await otakudesu.batch({ animeSlug: slug });
+    const data = await otakudesu.batch({ animeSlug: slug });
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch (e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const genreListsHandler = async (_, res) => {
-  let data;
   try {
-    data = await otakudesu.genreLists();
+    const data = await otakudesu.genreLists();
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch(e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const animeByGenreHandler = async (req, res) => {
   const { slug, page } = req.params;
-  let data;
   try {
-    data = await otakudesu.animeByGenre(slug, page);
+    const data = await otakudesu.animeByGenre(slug, page);
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
   } catch(e) {
     return handleError(res, e);
   }
-  return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const jadwalRilisHandler = async (_, res) => {
-    let data;
     try {
-        data = await otakudesu.jadwalRilis();
+        const data = await otakudesu.jadwalRilis();
+        return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
     } catch (e) {
         return handleError(res, e);
     }
-    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const moviesHandler = async (req, res) => {
     const { page } = req.params;
-    let data;
     try {
-        data = await otakudesu.movies(page);
+        const data = await otakudesu.movies(page);
+        return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
     } catch (e) {
         return handleError(res, e);
     }
-    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const singleMovieHandler = async (req, res) => {
     const { year, month, slug } = req.params;
     const fullSlug = `/${year}/${month}/${slug}`;
-    let data;
     try {
-        data = await otakudesu.movie(fullSlug);
+        const data = await otakudesu.movie(fullSlug);
+        return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
     } catch (e) {
         return handleError(res, e);
     }
-    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
 };
 
 const weatherHandler = async (req, res) => {
@@ -353,7 +337,7 @@ const komikuManhuaHandler = async (req, res) => {
 const komikuManhwaHandler = async (req, res) => {
     try {
         const { page } = req.params;
-        const data = await komiku.getManhuaManhwa(page, 'manhua');
+        const data = await komiku.getManhuaManhwa(page, 'manhwa');
         return res.status(200).json({ status: "Ok", Creator: "RioRuo", manga_list: data });
     } catch (e) {
         return handleError(res, e);
@@ -373,8 +357,7 @@ const komikuChapterHandler = async (req, res) => {
 const samehadakuHomeHandler = async (req, res) => {
     try {
         const { page } = req.params;
-        const pageNumber = page ? parseInt(page) : 1;
-        const data = await otakudesu.samehadaku.getHome(pageNumber);
+        const data = await otakudesu.samehadaku.getHome(page);
         return res.status(200).json({ status: "Ok", Creator: "RioRuo", data });
     } catch (e) {
         return handleError(res, e);
@@ -403,9 +386,9 @@ const samehadakuStreamHandler = async (req, res) => {
 
 const samehadakuSearchHandler = async (req, res) => {
     try {
-        const { s } = req.query;
-        if (!s) return res.status(400).json({ status: "Error", message: "Query parameter 's' is required." });
-        const data = await otakudesu.samehadaku.getSearch(s);
+        const query = req.query.s || req.query.q;
+        if (!query) return res.status(400).json({ status: "Error", message: "Missing search query parameter 's'" });
+        const data = await otakudesu.samehadaku.getSearch(query);
         return res.status(200).json({ status: "Ok", Creator: "RioRuo", data });
     } catch (e) {
         return handleError(res, e);
@@ -415,10 +398,10 @@ const samehadakuSearchHandler = async (req, res) => {
 export default {
   searchAnimeHandler,
   homeHandler,
-  singleAnimeHandler,
-  episodesHandler,
   ongoingAnimeHandler,
   completeAnimeHandler,
+  singleAnimeHandler,
+  episodesHandler,
   episodeByEpisodeSlugHandler,
   episodeByEpisodeNumberHandler,
   batchByBatchSlugHandler,

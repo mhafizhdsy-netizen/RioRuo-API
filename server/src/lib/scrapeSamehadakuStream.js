@@ -105,36 +105,26 @@ const scrapeSamehadakuStream = (html) => {
     nextUrl: nextLink.attr('href') || null
   };
 
-  // getDownloadUrl Logic
+  // --- Fixed getDownloadUrl Logic ---
   let downloadUrl = '';
-  const $downloadLinkIcon = $('.iconx .icol a, .iconx a').filter(function() {
-    const $this = $(this);
-    const hasDownloadIcon = $this.find('i.fa-cloud-download-alt').length > 0 || 
-                            $this.parent().find('i.fa-cloud-download-alt').length > 0;
-    return hasDownloadIcon;
-  });
-  if ($downloadLinkIcon.length > 0) {
-    downloadUrl = $downloadLinkIcon.attr('href') || '';
+  
+  // 1. Target spesifik: Tag <a> di dalam .iconx dengan aria-label="Download"
+  const $primaryDownloadLink = $('.iconx a[aria-label="Download"]');
+  if ($primaryDownloadLink.length > 0) {
+    downloadUrl = $primaryDownloadLink.attr('href') || '';
   }
+  
+  // 2. Fallback: Cari <a> di dalam .iconx yang mengandung teks "Download"
   if (!downloadUrl) {
     $('.iconx a').each(function() {
       const text = $(this).text().trim().toLowerCase();
-      const spanText = $(this).find('span').text().trim().toLowerCase();
-      if (text.includes('Download') || spanText.includes('Download')) {
+      if (text.includes('download')) {
         downloadUrl = $(this).attr('href');
-        return false;
+        return false; // break loop
       }
     });
   }
-  if (!downloadUrl) {
-    $('.iconx a[target="_blank"]').each(function() {
-      const $parent = $(this).parent();
-      if (!$parent.hasClass('expand') && !$parent.hasClass('light')) {
-        downloadUrl = $(this).attr('href');
-        return false;
-      }
-    });
-  }
+  // --- End Fixed getDownloadUrl Logic ---
 
   // getRecommendedAnime Logic
   const recommendedAnime = [];

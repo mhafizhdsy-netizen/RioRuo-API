@@ -1,10 +1,9 @@
 import { load } from 'cheerio';
 
 const extractSlugFromUrl = (url) => {
-  if (!url) return '';
-  const urlPath = url.replace(/https?:\/\/[^\/]+/, ''); 
-  const match = urlPath.match(/\/([^\/]+)\/?$/); 
-  return match ? match[1] : '';
+  if (!url) return null;
+  // Menghilangkan protocol, domain, dan slashes di awal/akhir untuk mendapatkan slug murni
+  return url.replace(/https?:\/\/[^\/]+/, '').replace(/^\/|\/$/g, '');
 };
 
 const scrapeSamehadakuStream = (html) => {
@@ -13,7 +12,7 @@ const scrapeSamehadakuStream = (html) => {
   // Title
   const title = $('.entry-title[itemprop="name"]').text().trim();
   
-  // Series Slug
+  // Series Slug (untuk key "slug" di dalam streamndownload)
   const seriesLink = $('.year a[href*="/anime/"]').attr('href');
   let seriesSlug = '';
   if (seriesLink) {
@@ -21,14 +20,13 @@ const scrapeSamehadakuStream = (html) => {
     seriesSlug = match ? match[1] : '';
   }
 
-  // Current Episode info
+  // Current Episode info - Removed 'type'
   const currentEpisode = {
     number: $('meta[itemprop="episodeNumber"]').attr('content') || '',
-    type: $('.epx').text().trim() || '',
-    releaseDate: $('.updated').text().trim() || ''
+    releaseDate: $('.updated').first().text().replace(/Updated on:?/i, '').trim() || ''
   };
 
-  // Stream Options
+  // Stream Options - Sanitized keys
   const streamServers = [];
   $('.mirror option').each(function() {
     const $this = $(this);
@@ -36,11 +34,9 @@ const scrapeSamehadakuStream = (html) => {
     const name = $this.text().trim();
     
     if (value && value !== '') {
-      let decodedEmbed = '';
       let embedUrl = '';
-      
       try {
-        decodedEmbed = Buffer.from(value, 'base64').toString('utf-8');
+        const decodedEmbed = Buffer.from(value, 'base64').toString('utf-8');
         const srcMatch = decodedEmbed.match(/src=["']([^"']+)["']/i);
         if (srcMatch && srcMatch[1]) {
           embedUrl = srcMatch[1];
@@ -52,19 +48,15 @@ const scrapeSamehadakuStream = (html) => {
           }
         }
       } catch (e) {
-        decodedEmbed = 'Unable to decode';
         embedUrl = '';
       }
       
       streamServers.push({
         name,
-        encodedValue: value,
-        decodedEmbed,
-        embedUrl,
-        dataIndex: $this.attr('data-index') || ''
+        embedUrl
       });
     }
- });
+  });
 
   // Main Embed
   const mainEmbed = $('#embed_holder iframe').attr('src') || '';
@@ -87,37 +79,39 @@ const scrapeSamehadakuStream = (html) => {
     });
   });
 
-  // Pagination
+  // Pagination - Updated to nextSlug and prevSlug
   const prevLink = $('.naveps .nvs a[rel="prev"]');
   const nextLink = $('.naveps .nvs a[rel="next"]');
   const pagination = {
     hasPrev: prevLink.length > 0,
-    prevUrl: prevLink.attr('href') || null,
+    prevSlug: prevLink.attr('href') ? extractSlugFromUrl(prevLink.attr('href')) : null,
     hasNext: nextLink.length > 0,
-    nextUrl: nextLink.attr('href') || null
+    nextSlug: nextLink.attr('href') ? extractSlugFromUrl(nextLink.attr('href')) : null
   };
 
-  // --- LOGIKA DOWNLOADURL DITINGKATKAN ---
+  // Improved Download URL Logic
   let downloadUrl = '';
-  // Cari di dalam .iconx untuk link yang punya kata 'download' di aria-label atau di dalam teksnya
-  $('div.iconx a').each(function() {
-    const $link = $(this);
-    const ariaLabel = ($link.attr('aria-label') || '').toLowerCase();
-    const linkText = $link.text().toLowerCase();
-    
-    if (ariaLabel.includes('Download') || linkText.includes('download')) {
-      downloadUrl = $link.attr('href') || '';
-      if (downloadUrl) return false; // Berhenti jika sudah ketemu
-    }
-  });
-
-  // Fallback: Jika di .iconx tidak ada, cari link manapun yang punya aria-label download
-  if (!downloadUrl) {
-    downloadUrl = $('a[aria-label="Download" i]').first().attr('href') || '';
+  const iconxLink = $('.iconx a[aria-label*="ownload" i]').first().attr('href');
+  if (iconxLink) {
+    downloadUrl = iconxLink;
   }
-  // --- END LOGIKA ---
+  if (!downloadUrl) {
+    $('.iconx a').each(function() {
+      const text = $(this).text().toLowerCase();
+      if (text.includes('download')) {
+        downloadUrl = $(this).attr('href');
+        if (downloadUrl) return false;
+      }
+    });
+  }
+  if (!downloadUrl) {
+    downloadUrl = $('.download-eps a, .list_dl a, .dl-info a').first().attr('href') || '';
+  }
+  if (!downloadUrl) {
+    downloadUrl = $('a[aria-label*="ownload" i]').first().attr('href') || '';
+  }
 
-  // getRecommendedAnime Logic
+  // Recommended Anime Logic - Sanitized keys
   const recommendedAnime = [];
   $('.bixbox').each(function() {
     const headingText = $(this).find('.releases h3').text().trim();
@@ -130,25 +124,15 @@ const scrapeSamehadakuStream = (html) => {
         const $img = $limit.find('img');
         const url = $link.attr('href') || '';
         
-        let rSlug = '';
-        if (url) {
-          const rMatch = url.replace(/https?:\/\/[^\/]+/, '').match(/\/anime\/([^\/]+)\/?$/);
-          rSlug = rMatch ? rMatch[1] : '';
-        }
-        
         recommendedAnime.push({
           title: $tt.find('h2').text().trim(),
           url: url,
-          slug: rSlug,
+          slug: extractSlugFromUrl(url),
           thumbnail: $img.attr('src') || '',
           status: $limit.find('.status').text().trim(),
           type: $limit.find('.typez').text().trim(),
           episodeInfo: $limit.find('.bt .epx').text().trim(),
-          subtitle: $limit.find('.bt .sb').text().trim(),
-          rel: $link.attr('rel') || '',
-          alt: $img.attr('alt') || '',
-          width: $img.attr('width') || '',
-          height: $img.attr('height') || ''
+          subtitle: $limit.find('.bt .sb').text().trim()
         });
       });
     }
@@ -194,13 +178,16 @@ const scrapeSamehadakuStream = (html) => {
     description: $('.desc.mindes').clone().children('.colap').remove().end().text().trim()
   };
 
+  // Constructing final object with streamndownload group
   return {
-    title,
-    seriesSlug,
-    currentEpisode,
-    mainEmbed,
-    streamServers,
-    downloadUrl,
+    streamndownload: {
+      title,
+      slug: seriesSlug,
+      currentEpisode,
+      mainEmbed,
+      streamServers,
+      downloadUrl
+    },
     episodeList,
     pagination,
     seriesInfo,

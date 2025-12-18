@@ -122,8 +122,8 @@ api.get('/manhwa/:page?', cache(CACHE_SHORT), handler.komikuManhwaHandler);
 api.get('/chapter/:title', cache(CACHE_LONG), handler.komikuChapterHandler);
 
 // Samehadaku Routes
-// Updated to accept optional :page parameter
 api.get('/samehadaku/home/:page?', cache(CACHE_MEDIUM), handler.samehadakuHomeHandler);
 api.get('/samehadaku/anime/:slug', cache(CACHE_LONG), handler.samehadakuAnimeDetailHandler);
+api.get('/samehadaku/stream/:slug', cache(CACHE_LONG), handler.samehadakuStreamHandler);
 
 export default api;

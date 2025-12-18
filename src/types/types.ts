@@ -1,216 +1,119 @@
 
-type anime = {
-  title: string | undefined;
-  japanese_title: string | undefined;
-  poster: string | undefined;
-  rating: string | undefined;
-  produser: string | undefined;
-  type: string | undefined;
-  status: string | undefined;
-  episode_count: string | undefined;
-  duration: string | undefined;
-  release_date: string | undefined;
-  studio: string | undefined;
-  genres: genre[];
-  synopsis: string | undefined;
-  batch: {
-    slug: string | undefined;
-    otakudesu_url: string | undefined;
-    uploaded_at: string | undefined;
-  } | null;
-  episode_lists: episode_list[];
-  recommendations: {
-    title: string | undefined;
-    slug: string | undefined;
-    poster: string | undefined;
-    otakudesu_url: string | undefined;
-  }[];
-};
-
-type searchResultAnime = {
-  title: string | undefined;
-  slug: string | undefined;
-  poster: string | undefined;
-  status: string | undefined;
-  rating: string | undefined;
-  genres: genre[];
-  url: string | undefined;
-};
-
-type ongoingAnime = {
-  title: string | undefined;
-  slug: string | undefined;
-  poster: string | undefined;
-  current_episode: string | undefined;
-  release_day: string | undefined;
-  newest_release_date: string | undefined;
-  otakudesu_url: string | undefined;
-};
-
-type completeAnime = {
-  title: string | undefined;
-  slug: string | undefined;
-  poster: string | undefined;
-  episode_count: string | undefined;
-  rating: string | undefined;
-  last_release_date: string | undefined;
-  otakudesu_url: string | undefined;
-};
-
-type genre = {
-  name: string | undefined;
-  slug: string | undefined;
-  otakudesu_url: string | undefined;
-};
-
-type episode_list = {
-  episode: string | undefined;
-  slug: string | undefined;
-  otakudesu_url: string | undefined
-};
-
-type episode = {
-  episode: string;
-  anime: {
-    slug: string | undefined;
-    otakudesu_url: string | undefined;
-  };
-  has_previous_episode: boolean;
-  previous_episode_slug: string | null;
-  next_episode_slug: string | null;
-  has_next_episode: boolean;
-  stream_url: string | undefined;
-  streamList: {quality: string, provider: string, url: string | null}[];
-  download_urls: {
-    format_title: string,
-    formats: {
-      resolution: string,
-      size: string,
-      links: {
-        provider: string,
-        url: string | undefined
-      }[]
-    }[]
-  }[];
-};
-
-type batch = {
-  batch: string | undefined;
-  download_urls: {
-    resolution: string | undefined;
-    file_size: string | undefined;
-    urls: {
-      provider: string | undefined;
-      url: string | undefined;
-    }[];
-  }[];
+// Defined interfaces for the scrapers and API responses
+export interface genre {
+  name: string;
+  slug: string;
+  otakudesu_url?: string;
 }
 
-type movie = {
-  title: string | undefined;
-  poster: string | undefined;
-  sinopsi: string | undefined;
-  download_urls: any; 
-  stream_url: any; 
-};
+export interface episode_list {
+  episode: string;
+  slug: string;
+  otakudesu_url?: string;
+}
 
-type movies = {
-  movies: {
-    title: string | undefined;
-    code: string | undefined;
-    slug: string | undefined;
-    poster: string | undefined;
-    otakudesu_url: string | undefined;
-  }[];
-  pagination: {
-    current_page: number;
-    last_visible_page: number;
-    has_next_page: boolean;
-    next_page: number | null;
-    has_previous_page: boolean;
-    previous_page: number | null;
+export interface batch {
+  batch: string;
+  download_urls: any[];
+}
+
+export interface anime {
+  title: string;
+  japanese_title?: string;
+  poster?: string;
+  rating?: string;
+  produser?: string;
+  type?: string;
+  status?: string;
+  episode_count?: string;
+  duration?: string;
+  release_date?: string;
+  studio?: string;
+  genres?: genre[];
+  synopsis?: string;
+  batch?: batch;
+  episode_lists?: episode_list[];
+  recommendations?: any[];
+}
+
+export interface searchResultAnime {
+  title: string;
+  slug: string;
+  poster?: string;
+  genres?: genre[];
+  status?: string;
+  rating?: string;
+  url?: string;
+}
+
+export interface ongoingAnime {
+  title: string;
+  slug: string;
+  poster?: string;
+  current_episode?: string;
+  release_day?: string;
+  newest_release_date?: string;
+  otakudesu_url?: string;
+}
+
+export interface completeAnime {
+  title: string;
+  slug: string;
+  poster?: string;
+  episode_count?: string;
+  rating?: string;
+  last_release_date?: string;
+  otakudesu_url?: string;
+}
+
+export interface episode {
+  episode: string;
+  anime: {
+    slug?: string;
+    otakudesu_url?: string;
   };
-};
+  has_previous_episode: boolean;
+  previous_episode_slug?: string | null;
+  has_next_episode: boolean;
+  next_episode_slug?: string | null;
+  stream_url?: string | null;
+  streamList?: any[];
+  download_urls?: any[];
+}
 
-type jadwalRilisItem = {
-    title: string;
-    slug: string;
-    otakudesu_url: string;
-};
-
-type jadwalRilisDay = {
-    day: string;
-    animeList: jadwalRilisItem[];
-};
-
-type quote = {
-    text: string;
-    author: string;
-    tags: string[];
-    likes: number;
-};
-
-export type LatestReleaseType = {
+export interface movie {
   title: string;
-  slug: string | null;
-  thumbnail: string | null;
-  current_episode: string;
-  type: string;
-  status: string | null;
-  subOrDub: string;
-};
+  poster?: string;
+  sinopsi?: string;
+  download_urls?: any;
+  stream_url?: any;
+}
 
-export type SpotlightType = {
+export interface movies {
   title: string;
-  slug: string | null;
-  poster: string | null;
-  year: string;
-  type: string;
-  status: string;
-  genres: string[];
-  summary: string;
-  samehadaku_url: string;
-};
+  code?: string;
+  slug: string;
+  poster?: string;
+  otakudesu_url?: string;
+}
 
-export type TopSeriesItemType = {
-  rank: number;
+export interface jadwalRilisItem {
   title: string;
-  slug: string | null;
-  poster: string | null;
-  genres: string[];
-  rating: number | null;
-  samehadaku_url: string;
-};
+  slug: string;
+  otakudesu_url: string;
+}
 
-export type PaginationType = {
-  hasNext: boolean;
-  hasPrev: boolean;
-  nextText: string | null;
-  prevText: string | null;
-};
+export interface jadwalRilisDay {
+  day: string;
+  animeList: jadwalRilisItem[];
+}
 
-export type RecommendationType = {
-  title: string;
-  slug: string | null;
-  thumbnail: string | null;
-  status: string;
-  type: string;
-  subOrDub: string;
-};
-
-export type HomeDataType = {
-  spotlight: SpotlightType[];
-  latestRelease: LatestReleaseType[];
-  topSeries: {
-    weekly: TopSeriesItemType[];
-    monthly: TopSeriesItemType[];
-    alltime: TopSeriesItemType[];
-  };
-  pagination: PaginationType;
-  recommendations: {
-    [key: string]: RecommendationType[];
-  };
-};
+export interface quote {
+  text: string;
+  author: string;
+  tags: string[];
+  likes: number;
+}
 
 export enum ApiEndpoint {
   HOME = '/v1/home',
@@ -249,7 +152,7 @@ export enum ApiEndpoint {
   KOMIKU_MANHWA = '/v1/manhwa/:page?',
   KOMIKU_CHAPTER = '/v1/chapter/:title',
   SAMEHADAKU_HOME = '/v1/samehadaku/home/:page?',
-  SAMEHADAKU_SESION = '/v1/samehadaku/sesion/:page?',
+  SAMEHADAKU_SESION = '/v1/samehadaku/sesion/:page?orderBy=:query',
   SAMEHADAKU_ANIME = '/v1/samehadaku/anime/:slug',
   SAMEHADAKU_STREAM = '/v1/samehadaku/stream/:slug',
   SAMEHADAKU_SEARCH = '/v1/samehadaku/search',

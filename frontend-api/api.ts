@@ -8,8 +8,9 @@ export const BASE_URL =
   : ''; 
 
 async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>, extraQueryParams?: Record<string, string>, options?: RequestInit): Promise<T> {
-  const fullApiPath = endpoint;
-  const url = new URL(`${BASE_URL}${fullApiPath}`, window.location.origin);
+  // Ambil hanya bagian path (sebelum tanda tanya jika ada di template enum)
+  const cleanEndpointPath = endpoint.split('?')[0];
+  const url = new URL(`${BASE_URL}${cleanEndpointPath}`, window.location.origin);
   
   if (params) {
     Object.keys(params).forEach(key => {
@@ -115,7 +116,11 @@ export const apiService = {
   getKomikuManhwa: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_MANHWA.replace(':page?', page.toString())),
   getKomikuChapter: (title: string) => fetchFromApi(ApiEndpoint.KOMIKU_CHAPTER.replace(':title', title)),
   getSamehadakuHome: (page = 1) => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME.replace(':page?', page.toString())),
-  getSamehadakuSesion: (page = 1, orderBy = 'latest') => fetchFromApi(ApiEndpoint.SAMEHADAKU_SESION.replace(':page?', page.toString()), { orderBy: orderBy.toLowerCase() }),
+  getSamehadakuSesion: (page = 1, orderBy = 'latest') => {
+      // Ambil path template dari enum, ganti :page? lalu tambahkan query param secara manual atau via fetchFromApi params
+      const endpointTemplate = ApiEndpoint.SAMEHADAKU_SESION.split('?')[0];
+      return fetchFromApi(endpointTemplate.replace(':page?', page.toString()), { orderBy: orderBy.toLowerCase() });
+  },
   getSamehadakuAnimeDetail: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_ANIME.replace(':slug', slug)),
   getSamehadakuStream: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_STREAM.replace(':slug', slug)),
   getSamehadakuSearch: (query: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_SEARCH, { s: query }),

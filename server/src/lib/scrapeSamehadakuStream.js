@@ -100,7 +100,7 @@ const scrapeSamehadakuStream = (html) => {
   // --- LOGIKA DOWNLOADURL DITINGKATKAN ---
   let downloadUrl = '';
   // Cari di dalam .iconx untuk link yang punya kata 'download' di aria-label atau di dalam teksnya
-  $('.iconx a').each(function() {
+  $('div.iconx a').each(function() {
     const $link = $(this);
     const ariaLabel = ($link.attr('aria-label') || '').toLowerCase();
     const linkText = $link.text().toLowerCase();

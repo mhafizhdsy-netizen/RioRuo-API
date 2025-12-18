@@ -1,10 +1,10 @@
 
 import axios from 'axios';
 import { load } from 'cheerio';
-import { scrapeHomePage, scrapeAnimeDetail } from '../lib/scrapeSamehadaku.js';
+import { scrapeHomePage, scrapeAnimeDetail, scrapeSearch } from '../lib/scrapeSamehadaku.js';
 import scrapeSamehadakuStream from '../lib/scrapeSamehadakuStream.js';
 
-// Base URL for Samehadaku - adjust as needed if domain changes
+// Base URL for Samehadaku
 const BASEURL = process.env.SAMEHADAKU_URL || 'https://samehadaku.li'; 
 
 // Headers to mimic a real browser request
@@ -59,8 +59,25 @@ const getStreamDetail = async (slug) => {
     }
 };
 
+const getSearch = async (query) => {
+    try {
+        const url = `${BASEURL}/?s=${encodeURIComponent(query)}`;
+        const { data } = await axios.get(url, {
+            headers: HEADERS,
+            timeout: 120000
+        });
+        const $ = load(data);
+        const result = scrapeSearch($);
+        return result;
+    } catch (error) {
+        console.error(`[Samehadaku] Error searching for ${query}: ${error.message}`);
+        throw error;
+    }
+};
+
 export default {
     getHome,
     getAnimeDetail,
-    getStreamDetail
+    getStreamDetail,
+    getSearch
 };

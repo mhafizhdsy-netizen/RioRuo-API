@@ -1,3 +1,4 @@
+
 import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
@@ -75,5 +76,6 @@ api.get('/chapter/:title', cache(CACHE_LONG), handler.komikuChapterHandler);
 api.get('/samehadaku/home/:page?', cache(CACHE_MEDIUM), handler.samehadakuHomeHandler);
 api.get('/samehadaku/anime/:slug', cache(CACHE_LONG), handler.samehadakuAnimeDetailHandler);
 api.get('/samehadaku/stream/:slug', cache(CACHE_LONG), handler.samehadakuStreamHandler);
+api.get('/samehadaku/search', cache(CACHE_SHORT), handler.samehadakuSearchHandler);
 
 export default api;

@@ -40,7 +40,7 @@ async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>
           try {
             const errorData = await res.json();
             if (errorData.message) errorMessage = errorData.message;
-            if (errorData.hint) errorHint = errorData.hint;
+            if (errorHint) errorHint = errorData.hint;
             if (errorData.details) errorMessage += ` (${errorData.details})`;
           } catch (e) { }
           const error = new Error(errorMessage);
@@ -115,4 +115,5 @@ export const apiService = {
   getSamehadakuHome: (page = 1) => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME.replace(':page?', page.toString())),
   getSamehadakuAnimeDetail: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_ANIME.replace(':slug', slug)),
   getSamehadakuStream: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_STREAM.replace(':slug', slug)),
+  getSamehadakuSearch: (query: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_SEARCH, { s: query }),
 };

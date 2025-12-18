@@ -1,3 +1,4 @@
+
 import otakudesu from '../otakudesu.js';
 import komiku from '../utils/komiku.js';
 
@@ -113,7 +114,7 @@ const batchByBatchSlugHandler = async (req, res) => {
   let data;
   try {
     data = await otakudesu.batch({ batchSlug: slug });
-  } catch(e) {
+  } catch (e) {
     return handleError(res, e);
   }
   return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
@@ -124,7 +125,7 @@ const batchHandler = async (req, res) => {
   let data;
   try {
     data = await otakudesu.batch({ animeSlug: slug });
-  } catch(e) {
+  } catch (e) {
     return handleError(res, e);
   }
   return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
@@ -400,6 +401,17 @@ const samehadakuStreamHandler = async (req, res) => {
     }
 };
 
+const samehadakuSearchHandler = async (req, res) => {
+    try {
+        const { s } = req.query;
+        if (!s) return res.status(400).json({ status: "Error", message: "Query parameter 's' is required." });
+        const data = await otakudesu.samehadaku.getSearch(s);
+        return res.status(200).json({ status: "Ok", Creator: "RioRuo", data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 export default {
   searchAnimeHandler,
   homeHandler,
@@ -436,5 +448,6 @@ export default {
   komikuChapterHandler,
   samehadakuHomeHandler,
   samehadakuAnimeDetailHandler,
-  samehadakuStreamHandler
+  samehadakuStreamHandler,
+  samehadakuSearchHandler
 };

@@ -68,6 +68,7 @@ export function App() {
   
   // Samehadaku Stream Slug
   const [samehadakuStreamSlug, setSamehadakuStreamSlug] = useState('one-piece-episode-1122');
+  const [samehadakuSearchQuery, setSamehadakuSearchQuery] = useState('kimetsu');
 
   // Komiku Specific Params
   const [mangaEndpoint, setMangaEndpoint] = useState('one-piece');
@@ -165,6 +166,7 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_HOME) res = await apiService.getSamehadakuHome(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_ANIME) res = await apiService.getSamehadakuAnimeDetail(animeSlug);
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_STREAM) res = await apiService.getSamehadakuStream(samehadakuStreamSlug);
+      else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_SEARCH) res = await apiService.getSamehadakuSearch(samehadakuSearchQuery);
       
       else res = await apiService.getHome();
 
@@ -206,7 +208,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery]);
 
   const renderInputs = useCallback(() => {
     const inputs = [];
@@ -358,8 +360,20 @@ export function App() {
         );
     }
 
+    if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_SEARCH) {
+        inputs.push(
+            <div key="samehadakuSearchQuery" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Search Keyword</label>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                <input type="text" value={samehadakuSearchQuery} onChange={(e) => setSamehadakuSearchQuery(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 pl-10 pr-4 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary transition-all text-white" placeholder="e.g. Kimetsu" />
+              </div>
+            </div>
+        );
+    }
+
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },
@@ -390,6 +404,7 @@ export function App() {
 
   const samehadakuCategories = [
     { id: 'samehadaku-discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.SAMEHADAKU_HOME] },
+    { id: 'samehadaku-search', name: "Search", icon: <Search size={14} />, items: [ApiEndpoint.SAMEHADAKU_SEARCH] },
     { id: 'samehadaku-details', name: "Details", icon: <Film size={14} />, items: [ApiEndpoint.SAMEHADAKU_ANIME, ApiEndpoint.SAMEHADAKU_STREAM] },
   ];
 

@@ -158,6 +158,16 @@ const documentationData = [
             response: 'Objek JSON berisi `latestRelease`, `recommendations`, dan `pagination`.'
         },
         {
+            path: '/v1/samehadaku/search',
+            method: 'GET',
+            description: 'Mencari anime di Samehadaku berdasarkan keyword.',
+            parameters: [
+                { name: 's', type: 'string', required: true, description: 'Keyword pencarian (query param).' }
+            ],
+            example: '/samehadaku/search?s=kimetsu',
+            response: 'Array hasil pencarian berisi title, slug, thumbnail, status, type, dan subtitle info.'
+        },
+        {
             path: '/v1/samehadaku/anime/:slug',
             method: 'GET',
             description: 'Mengambil detail lengkap anime dari Samehadaku, termasuk sinopsis, karakter, episode, dan rekomendasi. Gunakan slug yang tidak ada teks episodenya.',

@@ -120,7 +120,7 @@ const scrapeSamehadakuStream = (html) => {
     $('.iconx a').each(function() {
       const text = $(this).text().trim().toLowerCase();
       const spanText = $(this).find('span').text().trim().toLowerCase();
-      if (text.includes('download') || spanText.includes('download')) {
+      if (text.includes('Download') || spanText.includes('Download')) {
         downloadUrl = $(this).attr('href');
         return false;
       }

@@ -117,7 +117,11 @@ export const apiService = {
   getKomikuChapter: (title: string) => fetchFromApi(ApiEndpoint.KOMIKU_CHAPTER.replace(':title', title)),
   getSamehadakuHome: (page = 1) => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME.replace(':page?', page.toString())),
   getSamehadakuSesion: (page = 1, orderBy = 'latest') => {
-      return fetchFromApi(ApiEndpoint.SAMEHADAKU_SESION.replace(':page', page.toString()).replace(':orderby', orderBy.toLowerCase()));
+      // FIX: Inject page and orderby directly into the path string
+      const path = ApiEndpoint.SAMEHADAKU_SESION
+          .replace(':page', page.toString())
+          .replace(':orderby', orderBy.toLowerCase());
+      return fetchFromApi(path);
   },
   getSamehadakuAnimeDetail: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_ANIME.replace(':slug', slug)),
   getSamehadakuStream: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_STREAM.replace(':slug', slug)),

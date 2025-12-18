@@ -160,10 +160,10 @@ const documentationData = [
         {
             path: '/v1/samehadaku/sesion/:page/:orderby',
             method: 'GET',
-            description: 'Mengambil daftar anime dari database Samehadaku dengan pengurutan dan filter tertentu menggunakan path parameters.',
+            description: 'Mengambil daftar anime dari database Samehadaku dengan pengurutan tertentu menggunakan path parameters.',
             parameters: [
                 { name: ':page', type: 'number', required: true, description: 'Nomor halaman.' },
-                { name: ':orderby', type: 'string', required: true, description: 'Kriteria pengurutan. Hanya menerima: latest, update, popular, rating, title.' }
+                { name: ':orderby', type: 'string', required: true, description: 'Kriteria pengurutan: latest, update, popular, rating, title.' }
             ],
             example: '/samehadaku/sesion/1/popular',
             response: 'Objek JSON berisi `anime_list` (array anime) dan informasi `pagination`.'
@@ -181,7 +181,7 @@ const documentationData = [
         {
             path: '/v1/samehadaku/anime/:slug',
             method: 'GET',
-            description: 'Mengambil detail lengkap anime dari Samehadaku, termasuk sinopsis, karakter, episode, dan rekomendasi. Gunakan slug yang tidak ada teks episodenya.',
+            description: 'Mengambil detail lengkap anime dari Samehadaku, termasuk sinopsis, karakter, episode, dan rekomendasi.',
             parameters: [
                 { name: ':slug', type: 'string', required: true, description: 'Slug anime.' }
             ],
@@ -773,6 +773,7 @@ const RequestExample: React.FC<{ endpoint: Endpoint }> = ({ endpoint }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        // Fix: Use the correct state setter name
         setIsDropdownOpen(false);
       }
     };

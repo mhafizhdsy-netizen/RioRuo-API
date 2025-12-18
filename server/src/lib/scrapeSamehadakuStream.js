@@ -1,4 +1,3 @@
-
 import { load } from 'cheerio';
 
 const extractSlugFromUrl = (url) => {
@@ -29,26 +28,51 @@ const scrapeSamehadakuStream = (html) => {
     releaseDate: $('.updated').text().trim() || ''
   };
 
-  // Stream Options
+  // --- Start Updated getServerOptions Logic ---
   const streamServers = [];
   $('.mirror option').each(function() {
-    const value = $(this).attr('value');
-    const name = $(this).text().trim();
+    const $this = $(this);
+    const value = $this.attr('value');
+    const name = $this.text().trim();
+    
     if (value && value !== '') {
       let decodedEmbed = '';
+      let embedUrl = '';
+      
       try {
+        // Decode base64
         decodedEmbed = Buffer.from(value, 'base64').toString('utf-8');
+        
+        // Extract src URL from decoded HTML
+        // Pattern: src="URL" or src='URL'
+        const srcMatch = decodedEmbed.match(/src=["']([^"']+)["']/i);
+        if (srcMatch && srcMatch[1]) {
+          embedUrl = srcMatch[1];
+        }
+        
+        // Alternative pattern: src=URL (without quotes, until space or >)
+        if (!embedUrl) {
+          const srcMatchAlt = decodedEmbed.match(/src=([^\s>]+)/i);
+          if (srcMatchAlt && srcMatchAlt[1]) {
+            embedUrl = srcMatchAlt[1].replace(/["']/g, ''); // Remove any quotes
+          }
+        }
+        
       } catch (e) {
         decodedEmbed = 'Unable to decode';
+        embedUrl = '';
       }
+      
       streamServers.push({
         name,
         encodedValue: value,
         decodedEmbed,
-        dataIndex: $(this).attr('data-index') || ''
+        embedUrl, // Direct embed URL extracted from src
+        dataIndex: $this.attr('data-index') || ''
       });
     }
   });
+  // --- End Updated getServerOptions Logic ---
 
   // Main Embed
   const mainEmbed = $('#embed_holder iframe').attr('src') || '';
@@ -81,19 +105,73 @@ const scrapeSamehadakuStream = (html) => {
     nextUrl: nextLink.attr('href') || null
   };
 
-  // Download URL
+  // getDownloadUrl Logic
   let downloadUrl = '';
-  const downloadIcon = $('.iconx a:has(i.fa-cloud-download-alt)').attr('href');
-  if (downloadIcon) downloadUrl = downloadIcon;
+  const $downloadLinkIcon = $('.iconx .icol a, .iconx a').filter(function() {
+    const $this = $(this);
+    const hasDownloadIcon = $this.find('i.fa-cloud-download-alt').length > 0 || 
+                            $this.parent().find('i.fa-cloud-download-alt').length > 0;
+    return hasDownloadIcon;
+  });
+  if ($downloadLinkIcon.length > 0) {
+    downloadUrl = $downloadLinkIcon.attr('href') || '';
+  }
   if (!downloadUrl) {
     $('.iconx a').each(function() {
-      const text = $(this).text().trim();
-      if (text.toLowerCase().includes('download')) {
+      const text = $(this).text().trim().toLowerCase();
+      const spanText = $(this).find('span').text().trim().toLowerCase();
+      if (text.includes('download') || spanText.includes('download')) {
         downloadUrl = $(this).attr('href');
         return false;
       }
     });
   }
+  if (!downloadUrl) {
+    $('.iconx a[target="_blank"]').each(function() {
+      const $parent = $(this).parent();
+      if (!$parent.hasClass('expand') && !$parent.hasClass('light')) {
+        downloadUrl = $(this).attr('href');
+        return false;
+      }
+    });
+  }
+
+  // getRecommendedAnime Logic
+  const recommendedAnime = [];
+  $('.bixbox').each(function() {
+    const headingText = $(this).find('.releases h3').text().trim();
+    if (headingText.toLowerCase().includes('recommended')) {
+      $(this).find('.listupd .bs').each(function() {
+        const $bsx = $(this).find('.bsx');
+        const $link = $bsx.find('a.tip');
+        const $limit = $bsx.find('.limit');
+        const $tt = $bsx.find('.tt');
+        const $img = $limit.find('img');
+        const url = $link.attr('href') || '';
+        
+        let rSlug = '';
+        if (url) {
+          const rMatch = url.replace(/https?:\/\/[^\/]+/, '').match(/\/anime\/([^\/]+)\/?$/);
+          rSlug = rMatch ? rMatch[1] : '';
+        }
+        
+        recommendedAnime.push({
+          title: $tt.find('h2').text().trim(),
+          url: url,
+          slug: rSlug,
+          thumbnail: $img.attr('src') || '',
+          status: $limit.find('.status').text().trim(),
+          type: $limit.find('.typez').text().trim(),
+          episodeInfo: $limit.find('.bt .epx').text().trim(),
+          subtitle: $limit.find('.bt .sb').text().trim(),
+          rel: $link.attr('rel') || '',
+          alt: $img.attr('alt') || '',
+          width: $img.attr('width') || '',
+          height: $img.attr('height') || ''
+        });
+      });
+    }
+  });
 
   // Series Details
   const studios = [];
@@ -144,7 +222,8 @@ const scrapeSamehadakuStream = (html) => {
     downloadUrl,
     episodeList,
     pagination,
-    seriesInfo
+    seriesInfo,
+    recommendedAnime
   };
 };
 

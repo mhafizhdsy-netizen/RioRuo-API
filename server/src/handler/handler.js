@@ -449,7 +449,7 @@ const komikuManhuaHandler = async (req, res) => {
 const komikuManhwaHandler = async (req, res) => {
     try {
         const { page } = req.params;
-        const data = await komiku.getManhuaManhwa(page, 'manhwa');
+        const data = await komiku.getManhuaManhwa(page, 'manhua');
         return res.status(200).json({ status: "Ok", Creator: "RioRuo", Message: "Don't spam the request motherfucker!", manga_list: data });
     } catch (e) {
         return handleError(res, e);

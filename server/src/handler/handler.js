@@ -364,6 +364,27 @@ const samehadakuHomeHandler = async (req, res) => {
     }
 };
 
+const samehadakuSesionHandler = async (req, res) => {
+    try {
+        const { page } = req.params;
+        const { orderBy } = req.query;
+        const validOrders = ['latest', 'update', 'popular', 'rating', 'title'];
+        
+        if (orderBy && !validOrders.includes(orderBy)) {
+            return res.status(400).json({ 
+                status: "Error", 
+                message: "Invalid orderBy value.", 
+                hint: "Only these values are allowed: latest, update, popular, rating, title" 
+            });
+        }
+
+        const data = await otakudesu.samehadaku.getSesion(page ? parseInt(page) : 1, orderBy);
+        return res.status(200).json({ status: "Ok", Creator: "RioRuo", data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 const samehadakuAnimeDetailHandler = async (req, res) => {
     try {
         const { slug } = req.params;
@@ -430,6 +451,7 @@ export default {
   komikuManhwaHandler,
   komikuChapterHandler,
   samehadakuHomeHandler,
+  samehadakuSesionHandler,
   samehadakuAnimeDetailHandler,
   samehadakuStreamHandler,
   samehadakuSearchHandler

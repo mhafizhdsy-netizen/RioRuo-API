@@ -1,5 +1,5 @@
 
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { ApiEndpoint } from './src/types/types.ts';
 import { apiService, BASE_URL } from './frontend-api/api';
 import { ConsoleOutput } from './components/ConsoleOutput';
@@ -10,7 +10,7 @@ import {
   List, Grid, Film, ChevronDown, Check,
   Heart, Globe, CalendarDays, Cloud,
   BookOpen, SlidersHorizontal, Menu, X, Copy,
-  Book, Quote, Link, Tv, Ghost
+  Book, Quote, Link, Tv, Ghost, Filter
 } from 'lucide-react';
 
 // Toast component
@@ -41,6 +41,72 @@ const Toast: React.FC<{ id: string; message: string; onRemove: (id: string) => v
   );
 };
 
+// Custom Select Component for Playground
+const CustomSelect: React.FC<{ 
+  value: string; 
+  options: { label: string; value: string }[]; 
+  onChange: (val: string) => void;
+  label: string;
+  icon?: React.ReactNode;
+}> = ({ value, options, onChange, label, icon }) => {
+  const [isOpen, setIsOpen] = useState(false);
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (containerRef.current && !containerRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    };
+    document.addEventListener("mousedown", handleClickOutside);
+    return () => document.removeEventListener("mousedown", handleClickOutside);
+  }, []);
+
+  const selectedOption = options.find(opt => opt.value === value) || options[0];
+
+  return (
+    <div className="flex flex-col gap-2 relative" ref={containerRef}>
+      <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">{label}</label>
+      <button 
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm flex items-center justify-between hover:border-zinc-600 transition-all text-white focus:outline-none focus:ring-1 focus:ring-primary"
+      >
+        <div className="flex items-center gap-2">
+          {icon && <span className="text-zinc-500">{icon}</span>}
+          <span>{selectedOption.label}</span>
+        </div>
+        <ChevronDown size={14} className={`text-zinc-500 transition-transform duration-200 ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute top-[calc(100%+4px)] left-0 right-0 bg-[#1a1a1a] border border-border rounded-lg shadow-2xl z-[100] overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+          <div className="py-1">
+            {options.map((opt) => (
+              <button
+                key={opt.value}
+                type="button"
+                onClick={() => {
+                  onChange(opt.value);
+                  setIsOpen(false);
+                }}
+                className={`w-full text-left px-4 py-2 text-sm flex items-center justify-between transition-colors ${
+                  value === opt.value 
+                    ? 'bg-primary/10 text-primary font-medium' 
+                    : 'text-zinc-400 hover:bg-white/5 hover:text-white'
+                }`}
+              >
+                <span>{opt.label}</span>
+                {value === opt.value && <Check size={14} />}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};
+
 export function App() {
   const [view, setView] = useState<'playground' | 'docs'>('playground');
   const [selectedEndpoint, setSelectedEndpoint] = useState<string>(ApiEndpoint.HOME);
@@ -66,9 +132,10 @@ export function App() {
   const [weatherLang, setWeatherLang] = useState('id');
   const [quoteTag, setQuoteTag] = useState('love');
   
-  // Samehadaku Stream Slug
+  // Samehadaku Params
   const [samehadakuStreamSlug, setSamehadakuStreamSlug] = useState('one-piece-episode-1122');
   const [samehadakuSearchQuery, setSamehadakuSearchQuery] = useState('kimetsu');
+  const [samehadakuOrderBy, setSamehadakuOrderBy] = useState('popular');
 
   // Komiku Specific Params
   const [mangaEndpoint, setMangaEndpoint] = useState('one-piece');
@@ -164,6 +231,7 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_CHAPTER) res = await apiService.getKomikuChapter(chapterTitle);
       // Samehadaku
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_HOME) res = await apiService.getSamehadakuHome(parseInt(page));
+      else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_SESION) res = await apiService.getSamehadakuSesion(parseInt(page), samehadakuOrderBy);
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_ANIME) res = await apiService.getSamehadakuAnimeDetail(animeSlug);
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_STREAM) res = await apiService.getSamehadakuStream(samehadakuStreamSlug);
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_SEARCH) res = await apiService.getSamehadakuSearch(samehadakuSearchQuery);
@@ -208,7 +276,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy]);
 
   const renderInputs = useCallback(() => {
     const inputs = [];
@@ -270,13 +338,32 @@ export function App() {
       );
     }
 
-    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG, ApiEndpoint.SAMEHADAKU_HOME].includes(selectedEndpoint as ApiEndpoint)) {
+    if ([ApiEndpoint.ONGOING, ApiEndpoint.COMPLETED, ApiEndpoint.GENRE_DETAIL, ApiEndpoint.KOMIKU_PAGE, ApiEndpoint.KOMIKU_POPULAR, ApiEndpoint.QUOTES, ApiEndpoint.QUOTES_BY_TAG, ApiEndpoint.SAMEHADAKU_HOME, ApiEndpoint.SAMEHADAKU_SESION].includes(selectedEndpoint as ApiEndpoint)) {
       inputs.push(
         <div key="pg" className="flex flex-col gap-2">
           <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Page</label>
           <input type="number" value={page} onChange={(e) => setPage(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white" placeholder="1" />
         </div>
       );
+    }
+
+    if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_SESION) {
+        inputs.push(
+            <CustomSelect 
+                key="orderBy"
+                label="Order By"
+                icon={<Filter size={16} />}
+                value={samehadakuOrderBy}
+                onChange={setSamehadakuOrderBy}
+                options={[
+                    { label: 'Latest Anime', value: 'latest' },
+                    { label: 'Recently Updated', value: 'update' },
+                    { label: 'Popularity', value: 'popular' },
+                    { label: 'Rating', value: 'rating' },
+                    { label: 'Title (A-Z)', value: 'title' },
+                ]}
+            />
+        );
     }
 
     if ([ApiEndpoint.WEATHER, ApiEndpoint.WEATHER_ASCII, ApiEndpoint.WEATHER_QUICK, ApiEndpoint.WEATHER_PNG].includes(selectedEndpoint as ApiEndpoint)) {
@@ -373,7 +460,7 @@ export function App() {
     }
 
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },
@@ -403,7 +490,7 @@ export function App() {
   ];
 
   const samehadakuCategories = [
-    { id: 'samehadaku-discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.SAMEHADAKU_HOME] },
+    { id: 'samehadaku-discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.SAMEHADAKU_HOME, ApiEndpoint.SAMEHADAKU_SESION] },
     { id: 'samehadaku-search', name: "Search", icon: <Search size={14} />, items: [ApiEndpoint.SAMEHADAKU_SEARCH] },
     { id: 'samehadaku-details', name: "Details", icon: <Film size={14} />, items: [ApiEndpoint.SAMEHADAKU_ANIME, ApiEndpoint.SAMEHADAKU_STREAM] },
   ];

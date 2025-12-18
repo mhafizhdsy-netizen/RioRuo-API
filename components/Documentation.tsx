@@ -1,4 +1,3 @@
-
 import React, { useState, useRef, useEffect } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
@@ -156,6 +155,17 @@ const documentationData = [
             ],
             example: '/samehadaku/home/2',
             response: 'Objek JSON berisi `latestRelease`, `recommendations`, dan `pagination`.'
+        },
+        {
+            path: '/v1/samehadaku/sesion/:page?',
+            method: 'GET',
+            description: 'Mengambil daftar anime dari database Samehadaku dengan pengurutan dan filter tertentu.',
+            parameters: [
+                { name: ':page?', type: 'number', required: false, description: 'Nomor halaman. Default: 1.' },
+                { name: 'orderBy', type: 'string', required: true, description: 'Kriteria pengurutan. Hanya menerima: latest, update, popular, rating, title.' }
+            ],
+            example: '/samehadaku/sesion/1?orderBy=popular',
+            response: 'Objek JSON berisi `anime_list` (array anime) dan informasi `pagination`.'
         },
         {
             path: '/v1/samehadaku/search',
@@ -901,7 +911,7 @@ const EndpointCard: React.FC<EndpointCardProps> = ({ endpoint }) => (
       <div>
         <h4 className="text-sm font-bold text-zinc-300 mb-2 flex items-center gap-2"><Terminal size={14}/> Example {endpoint.method === 'POST' ? 'Path' : 'Request'}</h4>
         <code className="w-full block bg-surfaceLight border border-border rounded-lg p-3 text-sm text-emerald-300 font-mono break-all">
-          /v1{endpoint.example}
+          {endpoint.method === 'GET' ? `${BASE_API_URL}${endpoint.example}` : endpoint.path}
         </code>
       </div>
        <div className="mt-4">

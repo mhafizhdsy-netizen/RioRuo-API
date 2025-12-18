@@ -80,6 +80,8 @@ export const apiService = {
   getAnimeEpisodes: (slug: string) => fetchFromApi(ApiEndpoint.ANIME_EPISODES.replace(':slug', slug)),
   getEpisodeByNumber: (animeSlug: string, episodeNumber: number) => 
     fetchFromApi(ApiEndpoint.EPISODE_BY_NUMBER.replace(':slug', animeSlug).replace(':episode', episodeNumber.toString())),
+  getEpisodeByNumberAlt: (animeSlug: string, episodeNumber: number) => 
+    fetchFromApi(ApiEndpoint.EPISODE_BY_NUMBER.replace(':slug', animeSlug).replace(':episode', episodeNumber.toString())),
   getEpisodeDetail: (slug: string) => fetchFromApi(ApiEndpoint.EPISODE_DETAIL.replace(':slug', slug)),
   getBatchByAnimeSlug: (slug: string) => fetchFromApi(ApiEndpoint.BATCH_BY_ANIME_SLUG.replace(':slug', slug)),
   getMovies: (page = 1) => fetchFromApi(ApiEndpoint.MOVIES.replace(':page?', page.toString())),
@@ -113,6 +115,7 @@ export const apiService = {
   getKomikuManhwa: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_MANHWA.replace(':page?', page.toString())),
   getKomikuChapter: (title: string) => fetchFromApi(ApiEndpoint.KOMIKU_CHAPTER.replace(':title', title)),
   getSamehadakuHome: (page = 1) => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME.replace(':page?', page.toString())),
+  getSamehadakuSesion: (page = 1, orderBy = 'latest') => fetchFromApi(ApiEndpoint.SAMEHADAKU_SESION.replace(':page?', page.toString()), { orderBy: orderBy.toLowerCase() }),
   getSamehadakuAnimeDetail: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_ANIME.replace(':slug', slug)),
   getSamehadakuStream: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_STREAM.replace(':slug', slug)),
   getSamehadakuSearch: (query: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_SEARCH, { s: query }),

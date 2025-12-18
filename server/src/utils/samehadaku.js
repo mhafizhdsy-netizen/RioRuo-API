@@ -1,7 +1,6 @@
-
 import axios from 'axios';
 import { load } from 'cheerio';
-import { scrapeHomePage, scrapeAnimeDetail, scrapeSearch } from '../lib/scrapeSamehadaku.js';
+import { scrapeHomePage, scrapeAnimeDetail, scrapeSearch, scrapeAnimeList } from '../lib/scrapeSamehadaku.js';
 import scrapeSamehadakuStream from '../lib/scrapeSamehadakuStream.js';
 
 // Base URL for Samehadaku
@@ -24,6 +23,33 @@ const getHome = async (page = 1) => {
         return result;
     } catch (error) {
         console.error(`[Samehadaku] Error fetching home page ${page}: ${error.message}`);
+        throw error;
+    }
+};
+
+const getSesion = async (page = 1, orderBy = 'latest') => {
+    try {
+        // Map parameter internal ke parameter Samehadaku
+        const orderMap = {
+            'latest': 'latest',
+            'update': 'update',
+            'popular': 'popular',
+            'rating': 'rating',
+            'title': 'title'
+        };
+
+        const order = orderMap[orderBy] || 'latest';
+        // Menggunakan format URL yang diminta: /anime/?page={$page}&status=&type=&order={$query}
+        const url = `${BASEURL}/anime/?page=${page}&status=&type=&order=${order}`;
+        
+        const { data } = await axios.get(url, {
+            headers: HEADERS,
+            timeout: 120000
+        });
+
+        return scrapeAnimeList(data);
+    } catch (error) {
+        console.error(`[Samehadaku] Error fetching sesion order:${orderBy} page:${page}: ${error.message}`);
         throw error;
     }
 };
@@ -77,6 +103,7 @@ const getSearch = async (query) => {
 
 export default {
     getHome,
+    getSesion,
     getAnimeDetail,
     getStreamDetail,
     getSearch

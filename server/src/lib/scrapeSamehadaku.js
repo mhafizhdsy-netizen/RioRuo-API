@@ -1,4 +1,3 @@
-
 import { load } from 'cheerio';
 
 /**
@@ -7,7 +6,9 @@ import { load } from 'cheerio';
 const extractSlug = (url) => {
   if (!url) return null;
   let path = url.replace(/^(?:https?:\/\/)?[^\/]+/, '');
-  path = path.replace(/^\/anime\//, '/');
+  if (path.startsWith('/anime/')) {
+      path = path.replace('/anime/', '');
+  }
   return path.replace(/^\/|\/$/g, '');
 };
 
@@ -23,7 +24,6 @@ export const scrapeSearch = ($) => {
     const $link = $bsx.find('a');
     const href = $link.attr('href');
     
-    // Title is inside .tt h2
     const title = $bsx.find('.tt h2').text().trim() || $bsx.find('.tt').contents().filter(function() {
         return this.type === 'text';
     }).text().trim();
@@ -35,12 +35,49 @@ export const scrapeSearch = ($) => {
       status: $bsx.find('.limit .status').text().trim(),
       type: $bsx.find('.limit .typez').text().trim(),
       epx: $bsx.find('.limit .bt .epx').text().trim(),
-      sub: $bsx.find('.limit .bt .sb').text().trim(), // Info Subtitle (Sub/Raw/etc)
+      sub: $bsx.find('.limit .bt .sb').text().trim(),
       samehadaku_url: href
     });
   });
 
   return results;
+};
+
+/**
+ * Scrape Anime List (untuk endpoint sesion/series list)
+ */
+export const scrapeAnimeList = (html) => {
+    const $ = load(html);
+    const anime_list = [];
+
+    $('.listupd article.bs').each((index, element) => {
+        const $el = $(element);
+        const linkElem = $el.find('a[href*="/anime/"]').first();
+        const fullUrl = linkElem.attr('href');
+        const imgElem = $el.find('img.ts-post-image');
+
+        anime_list.push({
+            title: $el.find('h2[itemprop="headline"]').text().trim(),
+            slug: extractSlug(fullUrl),
+            image: imgElem.attr('src') || '',
+            status: $el.find('.status').text().trim() || null,
+            type: $el.find('.typez').text().trim() || null,
+            episode_info: $el.find('.bt .epx').text().trim() || null,
+            sub_type: $el.find('.bt .sb').text().trim() || null,
+            anime_id: linkElem.attr('rel') || null,
+            samehadaku_url: fullUrl
+        });
+    });
+
+    const paginationSection = $('.hpage');
+    const pagination = {
+        has_prev: paginationSection.find('a.l').length > 0,
+        has_next: paginationSection.find('a.r').length > 0,
+        prev_url: paginationSection.find('a.l').attr('href') || null,
+        next_url: paginationSection.find('a.r').attr('href') || null
+    };
+
+    return { anime_list, pagination };
 };
 
 /**

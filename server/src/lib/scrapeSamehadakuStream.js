@@ -28,7 +28,7 @@ const scrapeSamehadakuStream = (html) => {
     releaseDate: $('.updated').text().trim() || ''
   };
 
-  // --- Start Updated getServerOptions Logic ---
+  // Stream Options
   const streamServers = [];
   $('.mirror option').each(function() {
     const $this = $(this);
@@ -40,24 +40,17 @@ const scrapeSamehadakuStream = (html) => {
       let embedUrl = '';
       
       try {
-        // Decode base64
         decodedEmbed = Buffer.from(value, 'base64').toString('utf-8');
-        
-        // Extract src URL from decoded HTML
-        // Pattern: src="URL" or src='URL'
         const srcMatch = decodedEmbed.match(/src=["']([^"']+)["']/i);
         if (srcMatch && srcMatch[1]) {
           embedUrl = srcMatch[1];
         }
-        
-        // Alternative pattern: src=URL (without quotes, until space or >)
         if (!embedUrl) {
           const srcMatchAlt = decodedEmbed.match(/src=([^\s>]+)/i);
           if (srcMatchAlt && srcMatchAlt[1]) {
-            embedUrl = srcMatchAlt[1].replace(/["']/g, ''); // Remove any quotes
+            embedUrl = srcMatchAlt[1].replace(/["']/g, '');
           }
         }
-        
       } catch (e) {
         decodedEmbed = 'Unable to decode';
         embedUrl = '';
@@ -67,12 +60,11 @@ const scrapeSamehadakuStream = (html) => {
         name,
         encodedValue: value,
         decodedEmbed,
-        embedUrl, // Direct embed URL extracted from src
+        embedUrl,
         dataIndex: $this.attr('data-index') || ''
       });
     }
   });
-  // --- End Updated getServerOptions Logic ---
 
   // Main Embed
   const mainEmbed = $('#embed_holder iframe').attr('src') || '';
@@ -105,26 +97,23 @@ const scrapeSamehadakuStream = (html) => {
     nextUrl: nextLink.attr('href') || null
   };
 
-  // --- Fixed getDownloadUrl Logic ---
+  // --- LOGIKA DOWNLOADURL DENGAN .FIND() ---
   let downloadUrl = '';
-  
-  // 1. Target spesifik: Tag <a> di dalam .iconx dengan aria-label="Download"
-  const $primaryDownloadLink = $('.iconx a[aria-label="Download"]');
-  if ($primaryDownloadLink.length > 0) {
-    downloadUrl = $primaryDownloadLink.attr('href') || '';
+  const $iconx = $('.iconx');
+
+  // 1. Cari elemen <a> yang punya aria-label="download" (kecil)
+  let $target = $iconx.find('a[aria-label="download"]');
+
+  // 2. Kalau tidak ada, cari yang aria-label="Download" (Besar)
+  if ($target.length === 0) {
+    $target = $iconx.find('a[aria-label="Download"]');
   }
-  
-  // 2. Fallback: Cari <a> di dalam .iconx yang mengandung teks "Download"
-  if (!downloadUrl) {
-    $('.iconx a').each(function() {
-      const text = $(this).text().trim().toLowerCase();
-      if (text.includes('download')) {
-        downloadUrl = $(this).attr('href');
-        return false; // break loop
-      }
-    });
+
+  // 3. Ambil href-nya
+  if ($target.length > 0) {
+    downloadUrl = $target.attr('href') || '';
   }
-  // --- End Fixed getDownloadUrl Logic ---
+  // --- END LOGIKA ---
 
   // getRecommendedAnime Logic
   const recommendedAnime = [];

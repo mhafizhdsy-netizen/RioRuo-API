@@ -1,65 +1,186 @@
 
 import axios from 'axios';
+import crypto from 'crypto';
 
-const WORKER_URL = 'https://ytrioruoapi.mhafizhdsy.workers.dev';
+// Node.js implementation of Web Crypto Subtle API
+const subtle = crypto.webcrypto.subtle;
 
-// Standard headers to bypass basic bot detection and satisfy upstream security requirements
-const HEADERS = {
-    'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/122.0.0.0 Safari/537.36',
-    'Accept': 'application/json, text/plain, */*',
-    'Accept-Language': 'en-US,en;q=0.9,id;q=0.8',
-    'Referer': 'https://rioruo.vercel.app/',
-    'Origin': 'https://rioruo.vercel.app',
-    'X-Requested-With': 'XMLHttpRequest'
-};
+const SECRET_KEY_HEX = 'C5D58EF67A7584E4A29F6C35BBC4EB12';
+const USER_AGENT = 'Mozilla/5.0 (Linux; Android 10; K) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/133.0.0.0 Mobile Safari/537.36';
+
+/**
+ * Extract YouTube Video ID from various URL formats
+ */
+function getYouTubeVideoId(url) {
+    const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:[^\/\n\s]+\/\S+\/|v\/|embed\/|user\/[^\/\n\s]+\/)?(?:watch\?v=|v%3D|embed%2F|video%2F)?|youtu\.be\/|youtube\.com\/watch\?v=|youtube\.com\/embed\/|youtube\.com\/v\/|youtube\.com\/shorts\/|youtube\.com\/playlist\?list=)([a-zA-Z0-9_-]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+}
+
+/**
+ * Decrypts encrypted data from API response using AES-CBC
+ * Implemented exactly as in the provided reference
+ */
+async function decode(enc) {
+    try {
+        // Convert base64 to Uint8Array
+        const data = Buffer.from(enc, 'base64');
+
+        // Extract IV (first 16 bytes) and content
+        const iv = data.slice(0, 16);
+        const content = data.slice(16);
+
+        // Convert hex key to bytes
+        const keyData = Buffer.from(SECRET_KEY_HEX, 'hex');
+
+        // Import key for subtle crypto
+        const key = await subtle.importKey(
+            'raw',
+            keyData,
+            { name: 'AES-CBC', length: 128 },
+            false,
+            ['decrypt']
+        );
+
+        // Decrypt using Web Crypto API
+        const decrypted = await subtle.decrypt(
+            { name: 'AES-CBC', iv: iv },
+            key,
+            content
+        );
+
+        // Convert to string and parse JSON
+        const decoder = new TextDecoder();
+        return JSON.parse(decoder.decode(decrypted));
+    } catch (error) {
+        throw new Error('Decryption failed: ' + error.message);
+    }
+}
+
+/**
+ * Gets a random CDN from the provider
+ */
+async function getRandomCDN() {
+    try {
+        const response = await axios.get('https://media.savetube.me/api/random-cdn');
+        return response.data.cdn;
+    } catch (error) {
+        throw new Error('Failed to fetch CDN: ' + error.message);
+    }
+}
 
 const getInfo = async (url) => {
     try {
-        const response = await axios.get(`${WORKER_URL}/info`, {
-            params: { url },
-            headers: HEADERS,
-            timeout: 60000 
-        });
-        return response.data;
+        const videoId = getYouTubeVideoId(url);
+        if (!videoId) throw new Error('Invalid YouTube URL');
+
+        const cdn = await getRandomCDN();
+        const videoUrl = `https://youtube.com/watch?v=${videoId}`;
+
+        // Get video info
+        const infoResponse = await axios.post(`https://${cdn}/v2/info`, 
+            { url: videoUrl },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': USER_AGENT,
+                    'Referer': 'https://yt.savetube.me/'
+                }
+            }
+        );
+
+        if (!infoResponse.data || !infoResponse.data.data) {
+            throw new Error('No data in info response');
+        }
+
+        const info = await decode(infoResponse.data.data);
+
+        return {
+            status: true,
+            videoId: videoId,
+            title: info.title,
+            duration: info.duration,
+            thumbnail: `https://i.ytimg.com/vi/${videoId}/maxresdefault.jpg`,
+            availableFormats: {
+                audio: [92, 128, 256, 320],
+                video: [144, 360, 480, 720, 1080]
+            }
+        };
     } catch (error) {
         console.error(`[YTDL Utils] Info Error:`, error.message);
-        const upstreamMessage = error.response?.data?.message || error.response?.data?.error;
-        throw new Error(upstreamMessage || 'Gagal mengambil informasi video YouTube dari server utama.');
+        throw new Error(error.message || 'Gagal mengambil informasi video YouTube.');
     }
 };
 
 const getDownload = async (url, format, quality) => {
     try {
-        const response = await axios.get(`${WORKER_URL}/download`, {
-            params: { 
-                url, 
-                format: format.toLowerCase(), 
-                quality: quality.toUpperCase() 
-            },
-            headers: HEADERS,
-            timeout: 90000 // Increased to 90s for heavy processing
-        });
-        
-        if (response.data && response.data.status === 'error') {
-            throw new Error(response.data.message || 'Worker returned error status.');
+        const videoId = getYouTubeVideoId(url);
+        if (!videoId) throw new Error('Invalid YouTube URL');
+
+        const cdn = await getRandomCDN();
+        const videoUrl = `https://youtube.com/watch?v=${videoId}`;
+
+        // 1. Get info first to get the necessary security key
+        const infoResponse = await axios.post(`https://${cdn}/v2/info`, 
+            { url: videoUrl },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': USER_AGENT,
+                    'Referer': 'https://yt.savetube.me/'
+                }
+            }
+        );
+
+        if (!infoResponse.data || !infoResponse.data.data) {
+            throw new Error('Failed to get video context for download.');
         }
 
-        return response.data;
+        const info = await decode(infoResponse.data.data);
+
+        // 2. Prepare quality value (numeric string)
+        // Convert "720P" to "720", "128K" to "128"
+        const cleanQuality = quality.replace(/[^\d]/g, '');
+
+        // 3. Request download link
+        const downloadResponse = await axios.post(`https://${cdn}/download`, 
+            {
+                downloadType: format.toLowerCase(), // 'video' or 'audio'
+                quality: cleanQuality,
+                key: info.key
+            },
+            {
+                headers: {
+                    'Content-Type': 'application/json',
+                    'User-Agent': USER_AGENT,
+                    'Referer': 'https://yt.savetube.me/start-download'
+                }
+            }
+        );
+
+        const downloadData = downloadResponse.data;
+
+        if (!downloadData || !downloadData.data) {
+            throw new Error('Invalid download response from server.');
+        }
+
+        const downloadUrl = downloadData.data.downloadUrl || downloadData.data.url;
+
+        if (!downloadUrl) {
+            throw new Error('Download URL not found in response.');
+        }
+
+        return {
+            status: true,
+            quality: `${cleanQuality}${format === 'audio' ? 'kbps' : 'p'}`,
+            downloadUrl: downloadUrl,
+            filename: `${info.title} (${cleanQuality}${format === 'audio' ? 'kbps).mp3' : 'p).mp4'})`,
+            availableQualities: format === 'audio' ? [92, 128, 256, 320] : [144, 360, 480, 720, 1080]
+        };
+
     } catch (error) {
         console.error(`[YTDL Utils] Download Error:`, error.message);
-        
-        if (error.code === 'ECONNABORTED') {
-            throw new Error('Permintaan ke server YouTube API terlalu lama (Timeout). Silakan coba lagi.');
-        }
-
-        const upstreamMessage = error.response?.data?.message || error.response?.data?.error;
-        
-        // Handle Cloudflare specific errors
-        if (error.response?.status === 403) {
-            throw new Error('Akses ke YouTube API ditolak oleh sistem keamanan upstream. Silakan coba beberapa saat lagi.');
-        }
-
-        throw new Error(upstreamMessage || 'Gagal membuat link download YouTube. Pastikan URL benar atau coba kualitas lain.');
+        throw new Error(error.message || 'Gagal membuat link download YouTube.');
     }
 };
 

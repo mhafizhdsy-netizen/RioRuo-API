@@ -141,6 +141,8 @@ export enum ApiEndpoint {
   QUOTES_BY_TAG_DEFAULT = '/v1/quotes/tag/:tag', 
   SHORT_VGD = '/v1/vgd',
   SHORT_VGD_CUSTOM = '/v1/vgd/custom',
+  YTDL_INFO = '/v1/ytdl/info',
+  YTDL_DOWNLOAD = '/v1/ytdl/download',
   KOMIKU_PAGE = '/v1/manga/page/:page?',
   KOMIKU_POPULAR = '/v1/manga/popular/:page?',
   KOMIKU_DETAIL = '/v1/manga/detail/:endpoint',

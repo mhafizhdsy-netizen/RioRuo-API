@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
   Layout, List, Search, Film, Grid, CalendarDays, Cloud, ChevronDown, 
-  Quote, Link, FileJson, Copy, Check, ChevronRight, Tv, ChevronLeft, ArrowRight, ArrowLeft
+  Quote, Link, FileJson, Copy, Check, ChevronRight, Tv, ChevronLeft, ArrowRight, ArrowLeft, Youtube, Download
 } from 'lucide-react';
 
 const BASE_API_URL = "https://rioruo.vercel.app/v1";
@@ -284,6 +284,35 @@ const documentationData = [
     ]
   },
   {
+    id: 'ytdl',
+    name: 'YouTube Downloader',
+    icon: <Youtube size={20} />,
+    endpoints: [
+        {
+            path: '/v1/ytdl/info',
+            method: 'GET',
+            description: 'Mengambil informasi lengkap video YouTube seperti judul, thumbnail, durasi, dan daftar kualitas yang tersedia.',
+            parameters: [
+                { name: 'url', type: 'string', required: true, description: 'URL Video YouTube lengkap.' }
+            ],
+            example: '/ytdl/info?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ',
+            response: 'Objek JSON berisi metadata video.'
+        },
+        {
+            path: '/v1/ytdl/download',
+            method: 'GET',
+            description: 'Mendapatkan link download langsung untuk video atau audio YouTube dengan kualitas tertentu.',
+            parameters: [
+                { name: 'url', type: 'string', required: true, description: 'URL Video YouTube.' },
+                { name: 'format', type: 'string', required: true, description: 'Pilihan format: video atau audio.' },
+                { name: 'quality', type: 'string', required: true, description: 'Kualitas. Video: 360P, 480P, 720P, 1080P. Audio: 92K, 128K, 326K.' }
+            ],
+            example: '/ytdl/download?url=https://www.youtube.com/watch?v=dQw4w9WgXcQ&format=video&quality=720P',
+            response: 'Objek JSON berisi link download langsung.'
+        }
+    ]
+  },
+  {
     id: 'quotes',
     name: 'Goodreads Quotes',
     icon: <Quote size={20} />,
@@ -416,6 +445,7 @@ const documentationData = [
   }
 ];
 
+// ... rest of the file (types and components) ...
 type Endpoint = typeof documentationData[number]['endpoints'][number] & { requestBody?: any };
 
 interface EndpointCardProps {

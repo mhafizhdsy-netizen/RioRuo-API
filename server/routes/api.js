@@ -107,6 +107,10 @@ api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
 api.post('/vgd', handler.vgdHandler);
 api.post('/vgd/custom', handler.vgdCustomHandler);
 
+// YouTube Downloader Routes
+api.get('/ytdl/info', handler.ytdlInfoHandler);
+api.get('/ytdl/download', handler.ytdlDownloadHandler);
+
 // Komiku Routes
 api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);
 api.get('/manga/popular/:page?', cache(CACHE_MEDIUM), handler.komikuPopularHandler);

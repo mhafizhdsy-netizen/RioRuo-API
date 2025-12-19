@@ -10,7 +10,7 @@ import {
   List, Grid, Film, ChevronDown, Check,
   Heart, Globe, CalendarDays, Cloud,
   BookOpen, SlidersHorizontal, Menu, X, Copy,
-  Book, Quote, Link, Tv, Ghost, Filter
+  Book, Quote, Link, Tv, Ghost, Filter, Youtube, Download, Video, Mic
 } from 'lucide-react';
 
 // Toast component
@@ -119,6 +119,7 @@ export function App() {
   const [isQuotesExpanded, setQuotesExpanded] = useState(false);
   const [isShortlinkExpanded, setIsShortlinkExpanded] = useState(false);
   const [isSamehadakuExpanded, setIsSamehadakuExpanded] = useState(false);
+  const [isYtdlExpanded, setIsYtdlExpanded] = useState(false);
 
   // Request Params
   const [keyword, setKeyword] = useState('jujutsu kaisen');
@@ -145,6 +146,11 @@ export function App() {
   // Shortlink Params
   const [longUrl, setLongUrl] = useState('https://google.com');
   const [customAlias, setCustomAlias] = useState('my-cool-link');
+
+  // YTDL Params
+  const [ytdlUrl, setYtdlUrl] = useState('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
+  const [ytdlFormat, setYtdlFormat] = useState('video');
+  const [ytdlQuality, setYtdlQuality] = useState('720P');
 
   // Response State
   const [loading, setLoading] = useState(false);
@@ -220,6 +226,9 @@ export function App() {
       // Shortlink Endpoints
       else if (selectedEndpoint === ApiEndpoint.SHORT_VGD) res = await apiService.postVgdShort(longUrl);
       else if (selectedEndpoint === ApiEndpoint.SHORT_VGD_CUSTOM) res = await apiService.postVgdCustomShort(longUrl, customAlias);
+      // YTDL Endpoints
+      else if (selectedEndpoint === ApiEndpoint.YTDL_INFO) res = await apiService.getYtdlInfo(ytdlUrl);
+      else if (selectedEndpoint === ApiEndpoint.YTDL_DOWNLOAD) res = await apiService.getYtdlDownload(ytdlUrl, ytdlFormat, ytdlQuality);
       // Komiku Endpoints
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_PAGE) res = await apiService.getKomikuPage(parseInt(page));
       else if (selectedEndpoint === ApiEndpoint.KOMIKU_POPULAR) res = await apiService.getKomikuPopular(parseInt(page));
@@ -276,7 +285,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy, ytdlUrl, ytdlFormat, ytdlQuality]);
 
   const renderInputs = useCallback(() => {
     const inputs = [];
@@ -411,6 +420,54 @@ export function App() {
         );
     }
 
+    // YTDL Specific Inputs
+    if ([ApiEndpoint.YTDL_INFO, ApiEndpoint.YTDL_DOWNLOAD].includes(selectedEndpoint as ApiEndpoint)) {
+        inputs.push(
+            <div key="ytdlUrl" className="flex flex-col gap-2">
+              <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">YouTube URL</label>
+              <div className="relative">
+                <Youtube className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+                <input type="text" value={ytdlUrl} onChange={(e) => setYtdlUrl(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 pl-10 pr-4 text-sm focus:border-primary focus:outline-none text-white" placeholder="https://www.youtube.com/watch?v=..." />
+              </div>
+            </div>
+        );
+    }
+
+    if (selectedEndpoint === ApiEndpoint.YTDL_DOWNLOAD) {
+        inputs.push(
+            <CustomSelect 
+                key="ytdlFormat"
+                label="Format"
+                icon={ytdlFormat === 'video' ? <Video size={16} /> : <Mic size={16} />}
+                value={ytdlFormat}
+                onChange={setYtdlFormat}
+                options={[
+                    { label: 'Video (MP4)', value: 'video' },
+                    { label: 'Audio (MP3)', value: 'audio' },
+                ]}
+            />
+        );
+        inputs.push(
+            <CustomSelect 
+                key="ytdlQuality"
+                label="Quality"
+                icon={<Settings size={16} />}
+                value={ytdlQuality}
+                onChange={setYtdlQuality}
+                options={ytdlFormat === 'audio' ? [
+                    { label: '92K', value: '92K' },
+                    { label: '128K', value: '128K' },
+                    { label: '326K', value: '326K' },
+                ] : [
+                    { label: '360P', value: '360P' },
+                    { label: '480P', value: '480P' },
+                    { label: '720P', value: '720P' },
+                    { label: '1080P', value: '1080P' },
+                ]}
+            />
+        );
+    }
+
     if ([ApiEndpoint.KOMIKU_DETAIL, ApiEndpoint.KOMIKU_GENRE_DETAIL].includes(selectedEndpoint as ApiEndpoint)) {
         inputs.push(
             <div key="mangaEndpoint" className="flex flex-col gap-2">
@@ -460,7 +517,7 @@ export function App() {
     }
 
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy, ytdlUrl, ytdlFormat, ytdlQuality]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },
@@ -481,6 +538,10 @@ export function App() {
 
   const shortlinkCategories = [
     { id: 'shortlink-vgd', name: "v.gd Shortener", icon: <Link size={14} />, items: [ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM] },
+  ];
+
+  const ytdlCategories = [
+    { id: 'ytdl-basic', name: "YouTube Downloader", icon: <Youtube size={14} />, items: [ApiEndpoint.YTDL_INFO, ApiEndpoint.YTDL_DOWNLOAD] },
   ];
 
   const komikuCategories = [
@@ -517,6 +578,8 @@ export function App() {
           <div className="flex-1 overflow-y-auto custom-scrollbar p-4 space-y-6">
             <div>
               <h3 className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest mb-3 px-2">ENDPOINT LIST</h3>
+              
+              {/* Otakudesu */}
               <div className="space-y-1 mb-4">
                 <button onClick={() => setOtakudesuExpanded(!isOtakudesuExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isOtakudesuExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
@@ -553,6 +616,7 @@ export function App() {
                 </div>
               </div>
 
+              {/* Samehadaku */}
               <div className="space-y-1 mb-4">
                 <button onClick={() => setIsSamehadakuExpanded(!isSamehadakuExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isSamehadakuExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
@@ -589,6 +653,7 @@ export function App() {
                 </div>
               </div>
 
+              {/* Komiku */}
               <div className="space-y-1 mb-4">
                 <button onClick={() => setKomikuExpanded(!isKomikuExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isKomikuExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
@@ -625,6 +690,44 @@ export function App() {
                 </div>
               </div>
 
+              {/* YouTube DL */}
+              <div className="space-y-1 mb-4">
+                <button onClick={() => setIsYtdlExpanded(!isYtdlExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isYtdlExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isYtdlExpanded ? 'bg-error' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>YouTube DL</span>
+                  </div>
+                  <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isYtdlExpanded ? 'rotate-180 text-error' : ''}`} />
+                </button>
+                <div className={`grid transition-all duration-300 ease-in-out ${isYtdlExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden">
+                    <div className="pt-2 pb-2 pl-4 space-y-6 relative">
+                      <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
+                      {ytdlCategories.map((cat) => (
+                        <div key={cat.id} className="relative">
+                          <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+                             <div className="text-zinc-500">{cat.icon}</div>
+                             <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
+                          </div>
+                          <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
+                            {cat.items.map((endpoint) => {
+                              const isSelected = selectedEndpoint === endpoint;
+                              return (
+                                <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-error/10 text-error border border-error/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+                                  {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-error shadow-[0_0_8px_rgba(239,68,68,0.5)]"></div>}
+                                  <span className="truncate">{endpoint}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quotes */}
               <div className="space-y-1 mb-4">
                 <button onClick={() => setQuotesExpanded(!isQuotesExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isQuotesExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
@@ -661,6 +764,7 @@ export function App() {
                 </div>
               </div>
 
+              {/* Shortlink */}
               <div className="space-y-1 mb-4">
                 <button onClick={() => setIsShortlinkExpanded(!isShortlinkExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isShortlinkExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
@@ -697,6 +801,7 @@ export function App() {
                 </div>
               </div>
 
+              {/* Weather */}
               <div className="space-y-1">
                 <button onClick={() => setWeatherExpanded(!isWeatherExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isWeatherExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
                   <div className="flex items-center gap-3">
@@ -824,7 +929,7 @@ export function App() {
             </div>
           </div>
         </footer>
-      </main>
+      </header>
       <div className="fixed bottom-6 right-6 z-[100] flex flex-col gap-3 pointer-events-none">
         {toasts.map((toast) => (
           <div key={toast.id} className="pointer-events-auto">

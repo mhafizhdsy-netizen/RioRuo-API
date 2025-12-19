@@ -39,6 +39,7 @@ Integrasi data untuk aplikasi pembaca komik:
 
 ### 🛠️ Essential Utilities
 Alat bantu tambahan untuk memperkaya fitur aplikasi Anda:
+*   **YouTube Downloader:** Ambil informasi video dan buat link download (Video/Audio) dengan berbagai kualitas (360P-1080P, 92K-326K).
 *   **Weather Intelligence:** Data cuaca real-time yang akurat berdasarkan lokasi.
 *   **Inspiration Hub:** Kumpulan kutipan (Quotes) dari Goodreads.
 *   **Link Management:** Layanan pemendek URL (Shortlink) terintegrasi.

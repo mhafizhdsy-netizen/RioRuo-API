@@ -1,6 +1,7 @@
 
 import otakudesu from '../otakudesu.js';
 import komiku from '../utils/komiku.js';
+import ytdl from '../utils/ytdl.js';
 
 const handleError = (res, e) => {
   console.error(e);
@@ -20,6 +21,7 @@ const handleError = (res, e) => {
   return res.status(status).json({ status: 'Error', message, hint });
 };
 
+// ... existing handlers (searchAnimeHandler, homeHandler, etc) ...
 const searchAnimeHandler = async (req, res) => {
   const { keyword } = req.params;
   try {
@@ -257,6 +259,34 @@ const vgdCustomHandler = async (req, res) => {
     }
 };
 
+const ytdlInfoHandler = async (req, res) => {
+    const { url } = req.query;
+    if (!url) return res.status(400).json({ status: 'Error', message: 'URL YouTube wajib disertakan dalam query parameter.' });
+    try {
+        const data = await ytdl.getInfo(url);
+        return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
+const ytdlDownloadHandler = async (req, res) => {
+    const { url, format, quality } = req.query;
+    if (!url || !format || !quality) {
+        return res.status(400).json({ 
+            status: 'Error', 
+            message: 'Parameter url, format, dan quality wajib disertakan.',
+            hint: 'Format: video|audio. Quality Audio: 92K, 128K, 326K. Quality Video: 360P, 480P, 720P, 1080P.'
+        });
+    }
+    try {
+        const data = await ytdl.getDownload(url, format.toLowerCase(), quality.toUpperCase());
+        return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
+    } catch (e) {
+        return handleError(res, e);
+    }
+};
+
 const komikuMangaPageHandler = async (req, res) => {
     try {
         const { page } = req.params;
@@ -442,6 +472,8 @@ export default {
   quotesByTagHandler,
   vgdHandler,
   vgdCustomHandler,
+  ytdlInfoHandler,
+  ytdlDownloadHandler,
   komikuMangaPageHandler,
   komikuPopularHandler,
   komikuDetailHandler,

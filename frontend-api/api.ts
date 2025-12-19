@@ -105,6 +105,8 @@ export const apiService = {
       method: 'POST',
       body: JSON.stringify({ longUrl, customAlias })
   }),
+  getYtdlInfo: (url: string) => fetchFromApi(ApiEndpoint.YTDL_INFO, { url }),
+  getYtdlDownload: (url: string, format: string, quality: string) => fetchFromApi(ApiEndpoint.YTDL_DOWNLOAD, { url, format, quality }),
   getKomikuPage: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_PAGE.replace(':page?', page.toString())),
   getKomikuPopular: (page = 1) => fetchFromApi(ApiEndpoint.KOMIKU_POPULAR.replace(':page?', page.toString())),
   getKomikuDetail: (endpoint: string) => fetchFromApi(ApiEndpoint.KOMIKU_DETAIL.replace(':endpoint', endpoint)),

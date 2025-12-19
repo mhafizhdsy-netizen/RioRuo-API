@@ -9,51 +9,47 @@ import 'dotenv/config';
 const app = express();
 const port = process.env.PORT ?? 3000;
 
-// FIX: Enable 'trust proxy' so express-rate-limit works correctly behind Vercel's proxy.
-// Without this, X-Forwarded-For headers cause a ValidationError.
+// Enable 'trust proxy' for Vercel/proxies
 app.set('trust proxy', 1);
 
 // 1. Security Headers
-app.use(helmet());
+app.use(helmet({
+    crossOriginResourcePolicy: { policy: "cross-origin" }
+}));
 
-// 2. CORS Configuration
-app.use(cors());
+// 2. Optimized CORS Configuration
+app.use(cors({
+    origin: '*', // Allows all for the playground convenience
+    methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+    allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+    credentials: true
+}));
 
-// 3. Body Parser (REQUIRED for POST requests)
+// 3. Body Parser
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
 // 4. Rate Limiter Configuration
-// Limits each IP to 100 requests per 15 minutes.
-// Standard headers are included so clients know their limits.
 const limiter = rateLimit({
-	windowMs: 15 * 60 * 1000, // 15 minutes
-	limit: 100, // Limit each IP to 100 requests per `window` (here, per 15 minutes).
-	standardHeaders: 'draft-7', // draft-6: `RateLimit-*` headers; draft-7: combined `RateLimit` header
-	legacyHeaders: false, // Disable the `X-RateLimit-*` headers.
+	windowMs: 15 * 60 * 1000, 
+	limit: 100, 
+	standardHeaders: 'draft-7', 
+	legacyHeaders: false, 
     message: {
         status: 'Error',
         message: 'Too many requests from this IP, please try again after 15 minutes',
         hint: 'We implement rate limiting to protect our upstream providers.'
     },
-    // Explicitly validate to prevent the specific error shown in logs if trust proxy misses
     validate: { xForwardedForHeader: false } 
 });
 
-// Apply the rate limiting middleware to all requests.
 app.use(limiter);
 
-app.use((req, res, next) => {
-    // Clean logging to avoid clutter
-    // console.log(`[${new Date().toISOString()}] ${req.ip} ${req.method} ${req.originalUrl}`);
-    next();
-});
-
-// FIX: Mount the main router at the root level.
-// The Vercel configuration now routes everything to this app, and we removed the '/otakudesu' prefix.
+// Main Router
 app.use('/', routes);
 
 app.listen(port, () => {
     console.log(`App is listening on port ${port}, http://localhost:${port}`);
 });
+
 export default app;

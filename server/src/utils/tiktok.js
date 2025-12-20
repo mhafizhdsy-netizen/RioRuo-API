@@ -17,12 +17,6 @@ const transformUserInfo = (rawData) => {
   const result = rawData?.result;
   if (!result) throw new Error('Empty result from TikTok API');
 
-  /**
-   * Interface: TiktokStalkUserResponse
-   * TikTok API library sometimes swaps fields between 'user' and 'author'.
-   * By merging them, we ensure fields present in 'author' (like region in downloader)
-   * are available even if 'user' is incomplete.
-   */
   const user = { ...(result.author || {}), ...(result.user || {}) };
   const stats = result.stats;
   
@@ -30,22 +24,10 @@ const transformUserInfo = (rawData) => {
     throw new Error('Could not extract user profile details. Account might be private or blocked.');
   }
 
-  // Logic to prevent null avatar (Confirmed working)
   const getAvatar = (u) => {
     const avatarData = u.avatar || u.avatarThumb || u.avatarMedium || u.avatarLarger || u.avatar_thumb;
     if (Array.isArray(avatarData)) return avatarData[0];
     return avatarData || null;
-  };
-
-  // Robust region lookup to match the success found in downloader endpoint
-  const getRegion = (u, res) => {
-    // Check various keys used by TikTok for region data
-    return u.region || 
-           u.location || 
-           u.country || 
-           res.region || 
-           res.location || 
-           null;
   };
 
   return {
@@ -55,8 +37,8 @@ const transformUserInfo = (rawData) => {
       bio: user.signature || user.bio || '',
       is_verified: !!(user.verified || user.is_verified),
       profile_picture: getAvatar(user),
-      region: getRegion(user, result),
-      profile_url: (user.username || user.uniqueId) ? `https://www.tiktok.com/@${user.username || user.uniqueId}` : null
+      profile_url: (user.username || user.uniqueId) ? `https://www.tiktok.com/@${user.username || user.uniqueId}` : null,
+      region: user.region || null
     },
     stats: stats ? {
       total_followers: stats.followerCount || 0,
@@ -90,7 +72,7 @@ const transformVideoInfo = (rawData, version = 'v1') => {
         nickname: result.author.nickname,
         avatar: Array.isArray(result.author.avatarThumb) ? result.author.avatarThumb[0] : result.author.avatarThumb,
         signature: result.author.signature,
-        region: result.author.region
+        region: result.author.region // Data region tetap ada untuk endpoint download
       },
       engagement: {
         views: formatNumber(result.statistics?.playCount),

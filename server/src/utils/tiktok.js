@@ -17,27 +17,33 @@ const transformUserInfo = (rawData) => {
   const result = rawData?.result;
   if (!result) throw new Error('Empty result from TikTok API');
 
-  // TikTok API DL result for stalk usually has 'user', but we check fallbacks
-  const user = result.user || result.users || result.author;
+  /**
+   * Interface: TiktokStalkUserResponse
+   * user: { username, nickname, avatar, signature, verified, region }
+   * stats: { followerCount, followingCount, heartCount, videoCount, likeCount }
+   */
+  const user = result.user || result.author; // Fallback to author if user key is missing
   const stats = result.stats;
   
   if (!user) {
-    throw new Error('Could not extract user profile details. TikTok might be blocking the request or account is private.');
+    throw new Error('Could not extract user profile details. Account might be private or blocked.');
   }
 
-  // More aggressive avatar check to handle all possible versions returned by the library
+  // Logic to prevent null avatar: 
+  // prioritized based on what works in the downloader endpoint
   const getAvatar = (u) => {
-    // Check every known avatar key used by TikTok API responses
-    const avatar = u.avatar || u.avatarThumb || u.avatar_thumb || u.avatarLarger || u.avatar_larger || u.avatarMedium;
+    // 1. Try documented 'avatar' field (string)
+    // 2. Try 'avatarThumb' (often array, used in downloader)
+    // 3. Try other common keys
+    const avatarData = u.avatar || u.avatarThumb || u.avatarMedium || u.avatarLarger || u.avatar_thumb;
     
-    if (Array.isArray(avatar)) return avatar[0];
-    if (typeof avatar === 'object' && avatar.url_list) return avatar.url_list[0];
-    return avatar || null;
+    if (Array.isArray(avatarData)) return avatarData[0];
+    return avatarData || null;
   };
 
   return {
     profile: {
-      username: user.username || user.uniqueId || user.unique_id || null,
+      username: user.username || user.uniqueId || null,
       display_name: user.nickname || null,
       bio: user.signature || user.bio || '',
       is_verified: !!(user.verified || user.is_verified),
@@ -46,14 +52,14 @@ const transformUserInfo = (rawData) => {
       profile_url: (user.username || user.uniqueId) ? `https://www.tiktok.com/@${user.username || user.uniqueId}` : null
     },
     stats: stats ? {
-      total_followers: stats.followerCount || stats.follower_count || 0,
-      total_following: stats.followingCount || stats.following_count || 0,
-      total_likes: stats.heartCount || stats.heart || stats.likeCount || 0,
-      total_videos: stats.videoCount || stats.video_count || 0,
+      total_followers: stats.followerCount || 0,
+      total_following: stats.followingCount || 0,
+      total_likes: stats.heartCount || stats.likeCount || 0,
+      total_videos: stats.videoCount || 0,
       engagement_rate: calculateEngagementRate(
-        stats.heartCount || stats.heart || stats.likeCount || 0, 
-        stats.videoCount || stats.video_count || 0,
-        stats.followerCount || stats.follower_count || 0
+        stats.heartCount || stats.likeCount || 0, 
+        stats.videoCount || 0,
+        stats.followerCount || 0
       )
     } : null
   };

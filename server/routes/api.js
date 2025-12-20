@@ -33,8 +33,8 @@ api.get('/', (_, res) => {
     res.status(200).json({ status: 'OK', Creator: 'RioRuo', Message: "Welcome to RioRuo API." });
 });
 
-// TikTok Routes
-api.get('/tiktok/stalk/:username', cache(CACHE_MEDIUM), handler.tiktokStalkHandler);
+// TikTok Routes - Updated stalk to use query instead of path param
+api.get('/tiktok/stalk', cache(CACHE_MEDIUM), handler.tiktokStalkHandler);
 api.post('/tiktok/download', handler.tiktokDownloadHandler);
 
 api.get('/home', cache(CACHE_MEDIUM), handler.homeHandler);

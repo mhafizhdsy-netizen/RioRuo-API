@@ -39,7 +39,7 @@ async function fetchFromApi<T>(endpoint: string, params?: Record<string, string>
           try {
             const errorData = await res.json();
             if (errorData.message) errorMessage = errorData.message;
-            if (errorHint) errorHint = errorData.hint;
+            if (errorData.hint) errorHint = errorData.hint;
             if (errorData.details) errorMessage += ` (${errorData.details})`;
           } catch (e) { }
           const error = new Error(errorMessage);
@@ -126,7 +126,7 @@ export const apiService = {
   getSamehadakuAnimeDetail: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_ANIME.replace(':slug', slug)),
   getSamehadakuStream: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_STREAM.replace(':slug', slug)),
   getSamehadakuSearch: (query: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_SEARCH, { s: query }),
-  getTiktokStalk: (username: string) => fetchFromApi(ApiEndpoint.TIKTOK_STALK.replace(':username', username)),
+  getTiktokStalk: (username: string) => fetchFromApi(ApiEndpoint.TIKTOK_STALK, { username }),
   postTiktokDownload: (url: string, version = 'v1') => fetchFromApi(ApiEndpoint.TIKTOK_DOWNLOAD, undefined, undefined, {
     method: 'POST',
     body: JSON.stringify({ url, version })

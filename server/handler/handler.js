@@ -22,7 +22,17 @@ const handleError = (res, e) => {
 };
 
 const tiktokStalkHandler = async (req, res) => {
-  const { username } = req.params;
+  // Support both query param and old path param for backward compatibility if possible
+  const username = req.query.username || req.params.username;
+  
+  if (!username) {
+    return res.status(400).json({ 
+        status: 'Error', 
+        message: 'Username parameter is required.',
+        hint: 'Usage: /v1/tiktok/stalk?username=khaby.lame' 
+    });
+  }
+
   try {
     const data = await tiktok.stalkUser(username);
     return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
@@ -388,7 +398,7 @@ const komikuManhuaHandler = async (req, res) => {
 const komikuManhwaHandler = async (req, res) => {
     try {
         const { page } = req.params;
-        const data = await komiku.getManhuaManhwa(page, 'manhwa');
+        const data = await komiku.getManhuaManhwa(page, 'manhua');
         return res.status(200).json({ status: "Ok", Creator: "RioRuo", manga_list: data });
     } catch (e) {
         return handleError(res, e);

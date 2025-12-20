@@ -157,6 +157,6 @@ export enum ApiEndpoint {
   SAMEHADAKU_ANIME = '/v1/samehadaku/anime/:slug',
   SAMEHADAKU_STREAM = '/v1/samehadaku/stream/:slug',
   SAMEHADAKU_SEARCH = '/v1/samehadaku/search',
-  TIKTOK_STALK = '/v1/tiktok/stalk/:username',
+  TIKTOK_STALK = '/v1/tiktok/stalk',
   TIKTOK_DOWNLOAD = '/v1/tiktok/download',
 }

@@ -111,7 +111,7 @@ const documentationData = [
           { name: ':slug', type: 'string', required: true, description: 'Slug unik dari anime.' }
         ],
         example: '/anime/1piece-sub-indo/batch',
-        response: 'Objek JSON yang berisi link download batch atau pesan error 404 jika tidak ditemukan.'
+        response: 'Objka JSON yang berisi link download batch atau pesan error 404 jika tidak ditemukan.'
       },
       {
         path: '/v1/genres',
@@ -148,13 +148,13 @@ const documentationData = [
     icon: <Smartphone size={20} />,
     endpoints: [
       {
-        path: '/v1/tiktok/stalk/:username',
+        path: '/v1/tiktok/stalk',
         method: 'GET',
-        description: 'Mengambil informasi profil TikTok seseorang berdasarkan username.',
+        description: 'Mengambil informasi profil TikTok seseorang berdasarkan username (mendukung karakter titik).',
         parameters: [
-          { name: ':username', type: 'string', required: true, description: 'Username TikTok tanpa @ (misal: "khaby.lame").' }
+          { name: 'username', type: 'string', required: true, description: 'Username TikTok tanpa @ (misal: "khaby.lame", "surrebrec.id").' }
         ],
-        example: '/tiktok/stalk/khaby.lame',
+        example: '/tiktok/stalk?username=khaby.lame',
         response: 'Objek JSON berisi profile metadata (bio, verified, followers, engagement rate, dll).'
       },
       {
@@ -170,7 +170,7 @@ const documentationData = [
           version: "v1"
         },
         example: '/tiktok/download',
-        response: 'Objek JSON berisi metadata video dan download URLs.'
+        response: 'Objek JSON berisi metadata video and download URLs.'
       }
     ]
   },
@@ -275,7 +275,7 @@ const documentationData = [
                 { name: ':query', type: 'string', required: true, description: 'Kata kunci pencarian.' }
             ],
             example: '/manga/search/naruto',
-            response: 'Objek JSON berisi hasil pencarian.'
+            response: 'Objek JSON detail manga.'
         },
         {
             path: '/v1/manga/genre',
@@ -365,7 +365,7 @@ const documentationData = [
                 { name: ':page', type: 'number', required: true, description: 'Nomor halaman.' }
             ],
             example: '/quotes/2',
-            response: 'Objek JSON berisi array `quotes`.'
+            response: 'Objka JSON berisi array `quotes`.'
         },
         {
             path: '/v1/quotes/tag/:tag',
@@ -738,6 +738,7 @@ HttpResponse<String> response = Unirest.get("${fullUrl}")
   .asString();
 System.out.println(response.getBody());`;
         }
+        // Fix: corrected block-scoped variable usage by using 'bodyOneLine' instead of 'javaBody' in its own initializer
         const javaBody = bodyOneLine ? bodyOneLine.replace(/"/g, '\\"') : '';
         return `Unirest.setTimeouts(0, 0);
 HttpResponse<String> response = Unirest.post("${fullUrl}")

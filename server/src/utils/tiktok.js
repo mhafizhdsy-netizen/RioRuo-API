@@ -19,36 +19,43 @@ const transformUserInfo = (rawData) => {
 
   /**
    * Interface: TiktokStalkUserResponse
-   * user: { username, nickname, avatar, signature, verified, region }
-   * stats: { followerCount, followingCount, heartCount, videoCount, likeCount }
+   * TikTok API library sometimes swaps fields between 'user' and 'author'.
+   * By merging them, we ensure fields present in 'author' (like region in downloader)
+   * are available even if 'user' is incomplete.
    */
-  const user = result.user || result.author; // Fallback to author if user key is missing
+  const user = { ...(result.author || {}), ...(result.user || {}) };
   const stats = result.stats;
   
-  if (!user) {
+  if (!user || Object.keys(user).length === 0) {
     throw new Error('Could not extract user profile details. Account might be private or blocked.');
   }
 
-  // Logic to prevent null avatar: 
-  // prioritized based on what works in the downloader endpoint
+  // Logic to prevent null avatar (Confirmed working)
   const getAvatar = (u) => {
-    // 1. Try documented 'avatar' field (string)
-    // 2. Try 'avatarThumb' (often array, used in downloader)
-    // 3. Try other common keys
     const avatarData = u.avatar || u.avatarThumb || u.avatarMedium || u.avatarLarger || u.avatar_thumb;
-    
     if (Array.isArray(avatarData)) return avatarData[0];
     return avatarData || null;
   };
 
+  // Robust region lookup to match the success found in downloader endpoint
+  const getRegion = (u, res) => {
+    // Check various keys used by TikTok for region data
+    return u.region || 
+           u.location || 
+           u.country || 
+           res.region || 
+           res.location || 
+           null;
+  };
+
   return {
     profile: {
-      username: user.username || user.uniqueId || null,
+      username: user.username || user.uniqueId || user.unique_id || null,
       display_name: user.nickname || null,
       bio: user.signature || user.bio || '',
       is_verified: !!(user.verified || user.is_verified),
       profile_picture: getAvatar(user),
-      region: user.region || user.location || user.country || null,
+      region: getRegion(user, result),
       profile_url: (user.username || user.uniqueId) ? `https://www.tiktok.com/@${user.username || user.uniqueId}` : null
     },
     stats: stats ? {

@@ -1,73 +1,42 @@
-
 import { Router } from 'express';
 import os from 'os';
 import { execSync } from 'child_process';
 import apicache from 'apicache';
-import handler from '../src/handler/handler.js'; 
+import handler from '../handler/handler.js'; 
 
 const api = Router();
 const cache = apicache.middleware;
 
-// Helper for consistency cache duration
-const CACHE_SHORT = '5 minutes';   // For search, ongoing (frequently updated)
-const CACHE_MEDIUM = '30 minutes'; // For home, genre lists
-const CACHE_LONG = '1 hour';       // For completed anime details, episodes (static content)
+const CACHE_SHORT = '5 minutes';   
+const CACHE_MEDIUM = '30 minutes'; 
+const CACHE_LONG = '1 hour';       
 
-// Robust Health Check Endpoint (DO NOT CACHE THIS)
 api.get('/health', (_, res) => {
     const totalMem = os.totalmem() / (1024 * 1024 * 1024);
     const freeMem = os.freemem() / (1024 * 1024 * 1024);
-
     const platform = os.platform();
     const release = os.release();
     const arch = os.arch();
-
     let diskInfo = {};
     try {
-      // Attempt to get disk usage, fail gracefully if command missing (e.g. non-linux)
       const df = execSync('df -h /').toString();
       const lines = df.trim().split('\n');
       const parts = lines[1].split(/\s+/);
-      diskInfo = {
-        size: parts[1],
-        used: parts[2],
-        avail: parts[3],
-        usePercent: parts[4],
-        mount: parts[5],
-      };
+      diskInfo = { size: parts[1], used: parts[2], avail: parts[3], usePercent: parts[4], mount: parts[5] };
     } catch {
-      diskInfo = { error: 'Disk info unavailable (df command failed)' };
+      diskInfo = { error: 'Disk info unavailable' };
     }
-
-    res.status(200).json({
-      status: 'OK',
-      uptime: process.uptime(),
-      timestamp: new Date().toISOString(),
-      system: {
-        ram: {
-          totalGB: totalMem.toFixed(2),
-          freeGB: freeMem.toFixed(2),
-        },
-        os: {
-          platform,
-          release,
-          arch,
-        },
-        disk: diskInfo,
-      },
-    });
+    res.status(200).json({ status: 'OK', uptime: process.uptime(), timestamp: new Date().toISOString(), system: { ram: { totalGB: totalMem.toFixed(2), freeGB: freeMem.toFixed(2) }, os: { platform, release, arch }, disk: diskInfo } });
 });
 
-// Lightweight Root Endpoint
 api.get('/', (_, res) => {
-    res.status(200).json({
-      status: 'OK',
-      Creator: 'RioRuo',
-      Message: "Welcome to RioRuo API. Use /health for system status.",
-    });
+    res.status(200).json({ status: 'OK', Creator: 'RioRuo', Message: "Welcome to RioRuo API." });
 });
 
-// Apply caching strategies
+// TikTok Routes
+api.get('/tiktok/stalk/:username', cache(CACHE_MEDIUM), handler.tiktokStalkHandler);
+api.post('/tiktok/download', handler.tiktokDownloadHandler);
+
 api.get('/home', cache(CACHE_MEDIUM), handler.homeHandler);
 api.get('/search/:keyword', cache(CACHE_SHORT), handler.searchAnimeHandler);
 api.get('/ongoing-anime/:page?', cache(CACHE_SHORT), handler.ongoingAnimeHandler);
@@ -85,25 +54,14 @@ api.get('/movies/:year/:month/:slug', cache(CACHE_LONG), handler.singleMovieHand
 api.get('/jadwalRilis', cache(CACHE_MEDIUM), handler.jadwalRilisHandler);
 api.get('/jadwal-rilis', cache(CACHE_MEDIUM), handler.jadwalRilisHandler);
 
-// Weather Routes (Short Cache)
 api.get('/weather/:location', cache(CACHE_SHORT), handler.weatherHandler);
 api.get('/weather/ascii/:location', cache(CACHE_SHORT), handler.weatherAsciiHandler);
 api.get('/weather/quick/:location', cache(CACHE_SHORT), handler.weatherQuickHandler);
 api.get('/weather/png/:location', cache(CACHE_SHORT), handler.weatherPngHandler);
 
-// Quotes Routes
-api.get('/quote/quotes*', (req, res) => {
-    const newUrl = req.originalUrl.replace('/quote/quotes', '/v1/quotes');
-    res.redirect(301, newUrl);
-});
+api.get('/quotes/tag/:tag/:page?', cache(CACHE_SHORT), handler.quotesByTagHandler);
+api.get('/quotes/:page?', cache(CACHE_SHORT), handler.quotesHandler);
 
-api.get('/quotes/tag/:tag', cache(CACHE_SHORT), handler.quotesByTagHandler);
-api.get('/quotes/tag/:tag/:page', cache(CACHE_SHORT), handler.quotesByTagHandler);
-
-api.get('/quotes', cache(CACHE_SHORT), handler.quotesHandler);
-api.get('/quotes/:page', cache(CACHE_SHORT), handler.quotesHandler);
-
-// VGD Shortener Routes (POST)
 api.post('/vgd', handler.vgdHandler);
 api.post('/vgd/custom', handler.vgdCustomHandler);
 
@@ -111,7 +69,6 @@ api.post('/vgd/custom', handler.vgdCustomHandler);
 api.get('/ytdl/info', handler.ytdlInfoHandler);
 api.get('/ytdl/download', handler.ytdlDownloadHandler);
 
-// Komiku Routes
 api.get('/manga/page/:page?', cache(CACHE_SHORT), handler.komikuMangaPageHandler);
 api.get('/manga/popular/:page?', cache(CACHE_MEDIUM), handler.komikuPopularHandler);
 api.get('/manga/detail/:endpoint', cache(CACHE_LONG), handler.komikuDetailHandler);
@@ -123,7 +80,6 @@ api.get('/manhua/:page?', cache(CACHE_SHORT), handler.komikuManhuaHandler);
 api.get('/manhwa/:page?', cache(CACHE_SHORT), handler.komikuManhwaHandler);
 api.get('/chapter/:title', cache(CACHE_LONG), handler.komikuChapterHandler);
 
-// Samehadaku Routes
 api.get('/samehadaku/home/:page?', cache(CACHE_MEDIUM), handler.samehadakuHomeHandler);
 api.get('/samehadaku/sesion/:page/:orderby', cache(CACHE_SHORT), handler.samehadakuSesionHandler);
 api.get('/samehadaku/search', cache(CACHE_SHORT), handler.samehadakuSearchHandler);

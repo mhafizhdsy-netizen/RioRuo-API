@@ -1,4 +1,3 @@
-
 import { ApiEndpoint } from '../src/types/types.ts';
 
 // Determine Base URL based on environment
@@ -119,7 +118,6 @@ export const apiService = {
   getKomikuChapter: (title: string) => fetchFromApi(ApiEndpoint.KOMIKU_CHAPTER.replace(':title', title)),
   getSamehadakuHome: (page = 1) => fetchFromApi(ApiEndpoint.SAMEHADAKU_HOME.replace(':page?', page.toString())),
   getSamehadakuSesion: (page = 1, orderBy = 'latest') => {
-      // FIX: Inject page and orderby directly into the path string
       const path = ApiEndpoint.SAMEHADAKU_SESION
           .replace(':page', page.toString())
           .replace(':orderby', orderBy.toLowerCase());
@@ -128,4 +126,9 @@ export const apiService = {
   getSamehadakuAnimeDetail: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_ANIME.replace(':slug', slug)),
   getSamehadakuStream: (slug: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_STREAM.replace(':slug', slug)),
   getSamehadakuSearch: (query: string) => fetchFromApi(ApiEndpoint.SAMEHADAKU_SEARCH, { s: query }),
+  getTiktokStalk: (username: string) => fetchFromApi(ApiEndpoint.TIKTOK_STALK.replace(':username', username)),
+  postTiktokDownload: (url: string, version = 'v1') => fetchFromApi(ApiEndpoint.TIKTOK_DOWNLOAD, undefined, undefined, {
+    method: 'POST',
+    body: JSON.stringify({ url, version })
+  }),
 };

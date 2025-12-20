@@ -10,7 +10,7 @@ import {
   List, Grid, Film, ChevronDown, Check,
   Heart, Globe, CalendarDays, Cloud,
   BookOpen, SlidersHorizontal, Menu, X, Copy,
-  Book, Quote, Link, Tv, Ghost, Filter, Youtube, Download, Video, Mic
+  Book, Quote, Link, Tv, Ghost, Filter, Youtube, Download, Video, Mic, Smartphone
 } from 'lucide-react';
 
 // Toast component
@@ -27,7 +27,7 @@ const Toast: React.FC<{ id: string; message: string; onRemove: (id: string) => v
   }, [id, onRemove]);
 
   return (
-    <div className={`group relative flex items-center gap-4 pl-4 pr-6 py-4 rounded-r-lg rounded-l-sm shadow-[0_8px_30px_rgb(0,0,0,0.5)] border border-white/5 border-l-0 ${isVisible ? 'animate-in slide-in-from-bottom-full fade-in duration-500 ease-out' : 'animate-out slide-out-to-right-full fade-out duration-300 ease-in'} bg-[#121212]/95 backdrop-blur-md w-full max-w-sm overflow-hidden`} role="alert">
+    <div className={`group relative flex items-center gap-4 pl-4 pr-6 py-4 rounded-r-lg rounded-l-sm shadow-[0_8px_30px_rgb(0,0,0,0.5)] border border-white/5 border-l-0 ${isVisible ? 'animate-in slide-in-from-bottom-full fade-in duration-500 ease-out' : 'animate-out slide-out-to-right-full fade-out duration-300 ease-in'} bg-[#121212]/95 backdrop-blur-md w-full max-sm overflow-hidden`} role="alert">
       <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-primary via-emerald-400 to-primary"></div>
       <div className="flex-shrink-0 w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary shadow-[0_0_15px_rgba(16,185,129,0.15)] ring-1 ring-primary/20">
         <Check size={16} strokeWidth={3} />
@@ -120,6 +120,7 @@ export function App() {
   const [isShortlinkExpanded, setIsShortlinkExpanded] = useState(false);
   const [isSamehadakuExpanded, setIsSamehadakuExpanded] = useState(false);
   const [isYtdlExpanded, setIsYtdlExpanded] = useState(false);
+  const [isTiktokExpanded, setIsTiktokExpanded] = useState(false);
 
   // Request Params
   const [keyword, setKeyword] = useState('jujutsu kaisen');
@@ -151,6 +152,11 @@ export function App() {
   const [ytdlUrl, setYtdlUrl] = useState('https://www.youtube.com/watch?v=dQw4w9WgXcQ');
   const [ytdlFormat, setYtdlFormat] = useState('video');
   const [ytdlQuality, setYtdlQuality] = useState('720P');
+
+  // TikTok Params
+  const [tiktokUsername, setTiktokUsername] = useState('khaby.lame');
+  const [tiktokUrl, setTiktokUrl] = useState('https://www.tiktok.com/@khaby.lame/video/7402636254070050054');
+  const [tiktokVersion, setTiktokVersion] = useState('v1');
 
   // Response State
   const [loading, setLoading] = useState(false);
@@ -244,6 +250,9 @@ export function App() {
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_ANIME) res = await apiService.getSamehadakuAnimeDetail(animeSlug);
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_STREAM) res = await apiService.getSamehadakuStream(samehadakuStreamSlug);
       else if (selectedEndpoint === ApiEndpoint.SAMEHADAKU_SEARCH) res = await apiService.getSamehadakuSearch(samehadakuSearchQuery);
+      // TikTok
+      else if (selectedEndpoint === ApiEndpoint.TIKTOK_STALK) res = await apiService.getTiktokStalk(tiktokUsername);
+      else if (selectedEndpoint === ApiEndpoint.TIKTOK_DOWNLOAD) res = await apiService.postTiktokDownload(tiktokUrl, tiktokVersion);
       
       else res = await apiService.getHome();
 
@@ -285,7 +294,7 @@ export function App() {
     } finally {
       setLoading(false);
     }
-  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy, ytdlUrl, ytdlFormat, ytdlQuality]);
+  }, [selectedEndpoint, keyword, page, animeSlug, episodeNumber, episodeSlug, genreSlug, batchSlug, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy, ytdlUrl, ytdlFormat, ytdlQuality, tiktokUsername, tiktokUrl, tiktokVersion]);
 
   const renderInputs = useCallback(() => {
     const inputs = [];
@@ -459,6 +468,7 @@ export function App() {
                     { label: '128K', value: '128K' },
                     { label: '326K', value: '326K' },
                 ] : [
+                    { label: '144P', value: '144P' },
                     { label: '360P', value: '360P' },
                     { label: '480P', value: '480P' },
                     { label: '720P', value: '720P' },
@@ -466,6 +476,41 @@ export function App() {
                 ]}
             />
         );
+    }
+
+    // TikTok Inputs
+    if (selectedEndpoint === ApiEndpoint.TIKTOK_STALK) {
+      inputs.push(
+        <div key="tiktokUsername" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">TikTok Username</label>
+          <div className="relative">
+            <Smartphone className="absolute left-3 top-1/2 -translate-y-1/2 text-zinc-500" size={16} />
+            <input type="text" value={tiktokUsername} onChange={(e) => setTiktokUsername(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 pl-10 pr-4 text-sm focus:border-primary focus:outline-none text-white" placeholder="e.g. khaby.lame" />
+          </div>
+        </div>
+      );
+    }
+
+    if (selectedEndpoint === ApiEndpoint.TIKTOK_DOWNLOAD) {
+      inputs.push(
+        <div key="tiktokUrl" className="flex flex-col gap-2">
+          <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">TikTok Video URL</label>
+          <input type="text" value={tiktokUrl} onChange={(e) => setTiktokUrl(e.target.value)} className="w-full bg-surface border border-border rounded-lg py-2.5 px-4 text-sm focus:border-primary focus:outline-none text-white" placeholder="https://www.tiktok.com/..." />
+        </div>
+      );
+      inputs.push(
+        <CustomSelect 
+          key="tiktokVersion"
+          label="Downloader Version"
+          value={tiktokVersion}
+          onChange={setTiktokVersion}
+          options={[
+            { label: 'Version 1 (Detailed)', value: 'v1' },
+            { label: 'Version 2 (SSSTik)', value: 'v2' },
+            { label: 'Version 3 (MusicalDown)', value: 'v3' },
+          ]}
+        />
+      );
     }
 
     if ([ApiEndpoint.KOMIKU_DETAIL, ApiEndpoint.KOMIKU_GENRE_DETAIL].includes(selectedEndpoint as ApiEndpoint)) {
@@ -517,7 +562,7 @@ export function App() {
     }
 
     return inputs.length > 0 ? <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">{inputs}</div> : null;
-  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy, ytdlUrl, ytdlFormat, ytdlQuality]);
+  }, [selectedEndpoint, keyword, animeSlug, episodeSlug, batchSlug, genreSlug, episodeNumber, page, weatherLocation, weatherLang, mangaEndpoint, mangaQuery, chapterTitle, quoteTag, longUrl, customAlias, samehadakuStreamSlug, samehadakuSearchQuery, samehadakuOrderBy, ytdlUrl, ytdlFormat, ytdlQuality, tiktokUsername, tiktokUrl, tiktokVersion]);
 
   const otakudesuCategories = [
     { id: 'discovery', name: "Discovery", icon: <Layout size={14} />, items: [ApiEndpoint.HOME] },
@@ -530,6 +575,10 @@ export function App() {
 
   const weatherCategories = [
     { id: 'weather', name: "Weather Data", icon: <Cloud size={14} />, items: [ApiEndpoint.WEATHER, ApiEndpoint.WEATHER_ASCII, ApiEndpoint.WEATHER_QUICK, ApiEndpoint.WEATHER_PNG] }, 
+  ];
+
+  const tiktokCategories = [
+    { id: 'tiktok-tools', name: "TikTok Tools", icon: <Smartphone size={14} />, items: [ApiEndpoint.TIKTOK_STALK, ApiEndpoint.TIKTOK_DOWNLOAD] },
   ];
 
   const quoteCategories = [
@@ -604,6 +653,43 @@ export function App() {
                               return (
                                 <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-primary/10 text-primary border border-primary/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
                                   {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-primary shadow-[0_0_8px_rgba(16,185,129,0.5)]"></div>}
+                                  <span className="truncate">{endpoint}</span>
+                                </button>
+                              );
+                            })}
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+
+              {/* TikTok */}
+              <div className="space-y-1 mb-4">
+                <button onClick={() => setIsTiktokExpanded(!isTiktokExpanded)} className={`group flex items-center justify-between w-full px-3 py-2.5 rounded-xl text-sm font-medium transition-all duration-200 border ${isTiktokExpanded ? 'bg-surfaceLight border-white/5 text-white shadow-sm' : 'text-zinc-400 border-transparent hover:bg-white/5 hover:text-white'}`}>
+                  <div className="flex items-center gap-3">
+                    <div className={`w-1 h-4 rounded-full transition-colors ${isTiktokExpanded ? 'bg-pink-500' : 'bg-zinc-700 group-hover:bg-zinc-500'}`} />
+                    <span>TikTok</span>
+                  </div>
+                  <ChevronDown size={16} className={`text-zinc-500 transition-transform duration-300 ${isTiktokExpanded ? 'rotate-180 text-pink-500' : ''}`} />
+                </button>
+                <div className={`grid transition-all duration-300 ease-in-out ${isTiktokExpanded ? 'grid-rows-[1fr] opacity-100' : 'grid-rows-[0fr] opacity-0'}`}>
+                  <div className="overflow-hidden">
+                    <div className="pt-2 pb-2 pl-4 space-y-6 relative">
+                      <div className="absolute left-[21px] top-0 bottom-0 w-px bg-white/5" />
+                      {tiktokCategories.map((cat) => (
+                        <div key={cat.id} className="relative">
+                          <div className="flex items-center gap-2 px-3 py-1.5 mb-1">
+                             <div className="text-zinc-500">{cat.icon}</div>
+                             <span className="text-[11px] font-bold text-zinc-500 uppercase tracking-wider">{cat.name}</span>
+                          </div>
+                          <div className="space-y-0.5 border-l border-white/5 ml-3 pl-2">
+                            {cat.items.map((endpoint) => {
+                              const isSelected = selectedEndpoint === endpoint;
+                              return (
+                                <button key={endpoint} onClick={() => { setSelectedEndpoint(endpoint); setSidebarOpen(false); }} className={`relative flex items-center w-full text-left px-3 py-2 rounded-lg text-xs font-mono transition-all duration-200 group/item ${isSelected ? 'bg-pink-500/10 text-pink-500 border border-pink-500/20 shadow-sm' : 'text-zinc-400 hover:bg-white/5 hover:text-white border border-transparent'}`}>
+                                  {isSelected && <div className="absolute left-0 top-1/2 -translate-y-1/2 -ml-[13px] w-1.5 h-1.5 rounded-full bg-pink-500 shadow-[0_0_8px_rgba(236,72,153,0.5)]"></div>}
                                   <span className="truncate">{endpoint}</span>
                                 </button>
                               );
@@ -876,9 +962,9 @@ export function App() {
                      <label className="text-[10px] uppercase font-bold text-zinc-500 tracking-wider">Request Configuration</label>
                      <div className="grid grid-cols-1 md:grid-cols-12 gap-3 h-auto md:h-[60px]">
                         <div className="md:col-span-2 h-full bg-surfaceLight/30 border border-white/5 rounded-xl flex items-center justify-center relative overflow-hidden group">
-                           <div className={`absolute inset-0 bg-gradient-to-br ${[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) ? 'from-warning/20' : 'from-primary/20'} to-transparent opacity-50 group-hover:opacity-100 transition-opacity`}></div>
-                           <span className={`relative font-mono font-black ${[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) ? 'text-warning' : 'text-primary'} tracking-widest text-lg`}>
-                               {[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM].includes(selectedEndpoint as ApiEndpoint) ? 'POST' : 'GET'}
+                           <div className={`absolute inset-0 bg-gradient-to-br ${[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM, ApiEndpoint.TIKTOK_DOWNLOAD].includes(selectedEndpoint as ApiEndpoint) ? 'from-warning/20' : 'from-primary/20'} to-transparent opacity-50 group-hover:opacity-100 transition-opacity`}></div>
+                           <span className={`relative font-mono font-black ${[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM, ApiEndpoint.TIKTOK_DOWNLOAD].includes(selectedEndpoint as ApiEndpoint) ? 'text-warning' : 'text-primary'} tracking-widest text-lg`}>
+                               {[ApiEndpoint.SHORT_VGD, ApiEndpoint.SHORT_VGD_CUSTOM, ApiEndpoint.TIKTOK_DOWNLOAD].includes(selectedEndpoint as ApiEndpoint) ? 'POST' : 'GET'}
                            </span>
                         </div>
                         <div className="md:col-span-4 h-full bg-[#09090b] border border-border rounded-xl flex flex-col justify-center px-4 py-2 relative group hover:border-zinc-700 transition-all">

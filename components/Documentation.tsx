@@ -3,7 +3,7 @@ import React, { useState, useRef, useEffect } from 'react';
 import {
   BookOpen, Code, Terminal, Key, Type, CheckSquare, Asterisk,
   Layout, List, Search, Film, Grid, CalendarDays, Cloud, ChevronDown, 
-  Quote, Link, FileJson, Copy, Check, ChevronRight, Tv, ChevronLeft, ArrowRight, ArrowLeft, Youtube, Download
+  Quote, Link, FileJson, Copy, Check, ChevronRight, Tv, ChevronLeft, ArrowRight, ArrowLeft, Youtube, Download, Smartphone
 } from 'lucide-react';
 
 const BASE_API_URL = "https://rioruo.vercel.app/v1";
@@ -139,6 +139,38 @@ const documentationData = [
         parameters: [],
         example: '/jadwal-rilis',
         response: 'Objek JSON dengan array `data`, di mana setiap elemen mewakili satu hari dan berisi daftar anime yang rilis pada hari tersebut.'
+      }
+    ]
+  },
+  {
+    id: 'tiktok',
+    name: 'TikTok Tools',
+    icon: <Smartphone size={20} />,
+    endpoints: [
+      {
+        path: '/v1/tiktok/stalk/:username',
+        method: 'GET',
+        description: 'Mengambil informasi profil TikTok seseorang berdasarkan username.',
+        parameters: [
+          { name: ':username', type: 'string', required: true, description: 'Username TikTok tanpa @ (misal: "khaby.lame").' }
+        ],
+        example: '/tiktok/stalk/khaby.lame',
+        response: 'Objek JSON berisi profile metadata (bio, verified, followers, engagement rate, dll).'
+      },
+      {
+        path: '/v1/tiktok/download',
+        method: 'POST',
+        description: 'Mendapatkan link download video TikTok tanpa watermark.',
+        parameters: [
+          { name: 'url', type: 'string', required: true, description: 'URL Video TikTok.' },
+          { name: 'version', type: 'string', required: false, description: 'v1, v2, atau v3. Default v1.' }
+        ],
+        requestBody: {
+          url: "https://www.tiktok.com/@khaby.lame/video/7402636254070050054",
+          version: "v1"
+        },
+        example: '/tiktok/download',
+        response: 'Objek JSON berisi metadata video dan download URLs.'
       }
     ]
   },
@@ -803,7 +835,6 @@ const RequestExample: React.FC<{ endpoint: Endpoint }> = ({ endpoint }) => {
   useEffect(() => {
     const handleClickOutside = (event: MouseEvent) => {
       if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
-        // Fix: Use the correct state setter name
         setIsDropdownOpen(false);
       }
     };

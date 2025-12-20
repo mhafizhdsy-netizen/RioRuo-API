@@ -1,7 +1,7 @@
-
 import otakudesu from '../otakudesu.js';
 import komiku from '../utils/komiku.js';
 import ytdl from '../utils/ytdl.js';
+import tiktok from '../utils/tiktok.js';
 
 const handleError = (res, e) => {
   console.error(e);
@@ -21,7 +21,27 @@ const handleError = (res, e) => {
   return res.status(status).json({ status: 'Error', message, hint });
 };
 
-// ... existing handlers (searchAnimeHandler, homeHandler, etc) ...
+const tiktokStalkHandler = async (req, res) => {
+  const { username } = req.params;
+  try {
+    const data = await tiktok.stalkUser(username);
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
+const tiktokDownloadHandler = async (req, res) => {
+  const { url, version } = req.body;
+  if (!url) return res.status(400).json({ status: 'Error', message: 'TikTok URL is required.' });
+  try {
+    const data = await tiktok.downloadVideo(url, version || 'v1');
+    return res.status(200).json({ status: 'Ok', Creator: 'RioRuo', data });
+  } catch (e) {
+    return handleError(res, e);
+  }
+};
+
 const searchAnimeHandler = async (req, res) => {
   const { keyword } = req.params;
   try {
@@ -449,6 +469,8 @@ const samehadakuSearchHandler = async (req, res) => {
 };
 
 export default {
+  tiktokStalkHandler,
+  tiktokDownloadHandler,
   searchAnimeHandler,
   homeHandler,
   ongoingAnimeHandler,

@@ -17,34 +17,43 @@ const transformUserInfo = (rawData) => {
   const result = rawData?.result;
   if (!result) throw new Error('Empty result from TikTok API');
 
-  // Berdasarkan dokumentasi: result.user (singular)
-  const user = result.user;
+  // TikTok API DL result for stalk usually has 'user', but we check fallbacks
+  const user = result.user || result.users || result.author;
   const stats = result.stats;
   
   if (!user) {
     throw new Error('Could not extract user profile details. TikTok might be blocking the request or account is private.');
   }
 
+  // More aggressive avatar check to handle all possible versions returned by the library
+  const getAvatar = (u) => {
+    // Check every known avatar key used by TikTok API responses
+    const avatar = u.avatar || u.avatarThumb || u.avatar_thumb || u.avatarLarger || u.avatar_larger || u.avatarMedium;
+    
+    if (Array.isArray(avatar)) return avatar[0];
+    if (typeof avatar === 'object' && avatar.url_list) return avatar.url_list[0];
+    return avatar || null;
+  };
+
   return {
     profile: {
-      // Documentation shows 'username' instead of 'id'
-      username: user.username || null,
+      username: user.username || user.uniqueId || user.unique_id || null,
       display_name: user.nickname || null,
-      bio: user.signature || '',
-      is_verified: !!user.verified,
-      profile_picture: user.avatar || null,
-      region: user.region || null,
-      profile_url: user.username ? `https://www.tiktok.com/@${user.username}` : null
+      bio: user.signature || user.bio || '',
+      is_verified: !!(user.verified || user.is_verified),
+      profile_picture: getAvatar(user),
+      region: user.region || user.location || user.country || null,
+      profile_url: (user.username || user.uniqueId) ? `https://www.tiktok.com/@${user.username || user.uniqueId}` : null
     },
     stats: stats ? {
-      total_followers: stats.followerCount || 0,
-      total_following: stats.followingCount || 0,
-      total_likes: stats.heartCount || 0,
-      total_videos: stats.videoCount || 0,
+      total_followers: stats.followerCount || stats.follower_count || 0,
+      total_following: stats.followingCount || stats.following_count || 0,
+      total_likes: stats.heartCount || stats.heart || stats.likeCount || 0,
+      total_videos: stats.videoCount || stats.video_count || 0,
       engagement_rate: calculateEngagementRate(
-        stats.heartCount || 0, 
-        stats.videoCount || 0,
-        stats.followerCount || 0
+        stats.heartCount || stats.heart || stats.likeCount || 0, 
+        stats.videoCount || stats.video_count || 0,
+        stats.followerCount || stats.follower_count || 0
       )
     } : null
   };
@@ -54,7 +63,6 @@ const transformVideoInfo = (rawData, version = 'v1') => {
   const result = rawData?.result;
   if (!result) throw new Error('Failed to retrieve video information');
   
-  // Mapping based on Version 1/2/3 in documentation
   if (version === 'v1' && result.author) {
     return {
       video_info: {
@@ -96,11 +104,10 @@ const transformVideoInfo = (rawData, version = 'v1') => {
       } : null
     };
   } else {
-    // Fallback for v2/v3
     return {
       video_info: {
         type: result.type || 'video',
-        title: result.desc || 'No title'
+        title: result.desc || result.title || 'No title'
       },
       media: {
         type: result.type || 'video',

@@ -17,56 +17,52 @@ const transformUserInfo = (rawData) => {
   const result = rawData?.result;
   if (!result) throw new Error('Empty result from TikTok API');
 
-  /**
-   * Interface: TiktokStalkUserResponse
-   * TikTok API library sometimes swaps fields between 'user' and 'author'.
-   * By merging them, we ensure fields present in 'author' (like region in downloader)
-   * are available even if 'user' is incomplete.
-   */
-  const user = { ...(result.author || {}), ...(result.user || {}) };
-  const stats = result.stats;
+  // Ambil referensi objek secara eksplisit
+  const u = result.user || {};
+  const a = result.author || {};
   
-  if (!user || Object.keys(user).length === 0) {
+  if (!result.user && !result.author) {
     throw new Error('Could not extract user profile details. Account might be private or blocked.');
   }
 
-  // Logic to prevent null avatar (Confirmed working)
-  const getAvatar = (u) => {
-    const avatarData = u.avatar || u.avatarThumb || u.avatarMedium || u.avatarLarger || u.avatar_thumb;
-    if (Array.isArray(avatarData)) return avatarData[0];
-    return avatarData || null;
+  // Logic Avatar: Cari yang tidak null/empty
+  const getAvatar = () => {
+    return u.avatar || a.avatar || u.avatarThumb?.[0] || a.avatarThumb?.[0] || u.avatarMedium?.[0] || null;
   };
 
-  // Robust region lookup to match the success found in downloader endpoint
-  const getRegion = (u, res) => {
-    // Check various keys used by TikTok for region data
+  // Logic Region: HARUS TELITI. Cari nilai string pertama yang tersedia.
+  // Kita cek user.region dulu, lalu author.region, baru fallback ke location/country.
+  const getRegion = () => {
     return u.region || 
+           a.region || 
            u.location || 
+           a.location || 
            u.country || 
-           res.region || 
-           res.location || 
+           result.region || 
            null;
   };
 
+  const username = u.username || a.username || u.uniqueId || a.uniqueId || null;
+
   return {
     profile: {
-      username: user.username || user.uniqueId || user.unique_id || null,
-      display_name: user.nickname || null,
-      bio: user.signature || user.bio || '',
-      is_verified: !!(user.verified || user.is_verified),
-      profile_picture: getAvatar(user),
-      region: getRegion(user, result),
-      profile_url: (user.username || user.uniqueId) ? `https://www.tiktok.com/@${user.username || user.uniqueId}` : null
+      username: username,
+      display_name: u.nickname || a.nickname || null,
+      bio: u.signature || a.signature || u.bio || '',
+      is_verified: !!(u.verified || a.verified),
+      profile_picture: getAvatar(),
+      region: getRegion(),
+      profile_url: username ? `https://www.tiktok.com/@${username}` : null
     },
-    stats: stats ? {
-      total_followers: stats.followerCount || 0,
-      total_following: stats.followingCount || 0,
-      total_likes: stats.heartCount || stats.likeCount || 0,
-      total_videos: stats.videoCount || 0,
+    stats: result.stats ? {
+      total_followers: result.stats.followerCount || 0,
+      total_following: result.stats.followingCount || 0,
+      total_likes: result.stats.heartCount || result.stats.likeCount || 0,
+      total_videos: result.stats.videoCount || 0,
       engagement_rate: calculateEngagementRate(
-        stats.heartCount || stats.likeCount || 0, 
-        stats.videoCount || 0,
-        stats.followerCount || 0
+        result.stats.heartCount || result.stats.likeCount || 0, 
+        result.stats.videoCount || 0,
+        result.stats.followerCount || 0
       )
     } : null
   };
